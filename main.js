@@ -13,13 +13,10 @@ const OWNER_SETTINGS = {
 
 let PUBLIC_MODE = true;
 
-// ========================= GROUP SETTINGS =========================
 const GROUP_SETTINGS_FILE = path.join("./data", "groupSettings.json");
 
-// Stelle sicher, dass der Ordner existiert
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
-// Lade Settings beim Start
 let groupSettings = {};
 if (fs.existsSync(GROUP_SETTINGS_FILE)) {
     try {
@@ -31,13 +28,16 @@ if (fs.existsSync(GROUP_SETTINGS_FILE)) {
     }
 }
 
-// Funktion, um Settings zu speichern
 const saveGroupSettings = () => {
     try {
         fs.writeFileSync(GROUP_SETTINGS_FILE, JSON.stringify(groupSettings, null, 2), "utf-8");
     } catch (e) {
         console.error("Fehler beim Speichern von groupSettings.json:", e);
     }
+};
+
+const ensureGroupSettings = (jid) => {
+    if (!groupSettings[jid]) groupSettings[jid] = {};
 };
 
 //=========================//
@@ -132,79 +132,52 @@ if (command === "ping") {
     return reply(sock, msg, `🏓 Pong!\n⏱️ Latenz: ${latency}ms`);
 }
 
-    //=========================//
-// TOGGLES
-//=========================//
-if (command === "welcome") {
-    if (!isGroup(from)) return;
-    if (!(await isAdmin(sock, from, sender)) && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Admin oder Owner!");
+   // Welcome Toggle
+    if (command === "welcome") {
+        if (value === "on") {
+            groupSettings[from].welcome = true;
+            saveGroupSettings();
+            return reply(sock, msg, "✅ Welcome aktiviert");
+        } else if (value === "off") {
+            groupSettings[from].welcome = false;
+            saveGroupSettings();
+            return reply(sock, msg, "❌ Welcome deaktiviert");
+        } else {
+            return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
+        }
     }
 
-    ensureGroupSettings(from);
-
-    const value = args[0]?.toLowerCase();
-    if (value === "on") {
-        groupSettings[from].welcome = true;
-        saveGroupSettings();
-        return reply(sock, msg, "✅ Welcome aktiviert");
-    } else if (value === "off") {
-        groupSettings[from].welcome = false;
-        saveGroupSettings();
-        return reply(sock, msg, "❌ Welcome deaktiviert");
-    } else {
-        return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
-    }
-}
-
-if (command === "leave") {
-    if (!isGroup(from)) return;
-    if (!(await isAdmin(sock, from, sender)) && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Admin oder Owner!");
+    // Leave Toggle
+    if (command === "leave") {
+        if (value === "on") {
+            groupSettings[from].leave = true;
+            saveGroupSettings();
+            return reply(sock, msg, "✅ Leave aktiviert");
+        } else if (value === "off") {
+            groupSettings[from].leave = false;
+            saveGroupSettings();
+            return reply(sock, msg, "❌ Leave deaktiviert");
+        } else {
+            return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
+        }
     }
 
-    ensureGroupSettings(from);
-
-    const value = args[0]?.toLowerCase();
-    if (value === "on") {
-        groupSettings[from].leave = true;
-        saveGroupSettings();
-        return reply(sock, msg, "✅ Leave aktiviert");
-    } else if (value === "off") {
-        groupSettings[from].leave = false;
-        saveGroupSettings();
-        return reply(sock, msg, "❌ Leave deaktiviert");
-    } else {
-        return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
+    // Antidelete Toggle
+    if (command === "antidelete") {
+        if (value === "on") {
+            groupSettings[from].antidelete = true;
+            saveGroupSettings();
+            return reply(sock, msg, "✅ Antidelete aktiviert!");
+        } else if (value === "off") {
+            groupSettings[from].antidelete = false;
+            saveGroupSettings();
+            return reply(sock, msg, "❌ Antidelete deaktiviert!");
+        } else {
+            return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
+        }
     }
-}
+};
 
-//=========================//
-// ANTIDELETE TOGGLE
-//=========================//
-if (command === "antidelete") {
-    if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen möglich!");
-
-    const admin = await isAdmin(sock, from, sender);
-    if (!admin && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Admin oder Owner darf das ändern!");
-    }
-
-    ensureGroupSettings(from);
-
-    const value = args[0]?.toLowerCase();
-    if (value === "on") {
-        groupSettings[from].antidelete = true;
-        saveGroupSettings();
-        return reply(sock, msg, "✅ Antidelete aktiviert!");
-    } else if (value === "off") {
-        groupSettings[from].antidelete = false;
-        saveGroupSettings();
-        return reply(sock, msg, "❌ Antidelete deaktiviert!");
-    } else {
-        return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
-    }
-}
 
     //=========================//
     // INFO

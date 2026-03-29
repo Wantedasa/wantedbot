@@ -34,6 +34,10 @@ const saveBotConfig = () => {
     }
 };
 
+export const ensureGroupSettings = (jid) => {
+    if (!groupSettings[jid]) groupSettings[jid] = { welcome: true, leave: true, antidelete: false };
+};
+
 export let PUBLIC_MODE = botConfig.publicMode;
 
 //=========================//

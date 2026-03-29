@@ -168,11 +168,13 @@ sock.ev.on('messages.upsert', async (m) => {
         if (isGroup(from)) {
             if (!messageCache[from]) messageCache[from] = {};
             messageCache[from][id] = msg;
-            if (Object.keys(messageCache[from]).length > 200) {
+
+            if (Object.keys(messageCache[from]).length > 999) {
                 const oldest = Object.keys(messageCache[from])[0];
                 delete messageCache[from][oldest];
             }
         }
+
         await handleCommands(sock, msg);
 
         if (msg.message.protocolMessage?.type === 0) {

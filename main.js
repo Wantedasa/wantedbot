@@ -84,6 +84,7 @@ async function handleCommands(sock, msg) {
 ║ ├ .kick
 ║ ├ .welcome on/off
 ║ ├ .leave on/off
+║ ├ .antidelete on/off
 ║ ├ .grpname
 ║ ├ .grpdesc
 ║ ├ .delete

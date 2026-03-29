@@ -126,13 +126,16 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         if (!msg.message) return;
 
         const from = msg.key.remoteJid;
-        const sender = msg.key.participant || from;
+        const sender = msg.key.participant || from; // Absender der Nachricht
         const id = msg.key.id;
 
-
+        // Cache für Gruppen
         if (isGroup(from)) {
             if (!messageCache[from]) messageCache[from] = {};
-            messageCache[from][id] = msg;
+            messageCache[from][id] = {
+                msg,
+                sender, // hier speichern wir den echten Absender
+            };
 
             if (Object.keys(messageCache[from]).length > 999) {
                 const oldest = Object.keys(messageCache[from])[0];
@@ -141,7 +144,6 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         }
 
         await handleCommands(sock, msg);
-
 
         let text = "";
         if (msg.message?.conversation) text = msg.message.conversation;
@@ -153,33 +155,37 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         else if (msg.message?.buttonsResponseMessage) text = `[Button Antwort] ${msg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
         await logMessage(sock, from, sender, text);
 
+        // Antidelete
         if (msg.message.protocolMessage?.type === 0) {
-    const deletedMsg = msg.message.protocolMessage;
-    const deletedId = deletedMsg.key.id;
-    const deletedSender = deletedMsg.key.participant || from;
+            const deletedMsg = msg.message.protocolMessage;
+            const deletedId = deletedMsg.key.id;
 
-    if (!groupSettings[from]?.antidelete) return;
+            if (!groupSettings[from]?.antidelete) return;
 
-    const originalMsg = messageCache[from]?.[deletedId];
+            const cached = messageCache[from]?.[deletedId];
+            if (!cached) return;
 
-    let deletedContent = "[Nicht darstellbare Nachricht]";
+            const originalMsg = cached.msg;
+            const originalSender = cached.sender; // richtiger Absender
 
-    if (originalMsg) {
-        if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;
-        else if (originalMsg.message?.extendedTextMessage?.text) deletedContent = originalMsg.message.extendedTextMessage.text;
-        else if (originalMsg.message?.imageMessage?.caption) deletedContent = "[Bild] " + originalMsg.message.imageMessage.caption;
-        else if (originalMsg.message?.videoMessage?.caption) deletedContent = "[Video] " + originalMsg.message.videoMessage.caption;
-        else if (originalMsg.message?.stickerMessage) deletedContent = "[Sticker]";
-        else if (originalMsg.message?.documentMessage) deletedContent = `[Dokument] ${originalMsg.message.documentMessage.fileName || ""}`;
-        else if (originalMsg.message?.buttonsResponseMessage) deletedContent = `[Button Antwort] ${originalMsg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
-    }
+            let deletedContent = "[Nicht darstellbare Nachricht]";
 
-    await sock.sendMessage(from, {
-        text: `🛡️ @${deletedId.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
-        mentions: [deletedId]
-    });
-}
-        
+            if (originalMsg) {
+                if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;
+                else if (originalMsg.message?.extendedTextMessage?.text) deletedContent = originalMsg.message.extendedTextMessage.text;
+                else if (originalMsg.message?.imageMessage?.caption) deletedContent = "[Bild] " + originalMsg.message.imageMessage.caption;
+                else if (originalMsg.message?.videoMessage?.caption) deletedContent = "[Video] " + originalMsg.message.videoMessage.caption;
+                else if (originalMsg.message?.stickerMessage) deletedContent = "[Sticker]";
+                else if (originalMsg.message?.documentMessage) deletedContent = `[Dokument] ${originalMsg.message.documentMessage.fileName || ""}`;
+                else if (originalMsg.message?.buttonsResponseMessage) deletedContent = `[Button Antwort] ${originalMsg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
+            }
+
+            await sock.sendMessage(from, {
+                text: `🛡️ @${originalSender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
+                mentions: [originalSender]
+            });
+        }
+
     } catch (err) {
         console.error("Fehler im messages.upsert Event:", err);
     }

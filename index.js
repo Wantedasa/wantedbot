@@ -157,13 +157,16 @@ async function connectBot() {
         }
     });
 
-sock.ev.on('messages.upsert', async (m) => {
+sock.ev.on('messages.upsert', async ({ messages, type }) => {
+    if (type !== "notify") return;
     try {
-        const msg = m.messages[0];
+        const msg = messages[0];
         if (!msg.message) return;
 
         const from = msg.key.remoteJid;
+        const sender = msg.key.participant || from;
         const id = msg.key.id;
+
 
         if (isGroup(from)) {
             if (!messageCache[from]) messageCache[from] = {};
@@ -177,10 +180,21 @@ sock.ev.on('messages.upsert', async (m) => {
 
         await handleCommands(sock, msg);
 
+
+        let text = "";
+        if (msg.message?.conversation) text = msg.message.conversation;
+        else if (msg.message?.extendedTextMessage?.text) text = msg.message.extendedTextMessage.text;
+        else if (msg.message?.imageMessage?.caption) text = msg.message.imageMessage.caption;
+        else if (msg.message?.videoMessage?.caption) text = msg.message.videoMessage.caption;
+        else if (msg.message?.stickerMessage) text = "[Sticker]";
+        else if (msg.message?.documentMessage) text = `[Dokument] ${msg.message.documentMessage.fileName || ""}`;
+        else if (msg.message?.buttonsResponseMessage) text = `[Button Antwort] ${msg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
+        await logMessage(sock, from, sender, text);
+
         if (msg.message.protocolMessage?.type === 0) {
             const deletedMsg = msg.message.protocolMessage;
-            const sender = deletedMsg.key.participant || from;
             const deletedId = deletedMsg.key.id;
+            const deletedSender = deletedMsg.key.participant || from;
 
             if (!groupSettings[from]?.antidelete) return;
 
@@ -189,16 +203,21 @@ sock.ev.on('messages.upsert', async (m) => {
             let deletedContent = "[Nicht darstellbare Nachricht]";
 
             if (originalMsg) {
-                deletedContent = originalMsg.message.conversation
-                    || originalMsg.message?.extendedTextMessage?.text
-                    || "[Nicht darstellbare Nachricht]";
+                if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;
+                else if (originalMsg.message?.extendedTextMessage?.text) deletedContent = originalMsg.message.extendedTextMessage.text;
+                else if (originalMsg.message?.imageMessage?.caption) deletedContent = "[Bild] " + originalMsg.message.imageMessage.caption;
+                else if (originalMsg.message?.videoMessage?.caption) deletedContent = "[Video] " + originalMsg.message.videoMessage.caption;
+                else if (originalMsg.message?.stickerMessage) deletedContent = "[Sticker]";
+                else if (originalMsg.message?.documentMessage) deletedContent = `[Dokument] ${originalMsg.message.documentMessage.fileName || ""}`;
+                else if (originalMsg.message?.buttonsResponseMessage) deletedContent = `[Button Antwort] ${originalMsg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
             }
 
             await sock.sendMessage(from, {
-                text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
-                mentions: [sender]
+                text: `🛡️ @${deletedSender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
+                mentions: [deletedSender]
             });
         }
+
     } catch (err) {
         console.error("Fehler im messages.upsert Event:", err);
     }

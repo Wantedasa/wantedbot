@@ -91,45 +91,53 @@ export async function handleCommands(sock, msg) {
 
     ensureGroupSettings(from);
 
-    //=========================//
-    // TOGGLES
-    //=========================//
-    if (command === "welcome") {
-        if (value === "on") groupSettings[from].welcome = true;
-        else if (value === "off") groupSettings[from].welcome = false;
-        else return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
-        saveGroupSettings();
-        return reply(sock, msg, groupSettings[from].welcome ? "✅ Welcome aktiviert" : "❌ Welcome deaktiviert");
+    
+
+if (command === "welcome") {
+    // Gruppe initialisieren
+    if (!botConfig.groupSettings) botConfig.groupSettings = {};
+    if (!botConfig.groupSettings[from]) botConfig.groupSettings[from] = { welcome: true, leave: true, antidelete: false };
+
+    const value = args[0]?.toLowerCase();
+    if (!value || (value !== "on" && value !== "off")) {
+        return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
     }
 
-    if (command === "leave") {
-        if (value === "on") groupSettings[from].leave = true;
-        else if (value === "off") groupSettings[from].leave = false;
-        else return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
-        saveGroupSettings();
-        return reply(sock, msg, groupSettings[from].leave ? "✅ Leave aktiviert" : "❌ Leave deaktiviert");
+    botConfig.groupSettings[from].welcome = value === "on";
+    saveBotConfig();
+    return reply(sock, msg, botConfig.groupSettings[from].welcome ? "✅ Welcome aktiviert" : "❌ Welcome deaktiviert");
+}
+
+if (command === "leave") {
+    if (!botConfig.groupSettings) botConfig.groupSettings = {};
+    if (!botConfig.groupSettings[from]) botConfig.groupSettings[from] = { welcome: true, leave: true, antidelete: false };
+
+    const value = args[0]?.toLowerCase();
+    if (!value || (value !== "on" && value !== "off")) {
+        return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
     }
 
-    if (command === "antidelete") {
-    // Stelle sicher, dass die Gruppe initialisiert ist
-    ensureGroupSettings(from);
+    botConfig.groupSettings[from].leave = value === "on";
+    saveBotConfig();
+    return reply(sock, msg, botConfig.groupSettings[from].leave ? "✅ Leave aktiviert" : "❌ Leave deaktiviert");
+}
 
-    // Admin-Check (optional, nur wenn du willst)
-    const admin = await isAdmin(sock, from, sender); // falls du isAdmin schon hast
+if (command === "antidelete") {
+    if (!botConfig.groupSettings) botConfig.groupSettings = {};
+    if (!botConfig.groupSettings[from]) botConfig.groupSettings[from] = { welcome: true, leave: true, antidelete: false };
+
+    // Admin-Check
+    const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admins oder Owner können Antidelete setzen!");
 
-    // Wert prüfen
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
         return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
     }
 
-    // Antidelete setzen
-    groupSettings[from].antidelete = value === "on";
-    saveGroupSettings();
-
-    // Rückmeldung
-    return reply(sock, msg, groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
+    botConfig.groupSettings[from].antidelete = value === "on";
+    saveBotConfig();
+    return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 
     //=========================//

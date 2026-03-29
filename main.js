@@ -165,6 +165,7 @@ if (command === "public") {
 ║ ├ .grpname
 ║ ├ .grpdesc
 ║ ├ .delete
+║ ├ .clearchat 
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -343,23 +344,67 @@ if (command === "hidetag") {
     // DELETE MESSAGE
     //=========================//
     if (command === "del" || command === "delete") {
-        if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
-        const admin = await isAdmin(sock, from, sender);
-        if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
 
-        const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
-        if (!contextInfo?.stanzaId) return reply(sock, msg, "⚙️ Antworte auf die Nachricht, die gelöscht werden soll!");
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+    if (!contextInfo?.stanzaId) return reply(sock, msg, "⚙️ Antworte auf die Nachricht, die gelöscht werden soll!");
 
-        try {
-            await sock.sendMessage(from, { delete: { remoteJid: from, id: contextInfo.stanzaId, fromMe: false } });
-            await sock.sendMessage(from, { delete: { remoteJid: from, id: msg.key.id, fromMe: true } });
-        } catch (err) {
-            console.error(err);
-            return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
-        }
+    try {
+        // Nachricht, auf die geantwortet wurde, löschen
+        await sock.sendMessage(from, {
+            delete: {
+                remoteJid: from,
+                id: contextInfo.stanzaId,
+                fromMe: false // fromMe false, weil es nicht deine Nachricht ist
+            }
+        });
+
+        // Befehlsnachricht selbst löschen
+        await sock.sendMessage(from, {
+            delete: {
+                remoteJid: from,
+                id: msg.key.id,
+                fromMe: true // eigene Nachricht
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
     }
 }
 
+if (command === "clearchat") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
+
+    const count = parseInt(args[0]);
+    if (isNaN(count) || count < 1) return reply(sock, msg, "⚙️ Benutzung: clearchat <Anzahl>");
+
+    try {
+        // Letzte Nachrichten abrufen
+        const messages = await sock.loadMessages(from, count + 1); // +1, weil wir auch den Befehl selbst löschen wollen
+        const msgsToDelete = messages.messages.slice(0, count + 1); // die IDs für das Löschen vorbereiten
+
+        for (let m of msgsToDelete) {
+            // Nachrichten löschen
+            await sock.sendMessage(from, {
+                delete: {
+                    remoteJid: from,
+                    id: m.key.id,
+                    fromMe: m.key.fromMe // wichtig: true, wenn eigene Nachricht
+                }
+            });
+        }
+
+        await reply(sock, msg, `✅ Die letzten ${count} Nachrichten wurden gelöscht.`);
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
+    }
+}
 //=========================//
 // GROUP EVENTS
 //=========================//

@@ -139,6 +139,16 @@ if (command === "antidelete") {
     saveBotConfig();
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
+if (command === "autoread") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur der Owner kann diese Einstellung ändern!");
+
+    const value = args[0]?.toLowerCase();
+    if (!value || !["on","off"].includes(value)) return reply(sock, msg, "⚙️ Nutzung: !autoread on/off");
+
+    botConfig.autoRead = value === "on";
+    saveConfig();
+    return reply(sock, msg, `✅ Automatisches Lesen ist jetzt ${botConfig.autoRead ? "aktiviert" : "deaktiviert"}`);
+}
 
     //=========================//
     // OWNER & BOT INFO

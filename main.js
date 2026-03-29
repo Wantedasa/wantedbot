@@ -216,32 +216,32 @@ if (command === "public") {
     }
 }
     // ====== Auto-Message setzen ======
-    if (command === "setmsg") {
-        if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages setzen!");
+      if (command === "setmsg") {
+    if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages setzen!");
 
-        const [minutesStr, ...messageParts] = args;
-        if (!minutesStr || !messageParts.length) {
-            return reply(sock, msg, "Benutzung: .setmsg <Minuten> <Nachricht>");
-        }
-
-        const minutes = parseInt(minutesStr);
-        if (isNaN(minutes) || minutes <= 0) {
-            return reply(sock, msg, "Bitte eine gültige Zahl größer als 0 angeben!");
-        }
-
-        const textMessage = messageParts.join(" ");
-
-        // Alte Intervalle löschen, falls schon vorhanden
-        if (autoMessages[from]) clearInterval(autoMessages[from]);
-
-        // Neue Intervalle setzen
-        autoMessageSettings[from] = { text: textMessage, interval: minutes };
-        autoMessages[from] = setInterval(async () => {
-            await sock.sendMessage(sock, msg, textMessage);
-        }, minutes * 60 * 1000);
-
-        return reply(sock, msg, `✅ Auto-Message gesetzt: "${textMessage}" alle ${minutes} Minute(n)`);
+    const [minutesStr, ...messageParts] = args;
+    if (!minutesStr || !messageParts.length) {
+        return reply(sock, msg, "Benutzung: .setmsg <Minuten> <Nachricht>");
     }
+
+    const minutes = parseInt(minutesStr);
+    if (isNaN(minutes) || minutes <= 0) {
+        return reply(sock, msg, "Bitte eine gültige Zahl größer als 0 angeben!");
+    }
+
+    const textMessage = messageParts.join(" ");
+
+    // Alte Intervalle löschen, falls schon vorhanden
+    if (autoMessages[from]) clearInterval(autoMessages[from]);
+
+    // Neue Intervalle setzen
+    autoMessageSettings[from] = { text: textMessage, interval: minutes };
+    autoMessages[from] = setInterval(async () => {
+        await sock.sendMessage(from, { text: textMessage }); // ← nur an die Gruppe/Person senden, kein Reply
+    }, minutes * 60 * 1000);
+
+    return reply(sock, msg, `✅ Auto-Message gesetzt: "${textMessage}" alle ${minutes} Minute(n)`);
+}
 
     // ====== Auto-Message stoppen ======
     if (command === "stopmsg") {

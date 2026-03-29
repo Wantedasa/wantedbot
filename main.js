@@ -215,7 +215,7 @@ if (command === "ping") {
     if (command === "hidetag") {
         if (!isGroup(from)) return;
 
-        const meta = await sock.groupMetadata(from);
+        const meta = sock.groupMetadata(from);
         const participants = meta.participants.map(p => p.id);
 
         const message = args.join(" ") || "👀";

@@ -254,9 +254,9 @@ if (command === "kickall") {
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
+        }
     }
 }
-
 
 //=========================//
 // GROUP EVENTS

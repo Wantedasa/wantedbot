@@ -111,12 +111,23 @@ export async function handleCommands(sock, msg) {
     }
 
     if (command === "antidelete") {
-        if (value === "on") groupSettings[from].antidelete = true;
-        else if (value === "off") groupSettings[from].antidelete = false;
-        else return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
-        saveGroupSettings();
-        return reply(sock, msg, groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
+    // Prüfe, ob ein Wert angegeben wurde
+    const value = args[0]?.toLowerCase();
+    if (!value || (value !== "on" && value !== "off")) {
+        return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
     }
+
+    // Antidelete setzen
+    groupSettings[from].antidelete = value === "on";
+    saveGroupSettings();
+
+    // Feedback zurückgeben
+    if (groupSettings[from].antidelete) {
+        return reply(sock, msg, "✅ Antidelete aktiviert!");
+    } else {
+        return reply(sock, msg, "❌ Antidelete deaktiviert!");
+    }
+}
 
     //=========================//
     // OWNER & BOT INFO

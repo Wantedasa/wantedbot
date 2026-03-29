@@ -111,7 +111,14 @@ export async function handleCommands(sock, msg) {
     }
 
     if (command === "antidelete") {
-    // Prüfe, ob ein Wert angegeben wurde
+    // Stelle sicher, dass die Gruppe initialisiert ist
+    ensureGroupSettings(from);
+
+    // Admin-Check (optional, nur wenn du willst)
+    const admin = await isAdmin(sock, from, sender); // falls du isAdmin schon hast
+    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admins oder Owner können Antidelete setzen!");
+
+    // Wert prüfen
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
         return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
@@ -121,12 +128,8 @@ export async function handleCommands(sock, msg) {
     groupSettings[from].antidelete = value === "on";
     saveGroupSettings();
 
-    // Feedback zurückgeben
-    if (groupSettings[from].antidelete) {
-        return reply(sock, msg, "✅ Antidelete aktiviert!");
-    } else {
-        return reply(sock, msg, "❌ Antidelete deaktiviert!");
-    }
+    // Rückmeldung
+    return reply(sock, msg, groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 
     //=========================//

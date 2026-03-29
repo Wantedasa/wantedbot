@@ -86,6 +86,7 @@ async function handleCommands(sock, msg) {
 ║ ├ .leave on/off
 ║ ├ .grpname
 ║ ├ .grpdesc
+║ ├ .delete
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -302,6 +303,38 @@ if (command === "grpdesc") {
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Ändern der Gruppenbeschreibung!");
+    }
+}
+    //=========================//
+// SWEEP / BESEN DELETE
+//=========================//
+if (command === "del" || command === "delete") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admin oder Owner darf Nachrichten löschen!");
+    }
+
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+
+    if (!contextInfo?.stanzaId) {
+        return reply(sock, msg, "⚙️ Antworte auf die Nachricht, die gelöscht werden soll!");
+    }
+
+    try {
+        await sock.sendMessage(from, {
+            delete: { remoteJid: from, id: contextInfo.stanzaId, fromMe: false }
+        });
+        await sock.sendMessage(from, {
+            delete: { remoteJid: from, id: msg.key.id, fromMe: true }
+        });
+
+        // Optional: Bestätigung senden
+        return reply(sock, msg, "🧹 Nachrichten erfolgreich gelöscht!");
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
     }
 }
     

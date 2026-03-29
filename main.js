@@ -11,36 +11,30 @@ export const OWNER_SETTINGS = {
     version: "1.0.0"
 };
 
-export let PUBLIC_MODE = true;
-
-//=========================//
-// GROUP SETTINGS
-//=========================//
-const GROUP_SETTINGS_FILE = path.join("./data", "groupSettings.json");
+const CONFIG_FILE = path.join("./data", "botConfig.json");
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
-export let groupSettings = {};
-if (fs.existsSync(GROUP_SETTINGS_FILE)) {
+let botConfig = { publicMode: true };
+
+if (fs.existsSync(CONFIG_FILE)) {
     try {
-        const rawData = fs.readFileSync(GROUP_SETTINGS_FILE, "utf-8");
-        groupSettings = JSON.parse(rawData);
+        const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
+        botConfig = JSON.parse(raw);
     } catch (e) {
-        console.error("Fehler beim Laden von groupSettings.json:", e);
-        groupSettings = {};
+        console.error("Fehler beim Laden von botConfig.json:", e);
     }
 }
 
-export const saveGroupSettings = () => {
+// Speichern Funktion
+const saveBotConfig = () => {
     try {
-        fs.writeFileSync(GROUP_SETTINGS_FILE, JSON.stringify(groupSettings, null, 2), "utf-8");
+        fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");
     } catch (e) {
-        console.error("Fehler beim Speichern von groupSettings.json:", e);
+        console.error("Fehler beim Speichern von botConfig.json:", e);
     }
 };
 
-export const ensureGroupSettings = (jid) => {
-    if (!groupSettings[jid]) groupSettings[jid] = { welcome: true, leave: true, antidelete: false };
-};
+export let PUBLIC_MODE = botConfig.publicMode;
 
 //=========================//
 // Helper
@@ -118,17 +112,21 @@ export async function handleCommands(sock, msg) {
     if (command === "owner") return reply(sock, msg, `👑 Owner: ${OWNER_SETTINGS.ownerName}`);
     if (command === "bot") return reply(sock, msg, `🤖 ${OWNER_SETTINGS.botName}\n👑 Owner: ${OWNER_SETTINGS.ownerName}\n⚡ Version: ${OWNER_SETTINGS.version}`);
 
-    if (command === "self") {
-        if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
-        PUBLIC_MODE = false;
-        return reply(sock, msg, "🔒 SELF MODE aktiviert");
-    }
+if (command === "self") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    PUBLIC_MODE = false;
+    botConfig.publicMode = false;
+    saveBotConfig();
+    return reply(sock, msg, "🔒 SELF MODE aktiviert");
+}
 
-    if (command === "public") {
-        if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
-        PUBLIC_MODE = true;
-        return reply(sock, msg, "🌍 PUBLIC MODE aktiviert");
-    }
+if (command === "public") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    PUBLIC_MODE = true;
+    botConfig.publicMode = true;
+    saveBotConfig();
+    return reply(sock, msg, "🌍 PUBLIC MODE aktiviert");
+}
 
     if (command === "menu") {
         return reply(sock, msg,

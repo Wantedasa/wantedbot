@@ -405,6 +405,9 @@ if (command === "clearchat") {
         return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
     }
 }
+}
+
+
 //=========================//
 // GROUP EVENTS
 //=========================//

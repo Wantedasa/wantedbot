@@ -189,24 +189,76 @@ async function handleCommands(sock, msg) {
     // KICK
     //=========================//
     if (command === "kick") {
-        if (!isGroup(from)) return;
+    if (!isGroup(from)) return;
 
-        const admin = await isAdmin(sock, from, sender);
-        if (!admin && !isOwner(sender)) {
-            return reply(sock, msg, "❌ Nur Admin oder Owner!");
-        }
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admin oder Owner!");
+    }
 
-        const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    let targets = [];
 
-        if (!mentioned || mentioned.length === 0) {
-            return reply(sock, msg, "❌ Markiere jemanden!");
-        }
+    // 1. Mention prüfen
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    if (mentioned && mentioned.length > 0) {
+        targets = mentioned;
+    }
 
-        await sock.groupParticipantsUpdate(from, mentioned, "remove");
+    // 2. Reply prüfen (wenn keine Mentions)
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+    if (targets.length === 0 && contextInfo?.participant) {
+        targets.push(contextInfo.participant);
+    }
 
+    // Wenn nichts gefunden
+    if (targets.length === 0) {
+        return reply(sock, msg, "❌ Markiere jemanden oder antworte auf eine Nachricht!");
+    }
+
+    try {
+        await sock.groupParticipantsUpdate(from, targets, "remove");
         return reply(sock, msg, "🚫 User wurde gekickt!");
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
+
+    if (command === "kickall") {
+    if (!isGroup(from)) return;
+
+    // Nur Owner erlauben (sehr wichtig!)
+    if (!isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur der Owner darf das!");
+    }
+
+    try {
+        const metadata = await sock.groupMetadata(from);
+        const participants = metadata.participants;
+
+        // Alle JIDs holen (außer dir selbst optional)
+        const toKick = participants
+            .map(p => p.id)
+            .filter(jid => jid !== sender); // dich selbst nicht kicken
+
+        if (toKick.length === 0) {
+            return reply(sock, msg, "❌ Keine User zum Kicken gefunden!");
+        }
+
+        // WhatsApp Limit umgehen (Chunks von 10)
+        const chunkSize = 10;
+        for (let i = 0; i < toKick.length; i += chunkSize) {
+            const chunk = toKick.slice(i, i + chunkSize);
+            await sock.groupParticipantsUpdate(from, chunk, "remove");
+        }
+
+        return reply(sock, msg, `🚫 ${toKick.length} User wurden gekickt!`);
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Kicken!");
+    }
+}
+
 
 //=========================//
 // GROUP EVENTS

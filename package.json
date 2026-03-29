@@ -1,0 +1,25 @@
+{
+  "name": "Samuel",
+  "version": "1.0.0",
+  "type": "CommonJS",
+  "description": "WhatsApp Bot SamuelV1 – hidetag, Admin, Kick, Menü",
+  "main": "index.js",
+  "author": "Baumi",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@angstvorfrauen/baileys": "^4.0.0",
+    "pino": "^8.14.0",
+    "better-sqlite3": "^8.2.0",
+    "cfonts": "^3.0.0",
+    "jimp": "0.16.0",
+    "libphonenumber-js": "^1.10.31",
+    "moment-timezone": "^0.5.43",
+    "uuid": "^9.0.0",
+    "node-cache": "^5.1.2",
+    "open": "^9.0.0",
+    "node-fetch": "^3.3.2",
+    "libsignal-xeuka": "^0.1.8"
+  }
+}

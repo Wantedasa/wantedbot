@@ -89,6 +89,8 @@ async function handleCommands(sock, msg) {
 ║ ├ .kickall
 ║ ├ .welcome on/off
 ║ ├ .leave on/off
+║ ├ .grpname
+║ ├ .grpdesc
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -256,6 +258,51 @@ if (command === "kickall") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
         }
     }
+//=========================//
+// SET GROUP NAME
+//=========================//
+if (command === "grpname") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admin oder Owner darf den Gruppennamen ändern!");
+    }
+
+    const newName = args.join(" ");
+    if (!newName) return reply(sock, msg, "⚙️ Nutzung: .setgrpname <neuer Name>");
+
+    try {
+        await sock.groupUpdateSubject(from, newName);
+        return reply(sock, msg, `✅ Gruppenname wurde zu *${newName}* geändert!`);
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Ändern des Gruppennamens!");
+    }
+}
+//=========================//
+// SET GROUP DESCRIPTION
+//=========================//
+if (command === "grpdesc") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admin oder Owner darf die Gruppenbeschreibung ändern!");
+    }
+
+    const newDesc = args.join(" ");
+    if (!newDesc) return reply(sock, msg, "⚙️ Nutzung: .setgrpdesc <neue Beschreibung>");
+
+    try {
+        await sock.groupUpdateDescription(from, newDesc);
+        return reply(sock, msg, `✅ Gruppenbeschreibung wurde geändert!`);
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Ändern der Gruppenbeschreibung!");
+    }
+}
+    
 }
 
 //=========================//

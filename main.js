@@ -237,7 +237,7 @@ if (command === "public") {
         // Neue Intervalle setzen
         autoMessageSettings[from] = { text: textMessage, interval: minutes };
         autoMessages[from] = setInterval(async () => {
-            await reply(sock, msg, textMessage);
+            await sock.sendMessage(sock, msg, textMessage);
         }, minutes * 60 * 1000);
 
         return reply(sock, msg, `✅ Auto-Message gesetzt: "${textMessage}" alle ${minutes} Minute(n)`);

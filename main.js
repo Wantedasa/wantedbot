@@ -11,11 +11,11 @@ export const OWNER_SETTINGS = {
     version: "1.0.0"
 };
 
+// ========================= BOT CONFIG =========================
 const CONFIG_FILE = path.join("./data", "botConfig.json");
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
 let botConfig = { publicMode: true };
-
 if (fs.existsSync(CONFIG_FILE)) {
     try {
         const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
@@ -26,7 +26,7 @@ if (fs.existsSync(CONFIG_FILE)) {
 }
 
 // Speichern Funktion
-const saveBotConfig = () => {
+export const saveBotConfig = () => {
     try {
         fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");
     } catch (e) {
@@ -34,15 +34,16 @@ const saveBotConfig = () => {
     }
 };
 
+// ========================= GROUP SETTINGS =========================
+export const groupSettings = {};
+
 export const ensureGroupSettings = (jid) => {
     if (!groupSettings[jid]) groupSettings[jid] = { welcome: true, leave: true, antidelete: false };
 };
 
 export let PUBLIC_MODE = botConfig.publicMode;
 
-//=========================//
-// Helper
-//=========================//
+// ========================= HELPERS =========================
 export const getText = (msg) => {
     if (msg.message?.conversation) return msg.message.conversation;
     if (msg.message?.extendedTextMessage?.text) return msg.message.extendedTextMessage.text;
@@ -50,14 +51,16 @@ export const getText = (msg) => {
 };
 
 export const isGroup = (jid) => jid.endsWith("@g.us");
-export const isOwner = (sender) => sender === OWNER_SETTINGS.ownerJid || sender === OWNER_SETTINGS.ownerJidLid;
+export const isOwner = (sender) =>
+    sender === OWNER_SETTINGS.ownerJid || sender === OWNER_SETTINGS.ownerJidLid;
 
 export const isAdmin = async (sock, jid, user) => {
     try {
         const meta = await sock.groupMetadata(jid);
-        const admin = meta.participants.find(p => p.id === user);
-        return admin?.admin !== null;
-    } catch {
+        const participant = meta.participants.find(p => p.id === user);
+        return participant?.admin ? true : false;
+    } catch (err) {
+        console.error("Fehler beim Prüfen des Admins:", err);
         return false;
     }
 };
@@ -65,6 +68,7 @@ export const isAdmin = async (sock, jid, user) => {
 export const reply = async (sock, msg, text, extra = {}) => {
     return await sock.sendMessage(msg.key.remoteJid, { text, ...extra }, { quoted: msg });
 };
+
 
 //=========================//
 // COMMAND HANDLER

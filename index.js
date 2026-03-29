@@ -181,8 +181,16 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
             }
 
             await sock.sendMessage(from, {
-                text: `🛡️ @${originalSender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
-                mentions: [originalSender]
+                text: `
+┌─❖ 🛡️ Anti-Delete Alert ❖─┐
+│
+│ 🔹 Absender: @${originalSender.split("@")[0]}
+│ 🔹 Inhalt: 
+│   ${deletedContent.split("\n").join("\n│   ")}
+│
+└─────────────────────────┘
+`
+mentions: [originalSender]
             });
         }
 

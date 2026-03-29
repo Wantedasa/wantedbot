@@ -1,11 +1,10 @@
 {
   "name": "Samuel",
   "version": "1.0.0",
-  "type": "CommonJS",
   "description": "WhatsApp Bot SamuelV1 – hidetag, Admin, Kick, Menü",
   "main": "index.js",
   "author": "Baumi",
-  "type": "module"
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },

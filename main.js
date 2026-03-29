@@ -305,9 +305,7 @@ if (command === "grpdesc") {
         return reply(sock, msg, "❌ Fehler beim Ändern der Gruppenbeschreibung!");
     }
 }
-    //=========================//
-// SWEEP / BESEN DELETE
-//=========================//
+
 if (command === "del" || command === "delete") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
 
@@ -329,9 +327,6 @@ if (command === "del" || command === "delete") {
         await sock.sendMessage(from, {
             delete: { remoteJid: from, id: msg.key.id, fromMe: true }
         });
-
-        // Optional: Bestätigung senden
-        return reply(sock, msg, "🧹 Nachrichten erfolgreich gelöscht!");
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");

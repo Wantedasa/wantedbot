@@ -214,7 +214,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         console.error("Fehler im messages.upsert Event:", err);
     }
 });
-
+}
 return sock;
 
 connectBot();

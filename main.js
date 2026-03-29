@@ -341,7 +341,10 @@ if (command === "hidetag") {
     }
 
    
-if (command === "del" || command === "delete" || command === "besen") {
+//=========================//
+// DELETE MESSAGE + Befehl
+//=========================//
+if (command === "del" || command === "delete") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
 
     const admin = await isAdmin(sock, from, sender);
@@ -349,28 +352,25 @@ if (command === "del" || command === "delete" || command === "besen") {
         return reply(sock, msg, "❌ Nur Admin oder Owner darf Nachrichten löschen!");
     }
 
+    // Prüfen, ob auf eine Nachricht geantwortet wurde
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
-
     if (!contextInfo?.stanzaId) {
         return reply(sock, msg, "⚙️ Antworte auf die Nachricht, die gelöscht werden soll!");
     }
 
     try {
-        // 1️⃣ Nachricht, auf die geantwortet wurde, löschen
-        await sock.sendMessage(from, {
-            delete: { remoteJid: from, id: contextInfo.stanzaId, fromMe: false }
+        // 1️⃣ Befehl selbst löschen
+        await sock.sendMessage(from, { 
+            delete: { remoteJid: from, id: msg.key.id, fromMe: true } 
         });
 
-        // 2️⃣ Eigene Befehlsnachricht löschen
-        await sock.sendMessage(from, {
-            delete: { remoteJid: from, id: msg.key.id, fromMe: true }
+        // 2️⃣ Ziel-Nachricht löschen
+        await sock.sendMessage(from, { 
+            delete: { remoteJid: from, id: contextInfo.stanzaId, fromMe: false } 
         });
-
-        // Optional: Bestätigung senden
-        return reply(sock, msg, "🧹 Nachrichten erfolgreich gelöscht!");
     } catch (err) {
         console.error(err);
-        return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
+        return reply(sock, msg, "❌ Fehler beim Löschen der Nachricht!");
     }
 }
 

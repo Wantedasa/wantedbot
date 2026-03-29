@@ -34,6 +34,10 @@ export const saveBotConfig = () => {
     }
 };
 
+export const autoMessages = {};
+export const autoMessageSettings = {};
+
+
 // ========================= GROUP SETTINGS =========================
 export const groupSettings = {};
 
@@ -211,6 +215,47 @@ if (command === "public") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
+    // ====== Auto-Message setzen ======
+    if (command === "setmsg") {
+        if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages setzen!");
+
+        const [minutesStr, ...messageParts] = args;
+        if (!minutesStr || !messageParts.length) {
+            return reply(sock, msg, "Benutzung: .setmsg <Minuten> <Nachricht>");
+        }
+
+        const minutes = parseInt(minutesStr);
+        if (isNaN(minutes) || minutes <= 0) {
+            return reply(sock, msg, "Bitte eine gültige Zahl größer als 0 angeben!");
+        }
+
+        const textMessage = messageParts.join(" ");
+
+        // Alte Intervalle löschen, falls schon vorhanden
+        if (autoMessages[from]) clearInterval(autoMessages[from]);
+
+        // Neue Intervalle setzen
+        autoMessageSettings[from] = { text: textMessage, interval: minutes };
+        autoMessages[from] = setInterval(async () => {
+            await reply(sock, msg, textMessage);
+        }, minutes * 60 * 1000);
+
+        return reply(sock, msg, `✅ Auto-Message gesetzt: "${textMessage}" alle ${minutes} Minute(n)`);
+    }
+
+    // ====== Auto-Message stoppen ======
+    if (command === "stopmsg") {
+        if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages stoppen!");
+
+        if (autoMessages[from]) {
+            clearInterval(autoMessages[from]);
+            delete autoMessages[from];
+            delete autoMessageSettings[from];
+            return reply(sock, msg, "⏹ Auto-Message gestoppt!");
+        } else {
+            return reply(sock, msg, "Es läuft aktuell keine Auto-Message in diesem Chat.");
+        }
+    }
 
 if (command === "kickall") {
     if (!isGroup(from)) return;

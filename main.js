@@ -11,7 +11,7 @@ const OWNER_SETTINGS = {
 let PUBLIC_MODE = true;
 
 // ========================= GROUP SETTINGS =========================
-const groupSettings = {}; // { groupJid: { welcome: true, leave: true } }
+const groupSettings = {};
 
 //=========================//
 // Helper
@@ -144,6 +144,28 @@ if (command === "ping") {
             return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
         }
     }
+    //=========================//
+// ANTIDELETE TOGGLE
+//=========================//
+if (command === "antidelete") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen möglich!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admin oder Owner darf das ändern!");
+    }
+
+    const value = args[0]?.toLowerCase();
+    if (value === "on") {
+        groupSettings[from].antidelete = true;
+        return reply(sock, msg, "✅ Antidelete aktiviert!");
+    } else if (value === "off") {
+        groupSettings[from].antidelete = false;
+        return reply(sock, msg, "❌ Antidelete deaktiviert!");
+    } else {
+        return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
+    }
+}
 
     //=========================//
     // INFO
@@ -369,6 +391,27 @@ ${groupDesc}`,
                 mentions: [user]
             });
         }
+    }
+}
+
+async function handleDelete(sock, message) {
+    const from = message.key.remoteJid;
+
+    if (!groupSettings[from]?.antidelete) return;
+
+    try {
+        const deletedMsg = message.message?.ephemeralMessage?.message || message.message;
+        if (!deletedMsg) return;
+
+        const sender = message.key.participant || from;
+
+        // Nachricht wieder senden
+        await sock.sendMessage(from, {
+            text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${JSON.stringify(deletedMsg)}`,
+            mentions: [sender]
+        });
+    } catch (err) {
+        console.error("Antidelete Fehler:", err);
     }
 }
 

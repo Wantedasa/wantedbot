@@ -5,6 +5,7 @@
   "description": "WhatsApp Bot SamuelV1 – hidetag, Admin, Kick, Menü",
   "main": "index.js",
   "author": "Baumi",
+  "type": "module"
   "scripts": {
     "start": "node index.js"
   },

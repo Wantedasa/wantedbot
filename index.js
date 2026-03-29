@@ -12,6 +12,7 @@ const mainModule = require("./main.js");
 const { handleCommands, handleGroupParticipants, groupSettings} = mainModule;
 
 const isGroup = (jid) => jid.endsWith("@g.us");
+const messageCache = {};
 
 //=========================//
 // Terminal & Eingabe

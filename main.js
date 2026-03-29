@@ -288,6 +288,27 @@ if (command === "kickall") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
         }
     }
+if (command === "hidetag") {
+    if (!isGroup(from)) return reply(sock, msg, "Dieser Befehl funktioniert nur in Gruppen!");
+    if (!isAdmin(sock, from, sender)) return reply(sock, msg, "Nur Admins können hidetag nutzen!");
+
+    // Nachrichtstext nach dem Befehl
+    const text = args.join(" ");
+    if (!text) return reply(sock, msg, "Benutzung: +hidetag <Nachricht>");
+
+    try {
+        // Alle Gruppenmitglieder abrufen
+        const groupMetadata = await sock.groupMetadata(from);
+        const mentions = groupMetadata.participants.map(p => p.id);
+
+        // Nachricht senden mit Mentions
+        await sock.sendMessage(from, { text, mentions });
+
+    } catch (err) {
+        console.error("Fehler bei hidetag:", err);
+        reply(sock, msg, "Fehler beim Senden der Hidetag-Nachricht.");
+    }
+}
 
     //=========================//
     // GROUP NAME & DESCRIPTION

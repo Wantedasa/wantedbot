@@ -4,10 +4,10 @@
 
 // ========================= OWNER SYSTEM =========================
 const OWNER_SETTINGS = {
-    ownerJid: "189812472545342@s.whatsapp.net",
-    ownerJidLid: "189812472545342@lid",
-    ownerName: "Baumi",
-    botName: "Baumi V1",
+    ownerJid: "4915129559931@s.whatsapp.net",
+    ownerJidLid: "218507098771705@lid",
+    ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
+    botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "Baumi",
     version: "1.0.0"
 }

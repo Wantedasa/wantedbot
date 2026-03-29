@@ -85,7 +85,8 @@ async function handleCommands(sock, msg) {
 ║
 ║ 👥 GROUP
 ║ ├ .hidetag
-║ ├ .kick @user
+║ ├ .kick
+║ ├ .kickall
 ║ ├ .welcome on/off
 ║ ├ .leave on/off
 ║

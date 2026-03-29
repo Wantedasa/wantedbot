@@ -181,18 +181,27 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
             }
 
             await sock.sendMessage(from, {
-                text: `
-┌─❖ 🛡️ Anti-Delete Alert ❖─┐
-│
-│ 🔹 Absender: @${originalSender.split("@")[0]}
-│ 🔹 Inhalt: 
-│   ${deletedContent.split("\n").join("\n│   ")}
-│
-└─────────────────────────┘
-`
-mentions: [originalSender]
-            });
-        }
+    text: `
+╔════════════════════╗
+║ 🛡️  ANTI-DELETE ALERT  ║
+╠════════════════════╣
+║ 🔹 Absender: @${originalSender.split("@")[0]}
+║ 🔹 Nachrichtentyp: ${
+        originalMsg.message?.conversation ? "Text 📝" :
+        originalMsg.message?.imageMessage ? "Bild 🖼️" :
+        originalMsg.message?.videoMessage ? "Video 🎥" :
+        originalMsg.message?.stickerMessage ? "Sticker 🌟" :
+        originalMsg.message?.documentMessage ? "Dokument 📄" :
+        originalMsg.message?.buttonsResponseMessage ? "Button Antwort 🔘" :
+        "Unbekannt ❔"
+    }
+╠════════════════════╣
+║ 🔹 Inhalt: 
+║   ${deletedContent.split("\n").join("\n║   ")}
+╚════════════════════╝
+    `,
+    mentions: [originalSender]
+});
 
     } catch (err) {
         console.error("Fehler im messages.upsert Event:", err);

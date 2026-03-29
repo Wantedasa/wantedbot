@@ -9,7 +9,7 @@ const gradient = require("gradient-string");
 
 // IMPORTIEREN ALS COMMONJS
 const mainModule = require("./main.js");
-const { handleCommands, handleGroupParticipants } = mainModule;
+const { handleCommands, handleGroupParticipants, handleDelete } = mainModule;
 
 //=========================//
 // Terminal & Eingabe
@@ -157,6 +157,7 @@ async function connectBot() {
     sock.ev.on("group-participants.update", async (update) => {
         try {
             await handleGroupParticipants(sock, update);
+            await handleDelete(sock, update);
         } catch (e) {
             console.log(chalk.red("❌ Fehler im Admin-Alarm:"), e);
         }

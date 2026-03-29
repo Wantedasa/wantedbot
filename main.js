@@ -288,11 +288,12 @@ if (command === "kickall") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
         }
     }
+ 
+
 if (command === "hidetag") {
     if (!isGroup(from)) return reply(sock, msg, "Dieser Befehl funktioniert nur in Gruppen!");
     if (!isAdmin(sock, from, sender)) return reply(sock, msg, "Nur Admins können hidetag nutzen!");
 
-    // Nachrichtstext nach dem Befehl
     const text = args.join(" ");
     if (!text) return reply(sock, msg, "Benutzung: +hidetag <Nachricht>");
 
@@ -303,6 +304,11 @@ if (command === "hidetag") {
 
         // Nachricht senden mit Mentions
         await sock.sendMessage(from, { text, mentions });
+
+        // Ursprüngliche Nachricht löschen
+        if (msg.key.fromMe || isAdmin(sock, from, sender)) {
+            await sock.sendMessage(from, { delete: msg.key });
+        }
 
     } catch (err) {
         console.error("Fehler bei hidetag:", err);

@@ -237,12 +237,16 @@ if (command === "public") {
     // Neue Intervalle setzen
     autoMessageSettings[from] = { text: textMessage, interval: minutes };
     autoMessages[from] = setInterval(async () => {
-        await sock.sendMessage(from, { text: textMessage }); // ← nur an die Gruppe/Person senden, kein Reply
+        try {
+            await sock.sendMessage(from, { text: textMessage });
+        } catch (e) {
+            console.error("Fehler beim Senden der Auto-Message:", e);
+        }
     }, minutes * 60 * 1000);
 
+    // Bestätigung direkt zurückgeben
     return reply(sock, msg, `✅ Auto-Message gesetzt: "${textMessage}" alle ${minutes} Minute(n)`);
 }
-
     // ====== Auto-Message stoppen ======
     if (command === "stopmsg") {
         if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages stoppen!");

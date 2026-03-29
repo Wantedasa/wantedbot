@@ -223,7 +223,6 @@ async function handleCommands(sock, msg) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
-}
 
     if (command === "kickall") {
     if (!isGroup(from)) return;

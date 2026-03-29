@@ -121,12 +121,13 @@ async function connectBot() {
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== "notify") return;
+
     try {
         const msg = messages[0];
         if (!msg.message) return;
 
         const from = msg.key.remoteJid;
-        const sender = msg.key.participant || from; // Absender der Nachricht
+        const sender = msg.key.participant || from; // Echte Absender-ID
         const id = msg.key.id;
 
         // Cache für Gruppen
@@ -134,7 +135,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
             if (!messageCache[from]) messageCache[from] = {};
             messageCache[from][id] = {
                 msg,
-                sender, // hier speichern wir den echten Absender
+                sender, // Richtiger Absender wird gespeichert
             };
 
             if (Object.keys(messageCache[from]).length > 999) {
@@ -145,6 +146,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
 
         await handleCommands(sock, msg);
 
+        // Nachrichtentext für Logging
         let text = "";
         if (msg.message?.conversation) text = msg.message.conversation;
         else if (msg.message?.extendedTextMessage?.text) text = msg.message.extendedTextMessage.text;
@@ -166,10 +168,9 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
             if (!cached) return;
 
             const originalMsg = cached.msg;
-            const originalSender = cached.sender; // richtiger Absender
+            const originalSender = cached.sender;
 
             let deletedContent = "[Nicht darstellbare Nachricht]";
-
             if (originalMsg) {
                 if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;
                 else if (originalMsg.message?.extendedTextMessage?.text) deletedContent = originalMsg.message.extendedTextMessage.text;
@@ -180,34 +181,40 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
                 else if (originalMsg.message?.buttonsResponseMessage) deletedContent = `[Button Antwort] ${originalMsg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
             }
 
+            // Nachrichtentyp-Emoji
+            const typeEmoji = originalMsg.message?.conversation ? "Text 📝 🟢" :
+                              originalMsg.message?.imageMessage ? "Bild 🖼️ 🟡" :
+                              originalMsg.message?.videoMessage ? "Video 🎥 🔴" :
+                              originalMsg.message?.stickerMessage ? "Sticker 🌟 🔵" :
+                              originalMsg.message?.documentMessage ? "Dokument 📄 ⚪️" :
+                              originalMsg.message?.buttonsResponseMessage ? "Button Antwort 🔘" :
+                              "Unbekannt ❔";
+
+            // Zeitstempel
+            const timestamp = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+
             await sock.sendMessage(from, {
-    text: `
-╔════════════════════╗
+                text: `
+╔════════════════════════╗
 ║ 🛡️  ANTI-DELETE ALERT  ║
-╠════════════════════╣
+╠════════════════════════╣
+║ ⏰ Zeit: ${timestamp}
 ║ 🔹 Absender: @${originalSender.split("@")[0]}
-║ 🔹 Nachrichtentyp: ${
-        originalMsg.message?.conversation ? "Text 📝" :
-        originalMsg.message?.imageMessage ? "Bild 🖼️" :
-        originalMsg.message?.videoMessage ? "Video 🎥" :
-        originalMsg.message?.stickerMessage ? "Sticker 🌟" :
-        originalMsg.message?.documentMessage ? "Dokument 📄" :
-        originalMsg.message?.buttonsResponseMessage ? "Button Antwort 🔘" :
-        "Unbekannt ❔"
-    }
-╠════════════════════╣
-║ 🔹 Inhalt: 
+║ 🔹 Typ: ${typeEmoji}
+╠════════════════════════╣
+║ 🔹 Inhalt:
 ║   ${deletedContent.split("\n").join("\n║   ")}
-╚════════════════════╝
-    `,
-    mentions: [originalSender]
-});
+╚════════════════════════╝
+                `,
+                mentions: [originalSender]
+            });
+        }
 
     } catch (err) {
         console.error("Fehler im messages.upsert Event:", err);
     }
 });
-    return sock;
-}
+
+return sock;
 
 connectBot();

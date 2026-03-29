@@ -34,6 +34,8 @@ export const saveBotConfig = () => {
     }
 };
 
+export {botConfig};
+
 export const autoMessages = {};
 export const autoMessageSettings = {};
 

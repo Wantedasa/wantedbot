@@ -156,7 +156,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         if (msg.message.protocolMessage?.type === 0) {
     const deletedMsg = msg.message.protocolMessage;
     const deletedId = deletedMsg.key.id;
-    const deletedSender = deletedMsg.key.participant || from; // Das ist derjenige, der gelöscht hat
+    const deletedSender = deletedMsg.key.participant || from;
 
     if (!groupSettings[from]?.antidelete) return;
 
@@ -175,8 +175,8 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
     }
 
     await sock.sendMessage(from, {
-        text: `🛡️ @${deletedSender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
-        mentions: [deletedSender]
+        text: `🛡️ @${deletedId.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
+        mentions: [deletedId]
     });
 }
         

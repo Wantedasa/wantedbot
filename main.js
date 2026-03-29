@@ -394,27 +394,6 @@ ${groupDesc}`,
     }
 }
 
-async function handleDelete(sock, message) {
-    const from = message.key.remoteJid;
-
-    if (!groupSettings[from]?.antidelete) return;
-
-    try {
-        const deletedMsg = message.message?.ephemeralMessage?.message || message.message;
-        if (!deletedMsg) return;
-
-        const sender = message.key.participant || from;
-
-        // Nachricht wieder senden
-        await sock.sendMessage(from, {
-            text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${JSON.stringify(deletedMsg)}`,
-            mentions: [sender]
-        });
-    } catch (err) {
-        console.error("Antidelete Fehler:", err);
-    }
-}
-
 //=========================//
 // EXPORT
 //=========================//

@@ -15,7 +15,7 @@ export const OWNER_SETTINGS = {
 const CONFIG_FILE = path.join("./data", "botConfig.json");
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
-let botConfig = { publicMode: true };
+let botConfig = { publicMode: true, autoRead: false };
 if (fs.existsSync(CONFIG_FILE)) {
     try {
         const raw = fs.readFileSync(CONFIG_FILE, "utf-8");

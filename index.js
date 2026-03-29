@@ -9,7 +9,7 @@ const gradient = require("gradient-string");
 
 // IMPORTIEREN ALS COMMONJS
 const mainModule = require("./main.js");
-const { handleCommands, handleGroupParticipants } = mainModule;
+const { handleCommands, handleGroupParticipants, groupSettings } = mainModule;
 
 //=========================//
 // Terminal & Eingabe

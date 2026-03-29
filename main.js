@@ -177,7 +177,7 @@ if (command === "public") {
     //=========================//
     // PING
     //=========================//
-    if (command === "ping") {
+    if (command === "ping" || command === "p") {
         const start = Date.now();
         await reply(sock, msg, "🏓 Pinging...");
         const latency = Date.now() - start;

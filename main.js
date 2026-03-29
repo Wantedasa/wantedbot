@@ -209,23 +209,6 @@ if (command === "ping") {
         return reply(sock, msg, "🌍 PUBLIC MODE aktiviert");
     }
 
-    //=========================//
-    // HIDETAG
-    //=========================//
-    if (command === "hidetag") {
-        if (!isGroup(from)) return;
-
-        const meta = sock.groupMetadata(from);
-        const participants = meta.participants.map(p => p.id);
-
-        const message = args.join(" ") || "👀";
-
-        return await sock.sendMessage(
-            from,
-            { text: message, mentions: participants },
-            { quoted: msg }
-        );
-    }
 
     //=========================//
 // KICK

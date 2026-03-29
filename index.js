@@ -9,7 +9,9 @@ const gradient = require("gradient-string");
 
 // IMPORTIEREN ALS COMMONJS
 const mainModule = require("./main.js");
-const { handleCommands, handleGroupParticipants, groupSettings, isGroup, isOwner, reply} = mainModule;
+const { handleCommands, handleGroupParticipants, groupSettings} = mainModule;
+
+const isGroup = (jid) => jid.endsWith("@g.us");
 
 //=========================//
 // Terminal & Eingabe

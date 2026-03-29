@@ -187,9 +187,9 @@ async function handleCommands(sock, msg) {
     }
 
     //=========================//
-    // KICK
-    //=========================//
-    if (command === "kick") {
+// KICK
+//=========================//
+if (command === "kick") {
     if (!isGroup(from)) return;
 
     const admin = await isAdmin(sock, from, sender);
@@ -199,19 +199,16 @@ async function handleCommands(sock, msg) {
 
     let targets = [];
 
-    // 1. Mention prüfen
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
     if (mentioned && mentioned.length > 0) {
         targets = mentioned;
     }
 
-    // 2. Reply prüfen (wenn keine Mentions)
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
     if (targets.length === 0 && contextInfo?.participant) {
         targets.push(contextInfo.participant);
     }
 
-    // Wenn nichts gefunden
     if (targets.length === 0) {
         return reply(sock, msg, "❌ Markiere jemanden oder antworte auf eine Nachricht!");
     }
@@ -223,11 +220,14 @@ async function handleCommands(sock, msg) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
+}
 
-    if (command === "kickall") {
+//=========================//
+// KICK ALL
+//=========================//
+if (command === "kickall") {
     if (!isGroup(from)) return;
 
-    // Nur Owner erlauben (sehr wichtig!)
     if (!isOwner(sender)) {
         return reply(sock, msg, "❌ Nur der Owner darf das!");
     }
@@ -236,16 +236,14 @@ async function handleCommands(sock, msg) {
         const metadata = await sock.groupMetadata(from);
         const participants = metadata.participants;
 
-        // Alle JIDs holen (außer dir selbst optional)
         const toKick = participants
             .map(p => p.id)
-            .filter(jid => jid !== sender); // dich selbst nicht kicken
+            .filter(jid => jid !== sender);
 
         if (toKick.length === 0) {
             return reply(sock, msg, "❌ Keine User zum Kicken gefunden!");
         }
 
-        // WhatsApp Limit umgehen (Chunks von 10)
         const chunkSize = 10;
         for (let i = 0; i < toKick.length; i += chunkSize) {
             const chunk = toKick.slice(i, i + chunkSize);

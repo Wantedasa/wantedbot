@@ -155,24 +155,33 @@ async function connectBot() {
     });
 
     sock.ev.on('messages.upsert', async (m) => {
-    const msg = m.messages[0];
-    if (!msg.message) return;
-    await handleCommands(sock, msg);
-    if (msg.message.protocolMessage?.type === 0) {
-        const deletedMsg = msg.message.protocolMessage;
-        const from = msg.key.remoteJid;
-        const sender = deletedMsg.key.participant || from;
+    try {
+        const msg = m.messages[0];
+        if (!msg.message) return;
 
-        if (!groupSettings[from]?.antidelete) return;
+        await handleCommands(sock, msg);
 
-        try {
+        if (msg.message.protocolMessage?.type === 0) {
+            const deletedMsg = msg.message.protocolMessage;
+            const from = msg.key.remoteJid;
+            const sender = deletedMsg.key.participant || from;
+
+            // Prüfen, ob antidelete für diese Gruppe aktiv ist
+            if (!groupSettings[from]?.antidelete) return;
+
+            // Text der gelöschten Nachricht extrahieren
+            const deletedContent = deletedMsg.message?.conversation 
+                || deletedMsg.message?.extendedTextMessage?.text 
+                || "[Nicht darstellbare Nachricht]";
+
+            // Nachricht zurückschicken
             await sock.sendMessage(from, {
-                text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${JSON.stringify(deletedMsg.message)}`,
+                text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
                 mentions: [sender]
             });
-        } catch (err) {
-            console.error("Antidelete Fehler:", err);
         }
+    } catch (err) {
+        console.error("Fehler im messages.upsert Event:", err);
     }
 });
     return sock;

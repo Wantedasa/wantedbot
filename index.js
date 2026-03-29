@@ -5,7 +5,7 @@ import chalk from "chalk";
 import gradient from "gradient-string";
 
 import * as mainModule from "./main.js";
-const { handleCommands, handleGroupParticipants, groupSettings } = mainModule;
+const { handleCommands, handleGroupParticipants, botConfig } = mainModule;
 
 
 const isGroup = (jid) => jid.endsWith("@g.us");

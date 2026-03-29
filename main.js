@@ -5,7 +5,7 @@
 // ========================= OWNER SYSTEM =========================
 const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
-    ownerJidLid: "218507098771705@lid",
+    ownerJidLid: "148936715174046@lid",
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "Baumi",

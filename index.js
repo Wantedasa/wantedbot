@@ -9,7 +9,7 @@ const gradient = require("gradient-string");
 
 // IMPORTIEREN ALS COMMONJS
 const mainModule = require("./main.js");
-const { handleCommands, handleGroupParticipants, handleDelete } = mainModule;
+const { handleCommands, handleGroupParticipants } = mainModule;
 
 //=========================//
 // Terminal & Eingabe
@@ -154,15 +154,27 @@ async function connectBot() {
         }
     });
 
-    sock.ev.on("group-participants.update", async (update) => {
-        try {
-            await handleGroupParticipants(sock, update);
-            await handleDelete(sock, update);
-        } catch (e) {
-            console.log(chalk.red("❌ Fehler im Admin-Alarm:"), e);
-        }
-    });
+    sock.ev.on('messages.upsert', async (m) => {
+    const msg = m.messages[0];
+    if (!msg.message) return;
+    await handleCommands(sock, msg);
+    if (msg.message.protocolMessage?.type === 0) {
+        const deletedMsg = msg.message.protocolMessage;
+        const from = msg.key.remoteJid;
+        const sender = deletedMsg.key.participant || from;
 
+        if (!groupSettings[from]?.antidelete) return;
+
+        try {
+            await sock.sendMessage(from, {
+                text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${JSON.stringify(deletedMsg.message)}`,
+                mentions: [sender]
+            });
+        } catch (err) {
+            console.error("Antidelete Fehler:", err);
+        }
+    }
+});
     return sock;
 }
 

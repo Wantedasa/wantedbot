@@ -400,5 +400,6 @@ ${groupDesc}`,
 //=========================//
 module.exports = {
     handleCommands,
-    handleGroupParticipants
+    handleGroupParticipants,
+    groupSettings
 };

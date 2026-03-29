@@ -146,6 +146,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         }
 
         await handleCommands(sock, msg);
+        await sock.readMessages([msg.key]);
 
         // Nachrichtentext für Logging
         let text = "";

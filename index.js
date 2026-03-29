@@ -134,28 +134,6 @@ async function connectBot() {
 
     sock.ev.on("creds.update", saveCreds);
 
-    sock.ev.on("messages.upsert", async ({ messages, type }) => {
-        if (type !== "notify") return;
-        const msg = messages[0];
-        if (!msg.message) return;
-
-        try {
-            await handleCommands(sock, msg);
-
-            const from = msg.key.remoteJid;
-            const sender = msg.key.participant || from;
-            let text = "";
-
-            if (msg.message?.conversation) text = msg.message.conversation;
-            else if (msg.message?.extendedTextMessage?.text) text = msg.message.extendedTextMessage.text;
-            else if (msg.message?.imageMessage?.caption) text = msg.message.imageMessage.caption;
-            else if (msg.message?.videoMessage?.caption) text = msg.message.videoMessage.caption;
-
-            await logMessage(sock, from, sender, text);
-        } catch (e) {
-            console.log(chalk.red("❌ Fehler in messages.upsert:"), e);
-        }
-    });
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== "notify") return;

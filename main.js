@@ -118,8 +118,14 @@ export async function handleCommands(sock, msg) {
     // OWNER & BOT INFO
     //=========================//
     if (command === "owner") return reply(sock, msg, `👑 Owner: ${OWNER_SETTINGS.ownerName}`);
-    if (command === "bot") return reply(sock, msg, `🤖 ${OWNER_SETTINGS.botName}\n👑 Owner: ${OWNER_SETTINGS.ownerName}\n⚡ Version: ${OWNER_SETTINGS.version}`);
-
+    if (command === "bot") {
+    const mode = PUBLIC_MODE ? "🌍 PUBLIC MODE " : "🔒 SELF MODE";
+    return await reply(
+        sock,
+        msg,
+        `🤖 ${OWNER_SETTINGS.botName}\n👑 Owner: ${OWNER_SETTINGS.ownerName}\n⚡ Version: ${OWNER_SETTINGS.version}\n🟢 Mode: ${mode}`
+    );
+}
 if (command === "self") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
     PUBLIC_MODE = false;

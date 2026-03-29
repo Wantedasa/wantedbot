@@ -154,27 +154,41 @@ async function connectBot() {
         }
     });
 
-    sock.ev.on('messages.upsert', async (m) => {
+sock.ev.on('messages.upsert', async (m) => {
     try {
         const msg = m.messages[0];
         if (!msg.message) return;
 
+        const from = msg.key.remoteJid;
+        const id = msg.key.id;
+
+        if (isGroup(from)) {
+            if (!messageCache[from]) messageCache[from] = {};
+            messageCache[from][id] = msg;
+            if (Object.keys(messageCache[from]).length > 200) {
+                const oldest = Object.keys(messageCache[from])[0];
+                delete messageCache[from][oldest];
+            }
+        }
         await handleCommands(sock, msg);
 
         if (msg.message.protocolMessage?.type === 0) {
             const deletedMsg = msg.message.protocolMessage;
-            const from = msg.key.remoteJid;
             const sender = deletedMsg.key.participant || from;
+            const deletedId = deletedMsg.key.id;
 
-            // Prüfen, ob antidelete für diese Gruppe aktiv ist
             if (!groupSettings[from]?.antidelete) return;
 
-            // Text der gelöschten Nachricht extrahieren
-            const deletedContent = deletedMsg.message?.conversation 
-                || deletedMsg.message?.extendedTextMessage?.text 
-                || "[Nicht darstellbare Nachricht]";
+            const originalMsg = messageCache[from]?.[deletedId];
 
-            // Nachricht zurückschicken
+            let deletedContent = "[Nicht darstellbare Nachricht]";
+
+            if (originalMsg) {
+                deletedContent = originalMsg.message.conversation
+                    || originalMsg.message?.extendedTextMessage?.text
+                    || "[Nicht darstellbare Nachricht]";
+            }
+
             await sock.sendMessage(from, {
                 text: `🛡️ @${sender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
                 mentions: [sender]

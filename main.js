@@ -1,7 +1,3 @@
-//=========================//
-// main.js - Full System + Toggles
-//=========================//
-
 // ========================= OWNER SYSTEM =========================
 const OWNER_SETTINGS = {
     ownerJid: "218507098771705@s.whatsapp.net",
@@ -86,7 +82,6 @@ async function handleCommands(sock, msg) {
 ║ 👥 GROUP
 ║ ├ .hidetag
 ║ ├ .kick
-║ ├ .kickall
 ║ ├ .welcome on/off
 ║ ├ .leave on/off
 ║ ├ .grpname
@@ -98,6 +93,15 @@ async function handleCommands(sock, msg) {
 ╚═════════════════════`
         );
     }
+    //=========================//
+// PING
+//=========================//
+if (command === "ping") {
+    const start = Date.now();
+    const msgSent = await reply(sock, msg, "🏓 Pinging...");
+    const latency = Date.now() - start;
+    return reply(sock, msg, `🏓 Pong!\n⏱️ Latenz: ${latency}ms`);
+}
 
     //=========================//
     // TOGGLES
@@ -274,7 +278,6 @@ if (command === "grpname") {
 
     try {
         await sock.groupUpdateSubject(from, newName);
-        return reply(sock, msg, `✅ Gruppenname wurde zu *${newName}* geändert!`);
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Ändern des Gruppennamens!");
@@ -296,7 +299,6 @@ if (command === "grpdesc") {
 
     try {
         await sock.groupUpdateDescription(from, newDesc);
-        return reply(sock, msg, `✅ Gruppenbeschreibung wurde geändert!`);
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Ändern der Gruppenbeschreibung!");

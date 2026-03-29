@@ -12,7 +12,6 @@ let PUBLIC_MODE = true;
 
 // ========================= GROUP SETTINGS =========================
 const groupSettings = {};
-const messageCache = {};
 
 //=========================//
 // Helper

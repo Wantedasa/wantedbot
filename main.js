@@ -352,12 +352,17 @@ if (command === "hidetag") {
     if (!contextInfo?.stanzaId) return reply(sock, msg, "⚙️ Antworte auf die Nachricht, die gelöscht werden soll!");
 
     try {
-        // Nachricht, auf die geantwortet wurde, löschen
+        // ID der Nachricht, auf die geantwortet wurde
+        const targetId = contextInfo.stanzaId;
+
+        // Lösche nur, wenn es die eigene Nachricht ist oder der Bot sie gesendet hat
+        const targetFromMe = contextInfo.participant ? false : true; // true, wenn Bot selbst
+
         await sock.sendMessage(from, {
             delete: {
                 remoteJid: from,
-                id: contextInfo.stanzaId,
-                fromMe: false // fromMe false, weil es nicht deine Nachricht ist
+                id: targetId,
+                fromMe: targetFromMe
             }
         });
 
@@ -366,9 +371,10 @@ if (command === "hidetag") {
             delete: {
                 remoteJid: from,
                 id: msg.key.id,
-                fromMe: true // eigene Nachricht
+                fromMe: true
             }
         });
+
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");

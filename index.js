@@ -1,35 +1,22 @@
-//=========================//
-// index.js - Samuel V1 WhatsApp Bot
-//=========================//
 const { makeWASocket, useMultiFileAuthState } = require("@angstvorfrauen/baileys");
 const pino = require("pino");
 const readline = require("readline");
 const chalk = require("chalk");
 const gradient = require("gradient-string");
 
-// IMPORTIEREN ALS COMMONJS
 const mainModule = require("./main.js");
 const { handleCommands, handleGroupParticipants, groupSettings} = mainModule;
 
 const isGroup = (jid) => jid.endsWith("@g.us");
 const messageCache = {};
 
-//=========================//
-// Terminal & Eingabe
-//=========================//
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (prompt) => new Promise(resolve => rl.question(prompt, resolve));
 
-//=========================//
-// Log-Arrays
-//=========================//
 const MAX_LOG = 20;
 const groupMessages = {};
 const commandsLog = [];
 
-//=========================//
-// Hilfsfunktionen
-//=========================//
 const jidToPhone = (jid) => {
     if (!jid) return "";
     return jid.includes("@s.whatsapp.net") ? "+" + jid.split("@")[0] : jid;
@@ -45,12 +32,9 @@ const jidToGroupName = async (sock, jid) => {
     }
 };
 
-//=========================//
-// Dashboard Renderer
-//=========================//
 const renderDashboard = () => {
     console.clear();
-    console.log(chalk.bold(gradient.rainbow("📱 Samuel V1 WhatsApp Bot Dashboard")));
+    console.log(chalk.bold(gradient.rainbow("📱 Wantedasa V1 WhatsApp Bot Dashboard")));
     console.log(chalk.gray("──────────────────────────────────────────"));
 
     for (const groupName in groupMessages) {
@@ -170,32 +154,32 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         await logMessage(sock, from, sender, text);
 
         if (msg.message.protocolMessage?.type === 0) {
-            const deletedMsg = msg.message.protocolMessage;
-            const deletedId = deletedMsg.key.id;
-            const deletedSender = deletedMsg.key.participant || from;
+    const deletedMsg = msg.message.protocolMessage;
+    const deletedId = deletedMsg.key.id;
+    const deletedSender = deletedMsg.key.participant || from; // Das ist derjenige, der gelöscht hat
 
-            if (!groupSettings[from]?.antidelete) return;
+    if (!groupSettings[from]?.antidelete) return;
 
-            const originalMsg = messageCache[from]?.[deletedId];
+    const originalMsg = messageCache[from]?.[deletedId];
 
-            let deletedContent = "[Nicht darstellbare Nachricht]";
+    let deletedContent = "[Nicht darstellbare Nachricht]";
 
-            if (originalMsg) {
-                if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;
-                else if (originalMsg.message?.extendedTextMessage?.text) deletedContent = originalMsg.message.extendedTextMessage.text;
-                else if (originalMsg.message?.imageMessage?.caption) deletedContent = "[Bild] " + originalMsg.message.imageMessage.caption;
-                else if (originalMsg.message?.videoMessage?.caption) deletedContent = "[Video] " + originalMsg.message.videoMessage.caption;
-                else if (originalMsg.message?.stickerMessage) deletedContent = "[Sticker]";
-                else if (originalMsg.message?.documentMessage) deletedContent = `[Dokument] ${originalMsg.message.documentMessage.fileName || ""}`;
-                else if (originalMsg.message?.buttonsResponseMessage) deletedContent = `[Button Antwort] ${originalMsg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
-            }
+    if (originalMsg) {
+        if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;
+        else if (originalMsg.message?.extendedTextMessage?.text) deletedContent = originalMsg.message.extendedTextMessage.text;
+        else if (originalMsg.message?.imageMessage?.caption) deletedContent = "[Bild] " + originalMsg.message.imageMessage.caption;
+        else if (originalMsg.message?.videoMessage?.caption) deletedContent = "[Video] " + originalMsg.message.videoMessage.caption;
+        else if (originalMsg.message?.stickerMessage) deletedContent = "[Sticker]";
+        else if (originalMsg.message?.documentMessage) deletedContent = `[Dokument] ${originalMsg.message.documentMessage.fileName || ""}`;
+        else if (originalMsg.message?.buttonsResponseMessage) deletedContent = `[Button Antwort] ${originalMsg.message.buttonsResponseMessage.selectedDisplayText || ""}`;
+    }
 
-            await sock.sendMessage(from, {
-                text: `🛡️ @${deletedSender} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
-                mentions: [deletedSender]
-            });
-        }
-
+    await sock.sendMessage(from, {
+        text: `🛡️ @${deletedSender.split("@")[0]} hat eine Nachricht gelöscht:\n\n${deletedContent}`,
+        mentions: [deletedSender]
+    });
+}
+        
     } catch (err) {
         console.error("Fehler im messages.upsert Event:", err);
     }

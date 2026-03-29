@@ -146,7 +146,13 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         }
 
         await handleCommands(sock, msg);
-        await sock.readMessages([msg.key]);
+          if (botConfig.autoRead) {
+            try {
+                await sock.readMessages([msg.key]);
+            } catch (err) {
+                console.error("Fehler beim Lesen der Nachricht:", err);
+            }
+        }
 
         // Nachrichtentext für Logging
         let text = "";

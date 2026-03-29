@@ -342,7 +342,7 @@ if (command === "hidetag") {
 
    
 //=========================//
-// DELETE MESSAGE + Befehl
+// DELETE MESSAGE
 //=========================//
 if (command === "del" || command === "delete") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
@@ -359,15 +359,46 @@ if (command === "del" || command === "delete") {
     }
 
     try {
-        // 1️⃣ Befehl selbst löschen
-        await sock.sendMessage(from, { 
-            delete: { remoteJid: from, id: msg.key.id, fromMe: true } 
-        });
-
-        // 2️⃣ Ziel-Nachricht löschen
+        // Nachricht löschen, auf die geantwortet wurde
         await sock.sendMessage(from, { 
             delete: { remoteJid: from, id: contextInfo.stanzaId, fromMe: false } 
         });
+
+        // Eigene Befehlsnachricht löschen
+        if (msg.key?.id) {
+            await sock.sendMessage(from, {
+                delete: { remoteJid: from, id: msg.key.id, fromMe: true }
+            });
+        }
+
+        return; // Kein extra reply nötig, Nachricht gelöscht
+    } catch (err) {
+        console.error("Fehler beim Löschen der Nachricht:", err);
+        return reply(sock, msg, "❌ Fehler beim Löschen der Nachricht!");
+    }
+}
+//=========================//
+// DELETE MESSAGE
+//=========================//
+if (command === "del2") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admin oder Owner darf Nachrichten löschen!");
+    }
+
+    // Prüfen, ob auf eine Nachricht geantwortet wurde
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+    if (!contextInfo?.stanzaId) {
+        return reply(sock, msg, "⚙️ Antworte auf die Nachricht, die gelöscht werden soll!");
+    }
+
+    try {
+        await sock.sendMessage(from, { 
+            delete: { remoteJid: from, id: contextInfo.stanzaId, fromMe: false } 
+        });
+        return reply(sock, msg, "✅ Nachricht wurde gelöscht!");
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Löschen der Nachricht!");

@@ -1,11 +1,12 @@
-const { makeWASocket, useMultiFileAuthState } = require("@angstvorfrauen/baileys");
-const pino = require("pino");
-const readline = require("readline");
-const chalk = require("chalk");
-const gradient = require("gradient-string");
+import { makeWASocket, useMultiFileAuthState } from "@angstvorfrauen/baileys";
+import pino from "pino";
+import readline from "readline";
+import chalk from "chalk";
+import gradient from "gradient-string";
 
-const mainModule = require("./main.js");
-const { handleCommands, handleGroupParticipants, groupSettings} = mainModule;
+import * as mainModule from "./main.js";
+const { handleCommands, handleGroupParticipants, groupSettings } = mainModule;
+
 
 const isGroup = (jid) => jid.endsWith("@g.us");
 const messageCache = {};

@@ -590,6 +590,7 @@ if (command === "promote" || command === "demote") {
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
+
 if (command === "info") {
     try {
         // Zielperson: auf Nachricht antworten oder Nummer angeben
@@ -604,10 +605,10 @@ if (command === "info") {
         let contact = sock.store.contacts[target] || {};
         let pushName = contact.notify || contact.name || "Unbekannt";
 
-        // Profilbild prüfen (nur Status, kein Laden)
+        // Profilbild prüfen (nur Status, kein Bild laden)
         let ppAvailable = true;
         try {
-            await sock.profilePictureUrl(target, "image");
+            await sock.profilePictureUrl(target, "image").catch(() => { ppAvailable = false; });
         } catch {
             ppAvailable = false;
         }
@@ -615,7 +616,7 @@ if (command === "info") {
         // Bio/Status abrufen
         let bio = "Nicht abrufbar";
         try {
-            const vcard = await sock.fetchStatus(target);
+            const vcard = await sock.fetchStatus(target).catch(() => null);
             bio = vcard?.status || "Kein Status";
         } catch {}
 
@@ -623,14 +624,16 @@ if (command === "info") {
         let infoMsg = `📌 *User Info*\n\n` +
                       `👤 pushName: ${pushName}\n` +
                       `🆔 JID/LID: ${target}\n` +
-                      `📷 Profilbild: ${ppAvailable ? "Vorhanden (.getpic)" : "Nicht abrufbar"}\n` +
+                      `📷 Profilbild: ${ppAvailable ? "Vorhanden" : "Nicht abrufbar"}\n` +
                       `💬 Bio: ${bio}`;
 
+        // Immer nur Text zurückgeben
         reply(sock, msg, infoMsg);
 
     } catch (err) {
         console.log(err);
-        reply(sock, msg, "❌ Fehler beim Abrufen der User Info!");
+        // Nur ganz unerwartete Fehler landen hier
+        reply(sock, msg, "❌ Unbekannter Fehler beim Abrufen der User Info!");
     }
 }
 

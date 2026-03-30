@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import axios from "axios";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -211,8 +210,6 @@ if (command === "public") {
 ║ ├ .grpdesc
 ║ ├ .device
 ║ ├ .delete
-║ ├ .ki
-
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -438,32 +435,6 @@ if (command === "hidetag") {
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
     }
 }; 
-if (command === "ask" || command === "ki" || command === "ai") {
-    if (!args.length) return reply(sock, msg, "❌ Frage fehlt!");
-
-    const userId = sender;
-    const prompt = args.join(" ");
-
-    if (!chats[userId]) chats[userId] = [];
-
-    chats[userId].push({ role: "user", content: prompt });
-
-    try {
-        const response = await axios.post("http://localhost:11434/api/chat", {
-            model: "llama3",
-            messages: chats[userId]
-        });
-
-        const replyText = response.data.message.content;
-
-        chats[userId].push({ role: "assistant", content: replyText });
-
-        reply(sock, msg, `🤖 ${replyText}`);
-
-    } catch (e) {
-        reply(sock, msg, "❌ KI Fehler!");
-    }
-}
     if (command === "automsg") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 

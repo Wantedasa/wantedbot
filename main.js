@@ -29,6 +29,7 @@ if (fs.existsSync(CONFIG_FILE)) {
         console.error("Fehler beim Laden von botConfig.json:", e);
     }
 }
+botConfig.autoMesaages = botConfig.autoMessages || {};
 
 // Speichern Funktion
 export const saveBotConfig = () => {

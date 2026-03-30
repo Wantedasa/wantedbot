@@ -41,7 +41,7 @@ export const saveBotConfig = () => {
 
 export {botConfig};
 
-const autoINtervals{};
+const autoIntervals = {};
 const chats = {};
 
 

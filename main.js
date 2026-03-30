@@ -364,34 +364,29 @@ if (command === "grpleave" || command === "leavegrp") {
         reply(sock, msg, "❌ Fehler beim Verlassen der Gruppe!");
     }
 }
-    // =========================
-// MUTE / UNMUTE (nur Admins)
-// =========================
-if (command === "mute") {
-    if (isGroup(from) && !await isAdmin(sock, from, sender) && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Admins oder Owner dürfen diesen Chat stummschalten!");
-    } else if (!isGroup(from) && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Owner dürfen private Chats stummschalten!");
+    
+if ((command === "mute" || command === "unmute") && isGroup(from)) {
+    
+    if (!await isAdmin(sock, from, sender) && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admins oder Owner dürfen die Gruppen-Einstellungen ändern!");
+    }
+    if (!isGroup(from)) {
+    return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     }
 
-    botConfig.mutedChats[from] = true;
-    saveBotConfig();
-    return reply(sock, msg, "🔇 Dieser Chat ist jetzt stummgeschaltet!");
-}
-
-if (command === "unmute") {
-    if (isGroup(from) && !await isAdmin(sock, from, sender) && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Admins oder Owner dürfen diesen Chat wieder aktivieren!");
-    } else if (!isGroup(from) && !isOwner(sender)) {
-        return reply(sock, msg, "❌ Nur Owner dürfen private Chats wieder aktivieren!");
-    }
-
-    if (botConfig.mutedChats[from]) {
-        delete botConfig.mutedChats[from];
-        saveBotConfig();
-        return reply(sock, msg, "🔊 Dieser Chat ist jetzt wieder aktiv!");
-    } else {
-        return reply(sock, msg, "ℹ️ Dieser Chat war nicht stummgeschaltet.");
+    try {
+        if (command === "mute") {
+            // Nur Admins dürfen schreiben
+            await sock.groupSettingUpdate(from, "announcement");
+            return reply(sock, msg, "🔇 Gruppen-Einstellungen geändert: Nur Admins dürfen jetzt schreiben!");
+        } else {
+            // Alle dürfen schreiben
+            await sock.groupSettingUpdate(from, "not_announcement");
+            return reply(sock, msg, "🔊 Gruppen-Einstellungen geändert: Alle dürfen jetzt schreiben!");
+        }
+    } catch (e) {
+        console.error("Fehler beim Ändern der Gruppen-Einstellungen:", e);
+        return reply(sock, msg, "❌ Fehler beim Ändern der Gruppen-Einstellungen!");
     }
 }
 

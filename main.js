@@ -203,12 +203,14 @@ if (command === "public") {
 ║ ├ .antidelete on/off
 ║ ├ .grpname
 ║ ├ .grpdesc
+║ ├ .device
 ║ ├ .delete
-║ ├ .clearchat 
+║ ├ .clearchat
 ║
 ║ 🔒 OWNER
 ║ ├ .self
 ║ ├ .public
+║ ├ .autoread 
 ╚═════════════════════`
         );
     }

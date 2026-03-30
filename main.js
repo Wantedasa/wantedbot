@@ -249,20 +249,30 @@ if (command === "newbot") {
 
     sock2.ev.on("creds.update", saveCreds);
 
-    // 📟 Pairing-Code holen
-    if (!sock2.authState.creds.registered) {
-        let code = await sock2.requestPairingCode(phoneNumber, "WANTEBOT");
-        code = code?.match(/.{1,4}/g)?.join("-") || code;
-
-        await reply(sock, msg, `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`);
-    }
-
-    sock2.ev.on("connection.update", (update) => {
+    sock2.ev.on("connection.update", async (update) => {
         const { connection } = update;
+
+        if (connection === "connecting") {
+            console.log(`🔄 Verbinde ${phoneNumber}...`);
+        }
 
         if (connection === "open") {
             console.log(`✅ Bot für ${phoneNumber} verbunden!`);
-        } else if (connection === "close") {
+        }
+        if (!sock2.authState.creds.registered && connection === "connecting") {
+            try {
+                let code = await sock2.requestPairingCode(phoneNumber, "WANTEBOT");
+                code = code?.match(/.{1,4}/g)?.join("-") || code;
+
+                await reply(sock, msg, 
+                    `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`
+                );
+            } catch (err) {
+                console.error("Pairing Fehler:", err);
+            }
+        }
+
+        if (connection === "close") {
             console.log(`❌ Verbindung zu ${phoneNumber} verloren`);
         }
     });

@@ -209,16 +209,16 @@ const deletedId = deletedMsg.key.id;
 
             await sock.sendMessage(from, {
                 text: `
-╔════════════════════════╗
+╔═════════════════════╗
 ║ 🛡️  ANTI-DELETE ALERT  ║
-╠════════════════════════╣
+╠═════════════════════╣
 ║ ⏰ Zeit: ${timestamp}
 ║ 🔹 Absender: @${originalSender.split("@")[0]}
 ║ 🔹 Typ: ${typeEmoji}
-╠════════════════════════╣
+╠═════════════════════╣
 ║ 🔹 Inhalt:
 ║   ${deletedContent.split("\n").join("\n║   ")}
-╚════════════════════════╝
+╚═════════════════════╝
                 `,
                 mentions: [originalSender]
             });

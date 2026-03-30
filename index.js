@@ -209,7 +209,7 @@ const deletedId = deletedMsg.key.id;
 
             await sock.sendMessage(from, {
                 text: `╔═════════════════════╗
-║ 🛡️  ANTI-DELETE ALERT  ║
+║ 🛡️  ANTI-DELETE ALERT
 ╠═════════════════════╣
 ║ ⏰ Zeit: ${timestamp}
 ║ 🔹 Absender: @${originalSender.split("@")[0]}

@@ -157,11 +157,16 @@ if (command === "autoread") {
     //=========================//
     if (command === "owner") return reply(sock, msg, `👑 Owner: ${OWNER_SETTINGS.ownerName}`);
     if (command === "bot") {
-    const mode = PUBLIC_MODE ? "🌍 PUBLIC MODE " : "🔒 SELF MODE";
+    // PUBLIC / SELF Mode
+    const mode = PUBLIC_MODE ? "🌍 PUBLIC MODE" : "🔒 SELF MODE";
+
+    // Auto-Read Status aus botConfig
+    const autoReadStatus = botConfig?.autoRead ? "✅ AN" : "❌ AUS";
+
     return await reply(
         sock,
         msg,
-        `🤖 ${OWNER_SETTINGS.botName}\n👑 Owner: ${OWNER_SETTINGS.ownerName}\n⚡ Version: ${OWNER_SETTINGS.version}\n🟢 Mode: ${mode}`
+        `🤖 ${OWNER_SETTINGS.botName}\n👑 Owner: ${OWNER_SETTINGS.ownerName}\n⚡ Version: ${OWNER_SETTINGS.version}\n🟢 Mode: ${mode}\n📖 Auto-Read: ${autoReadStatus}`
     );
 }
 if (command === "self") {

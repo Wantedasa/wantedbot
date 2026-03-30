@@ -590,10 +590,8 @@ if (command === "promote" || command === "demote") {
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
-
 if (command === "info") {
     try {
-        // 📌 Zielperson: reply oder Nummer
         let target = msg.message?.extendedTextMessage?.contextInfo?.participant;
         if (!target && args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
@@ -601,26 +599,24 @@ if (command === "info") {
         }
         if (!target) return reply(sock, msg, "❌ Bitte auf eine Nachricht antworten oder Nummer angeben!");
 
-        // 🔹 pushName abrufen
+        // pushName
         let contact = sock.store.contacts[target] || {};
         let pushName = contact.notify || contact.name || "Unbekannt";
 
-        // 🔹 Profilbild abrufen
-        let ppUrl;
+        // Profilbild
+        let ppUrl = null;
         try {
-            ppUrl = await sock.profilePictureUrl(target, "image");
-        } catch {
-            ppUrl = null;
-        }
+            ppUrl = await sock.profilePictureUrl(target, "image").catch(() => null);
+        } catch {}
 
-        // 🔹 Status abrufen (optional)
+        // Status
         let status = "Unbekannt";
         try {
-            const vcard = await sock.fetchStatus(target);
+            const vcard = await sock.fetchStatus(target).catch(() => null);
             status = vcard?.status || "Kein Status";
         } catch {}
 
-        // 🔹 Nachricht senden
+        // Nachricht senden
         let infoMsg = `📌 *User Info*\n\n` +
                       `👤 pushName: ${pushName}\n` +
                       `🆔 JID/LID: ${target}\n` +
@@ -637,6 +633,7 @@ if (command === "info") {
         reply(sock, msg, "❌ Fehler beim Abrufen der User Info!");
     }
 }
+
 
 }
 

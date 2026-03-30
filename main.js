@@ -1,4 +1,4 @@
-import { makeWASocket, useSingleFileAuthState } from "@adiwajshing/baileys";
+import { makeWASocket, useMultiFileAuthState } from "@angstvorfrauen/baileys";
 import fs from "fs";
 import path from "path";
 

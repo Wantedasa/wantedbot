@@ -210,8 +210,8 @@ if (command === "public") {
 ║ ├ .grpdesc
 ║ ├ .device
 ║ ├ .delete
-║ ├ .promote
-║ ├ .demote
+║ ├ .promote/demote
+║ ├ .mute/unmute
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -362,6 +362,36 @@ if (command === "grpleave" || command === "leavegrp") {
     } catch (err) {
         console.log(err);
         reply(sock, msg, "❌ Fehler beim Verlassen der Gruppe!");
+    }
+}
+    // =========================
+// MUTE / UNMUTE (nur Admins)
+// =========================
+if (command === "mute") {
+    if (isGroup(from) && !await isAdmin(sock, from, sender) && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admins oder Owner dürfen diesen Chat stummschalten!");
+    } else if (!isGroup(from) && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen private Chats stummschalten!");
+    }
+
+    botConfig.mutedChats[from] = true;
+    saveBotConfig();
+    return reply(sock, msg, "🔇 Dieser Chat ist jetzt stummgeschaltet!");
+}
+
+if (command === "unmute") {
+    if (isGroup(from) && !await isAdmin(sock, from, sender) && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admins oder Owner dürfen diesen Chat wieder aktivieren!");
+    } else if (!isGroup(from) && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen private Chats wieder aktivieren!");
+    }
+
+    if (botConfig.mutedChats[from]) {
+        delete botConfig.mutedChats[from];
+        saveBotConfig();
+        return reply(sock, msg, "🔊 Dieser Chat ist jetzt wieder aktiv!");
+    } else {
+        return reply(sock, msg, "ℹ️ Dieser Chat war nicht stummgeschaltet.");
     }
 }
 

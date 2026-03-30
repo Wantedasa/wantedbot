@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import axios from "axios";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -15,7 +16,12 @@ export const OWNER_SETTINGS = {
 const CONFIG_FILE = path.join("./data", "botConfig.json");
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
-let botConfig = { publicMode: true, autoRead: false };
+let botConfig = { 
+    publicMode: true, 
+    autoRead: false,
+    autoMessages: {}
+};
+
 if (fs.existsSync(CONFIG_FILE)) {
     try {
         const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
@@ -38,6 +44,7 @@ export {botConfig};
 
 export const autoMessages = {};
 export const autoMessageSettings = {};
+const chats = {};
 
 
 // ========================= GROUP SETTINGS =========================
@@ -204,7 +211,8 @@ if (command === "public") {
 ║ ├ .grpdesc
 ║ ├ .device
 ║ ├ .delete
-║ ├ .clearchat
+║ ├ .ki
+
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -257,52 +265,7 @@ if (command === "public") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-    // ====== Auto-Message setzen ======
-      if (command === "setmsg") {
-    if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages setzen!");
-
-    const [minutesStr, ...messageParts] = args;
-    if (!minutesStr || !messageParts.length) {
-        return reply(sock, msg, "Benutzung: .setmsg <Minuten> <Nachricht>");
-    }
-
-    const minutes = parseInt(minutesStr);
-    if (isNaN(minutes) || minutes <= 0) {
-        return reply(sock, msg, "Bitte eine gültige Zahl größer als 0 angeben!");
-    }
-
-    const textMessage = messageParts.join(" ");
-
-    // Alte Intervalle löschen, falls schon vorhanden
-    if (autoMessages[from]) clearInterval(autoMessages[from]);
-
-    // Neue Intervalle setzen
-    autoMessageSettings[from] = { text: textMessage, interval: minutes };
-    autoMessages[from] = setInterval(async () => {
-        try {
-            await sock.sendMessage(from, { text: textMessage });
-        } catch (e) {
-            console.error("Fehler beim Senden der Auto-Message:", e);
-        }
-    }, minutes * 60 * 1000);
-
-    // Bestätigung direkt zurückgeben
-    return reply(sock, msg, `✅ Auto-Message gesetzt: "${textMessage}" alle ${minutes} Minute(n)`);
-}
-    // ====== Auto-Message stoppen ======
-    if (command === "stopmsg") {
-        if (!isOwner(sender)) return reply(sock, msg, "Nur der Owner kann Auto-Messages stoppen!");
-
-        if (autoMessages[from]) {
-            clearInterval(autoMessages[from]);
-            delete autoMessages[from];
-            delete autoMessageSettings[from];
-            return reply(sock, msg, "⏹ Auto-Message gestoppt!");
-        } else {
-            return reply(sock, msg, "Es läuft aktuell keine Auto-Message in diesem Chat.");
-        }
-    }
-
+    
 //=========================//
 // GET PROFILE PICTURE
 //=========================//
@@ -475,39 +438,144 @@ if (command === "hidetag") {
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
     }
 }; 
+if (command === "ask" || command === "ki" || command === "ai") {
+    if (!args.length) return reply(sock, msg, "❌ Frage fehlt!");
 
-if (command === "clearchat") {
-    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
-    const admin = await isAdmin(sock, from, sender);
-    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
+    const userId = sender;
+    const prompt = args.join(" ");
 
-    const count = parseInt(args[0]);
-    if (isNaN(count) || count < 1) return reply(sock, msg, "⚙️ Benutzung: clearchat <Anzahl>");
+    if (!chats[userId]) chats[userId] = [];
+
+    chats[userId].push({ role: "user", content: prompt });
 
     try {
-        // Letzte Nachrichten abrufen
-        const messages = await sock.loadMessages(from, count + 1); // +1, weil wir auch den Befehl selbst löschen wollen
-        const msgsToDelete = messages.messages.slice(0, count + 1); // die IDs für das Löschen vorbereiten
+        const response = await axios.post("http://localhost:11434/api/chat", {
+            model: "llama3",
+            messages: chats[userId]
+        });
 
-        for (let m of msgsToDelete) {
-            // Nachrichten löschen
-            await sock.sendMessage(from, {
-                delete: {
-                    remoteJid: from,
-                    id: m.key.id,
-                    fromMe: m.key.fromMe // wichtig: true, wenn eigene Nachricht
-                }
-            });
-        }
+        const replyText = response.data.message.content;
 
-        await reply(sock, msg, `✅ Die letzten ${count} Nachrichten wurden gelöscht.`);
-    } catch (err) {
-        console.error(err);
-        return reply(sock, msg, "❌ Fehler beim Löschen der Nachrichten!");
+        chats[userId].push({ role: "assistant", content: replyText });
+
+        reply(sock, msg, `🤖 ${replyText}`);
+
+    } catch (e) {
+        reply(sock, msg, "❌ KI Fehler!");
     }
 }
+    if (command === "automsg") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+
+    const sub = args[0];
+
+    // =========================
+    // SET
+    // =========================
+    if (sub === "set") {
+        const minutes = parseInt(args[1]);
+        const text = args.slice(2).join(" ");
+
+        if (!minutes || !text) {
+            return reply(sock, msg, "❌ Nutzung: .automsg set <Minuten> <Text>");
+        }
+
+        if (minutes <= 0) {
+            return reply(sock, msg, "❌ Minuten müssen > 0 sein!");
+        }
+
+        // alten stoppen
+        if (autoIntervals[from]) clearInterval(autoIntervals[from]);
+
+        // speichern
+        botConfig.autoMessages[from] = {
+            text,
+            interval: minutes
+        };
+        saveBotConfig();
+
+        // starten
+        autoIntervals[from] = setInterval(async () => {
+            try {
+                await sock.sendMessage(from, { text });
+            } catch (e) {
+                console.error(e);
+            }
+        }, minutes * 60 * 1000);
+
+        return reply(sock, msg, `✅ AutoMsg gesetzt (${minutes} min)`);
+    }
+
+    // =========================
+    // STOP
+    // =========================
+    if (sub === "stop") {
+        if (!botConfig.autoMessages[from]) {
+            return reply(sock, msg, "❌ Keine AutoMsg aktiv!");
+        }
+
+        if (autoIntervals[from]) {
+            clearInterval(autoIntervals[from]);
+            delete autoIntervals[from];
+        }
+
+        delete botConfig.autoMessages[from];
+        saveBotConfig();
+
+        return reply(sock, msg, "⏹ AutoMsg gestoppt!");
+    }
+
+    // =========================
+    // LIST
+    // =========================
+    if (sub === "list") {
+        const entries = Object.entries(botConfig.autoMessages);
+
+        if (!entries.length) {
+            return reply(sock, msg, "❌ Keine AutoMsgs aktiv!");
+        }
+
+        let text = "📋 AutoMsgs:\n\n";
+
+        entries.forEach(([chatId, data], i) => {
+            text += `${i + 1}. ${chatId}\n`;
+            text += `⏱ ${data.interval} min\n`;
+            text += `💬 ${data.text}\n\n`;
+        });
+
+        return reply(sock, msg, text);
+    }
+
+    // =========================
+    // HELP
+    // =========================
+    return reply(sock, msg,
+`📌 AutoMsg Befehle:
+
+.automsg set <Minuten> <Text>
+.automsg stop
+.automsg list`
+    );
+}
 }
 
+export const loadAutoMessages = (sock) => {
+    if (!botConfig.autoMessages) return;
+
+    for (const chatId in botConfig.autoMessages) {
+        const data = botConfig.autoMessages[chatId];
+
+        autoIntervals[chatId] = setInterval(async () => {
+            try {
+                await sock.sendMessage(chatId, { text: data.text });
+            } catch (e) {
+                console.error("AutoMsg Fehler:", e);
+            }
+        }, data.interval * 60 * 1000);
+    }
+
+    console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
+};
 
 //=========================//
 // GROUP EVENTS

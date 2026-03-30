@@ -1,7 +1,7 @@
 import { makeWASocket, useMultiFileAuthState } from "@angstvorfrauen/baileys";
 import fs from "fs";
 import path from "path";
-
+import pino from pino
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -229,35 +229,41 @@ if (command === "public") {
     }
 
 if (command === "newbot") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur der Owner darf neue Bots erstellen!");
-    const number = args[0];
-    if (!number) return reply(sock, msg, "⚠️ Nutzung: !newbot <Nummer>");
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 
-    const SESSION_PATH = `./sessions/${number}/auth_info.json`;
-    const { state, saveCreds } = useMultiFileAuthState(SESSION_PATH);
+    let phoneNumber = args[0];
+    if (!phoneNumber) {
+        return reply(sock, msg, "⚙️ Nutzung: .newbot <Nummer mit Ländervorwahl>");
+    }
+
+    phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
+
+    const sessionPath = `./sessions/${phoneNumber}`;
+    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
     const sock2 = makeWASocket({
         auth: state,
         printQRInTerminal: false,
+        logger: pino({ level: "silent" })
     });
 
-    sock2.ev.on('creds.update', saveCreds);
+    sock2.ev.on("creds.update", saveCreds);
 
-    // Pairing-Code generieren
-    const pairing = await sock2.generatePairingCode(number, 'WANTEDBOT'); 
-    // number = Label, 'WANTEDBOT' = Name der App / Device
+    // 📟 Pairing-Code holen
+    if (!sock2.authState.creds.registered) {
+        let code = await sock2.requestPairingCode(phoneNumber, "WANTEDBOT");
+        code = code?.match(/.{1,4}/g)?.join("-") || code;
 
-    await reply(sock, msg, 
-        `🔗 Neue Bot-Session für Nummer ${number} erstellt!\n` +
-        `📟 Pairing-Code:\n${pairing.ref}\n` +
-        `⏰ Gültig bis: ${new Date(pairing.expire).toLocaleString()}`
-    );
+        await reply(sock, msg, `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`);
+    }
 
-    // Verbindung überwachen
-    sock2.ev.on('connection.update', (update) => {
+    sock2.ev.on("connection.update", (update) => {
         const { connection } = update;
-        if (connection === 'open') {
-            console.log(`Bot für ${number} verbunden!`);
+
+        if (connection === "open") {
+            console.log(`✅ Bot für ${phoneNumber} verbunden!`);
+        } else if (connection === "close") {
+            console.log(`❌ Verbindung zu ${phoneNumber} verloren`);
         }
     });
 }

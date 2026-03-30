@@ -1,5 +1,7 @@
+import { makeWASocket, useSingleFileAuthState } from "@adiwajshing/baileys";
 import fs from "fs";
 import path from "path";
+
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -210,7 +212,8 @@ if (command === "public") {
 ║ 🔒 OWNER
 ║ ├ .self
 ║ ├ .public
-║ ├ .autoread 
+║ ├ .autoread
+║ ├ .newbot
 ╚═════════════════════`
         );
     }
@@ -224,6 +227,40 @@ if (command === "public") {
         const latency = Date.now() - start;
         return reply(sock, msg, `🏓 Pong!\n⏱️ Latenz: ${latency}ms`);
     }
+
+if (command === "newbot") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur der Owner darf neue Bots erstellen!");
+    const number = args[0];
+    if (!number) return reply(sock, msg, "⚠️ Nutzung: !newbot <Nummer>");
+
+    const SESSION_PATH = `./sessions/${number}/auth_info.json`;
+    const { state, saveCreds } = useSingleFileAuthState(SESSION_PATH);
+
+    const sock2 = makeWASocket({
+        auth: state,
+        printQRInTerminal: false,
+    });
+
+    sock2.ev.on('creds.update', saveCreds);
+
+    // Pairing-Code generieren
+    const pairing = await sock2.generatePairingCode(number, 'WANTEDBOT'); 
+    // number = Label, 'WANTEDBOT' = Name der App / Device
+
+    await reply(sock, msg, 
+        `🔗 Neue Bot-Session für Nummer ${number} erstellt!\n` +
+        `📟 Pairing-Code:\n${pairing.ref}\n` +
+        `⏰ Gültig bis: ${new Date(pairing.expire).toLocaleString()}`
+    );
+
+    // Verbindung überwachen
+    sock2.ev.on('connection.update', (update) => {
+        const { connection } = update;
+        if (connection === 'open') {
+            console.log(`Bot für ${number} verbunden!`);
+        }
+    });
+}
 
     if (command === "kick") {
     if (!isGroup(from)) return;

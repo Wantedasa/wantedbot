@@ -175,6 +175,7 @@ if (!groupSetting?.antidelete) return;
 const deletedMsgKey = msg.message.protocolMessage?.key;
 if (!deletedMsgKey) return;
 
+const deletedMsg = msg.message.protocolMessage;
 const deletedId = deletedMsg.key.id;
 
             const cached = messageCache[from]?.[deletedId];

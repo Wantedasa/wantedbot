@@ -29,7 +29,7 @@ if (fs.existsSync(CONFIG_FILE)) {
         console.error("Fehler beim Laden von botConfig.json:", e);
     }
 }
-botConfig.autoMesaages = botConfig.autoMessages || {};
+botConfig.autoMessages = botConfig.autoMessages || {};
 
 // Speichern Funktion
 export const saveBotConfig = () => {
@@ -210,6 +210,8 @@ if (command === "public") {
 ║ ├ .grpdesc
 ║ ├ .device
 ║ ├ .delete
+║ ├ .promote
+║ ├ .demote
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -217,6 +219,7 @@ if (command === "public") {
 ║ ├ .autoread
 ║ ├ .grpleave
 ║ ├ .antidelete on/off
+║ ├ .automsg set/stop
 ╚═════════════════════`
         );
     }
@@ -435,10 +438,63 @@ if (command === "hidetag") {
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
     }
 }; 
+    if (command === "add") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
+
+    if (!args[0]) return reply(sock, msg, "❌ Nutzung: .add 49123,49222");
+
+    let numbers = args[0].split(",");
+    let jids = numbers.map(n => n.replace(/[^0-9]/g, "") + "@s.whatsapp.net");
+
+    try {
+        await sock.groupParticipantsUpdate(from, jids, "add");
+        reply(sock, msg, "✅ Nutzer hinzugefügt!");
+    } catch {
+        const code = await sock.groupInviteCode(from);
+        const link = `https://chat.whatsapp.com/${code}`;
+        reply(sock, msg, `❌ Add fehlgeschlagen\n🔗 ${link}`);
+    }
+}
+    if (command === "demote") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
+
+    const target = getTarget(msg, args);
+    if (!target) return reply(sock, msg, "❌ Nutzung: .demote @user");
+
+    await sock.groupParticipantsUpdate(from, [target], "demote");
+    reply(sock, msg, "⬇️ Nutzer ist kein Admin mehr!");
+}
+    if (command === "promote") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
+
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
+
+    const target = getTarget(msg, args);
+    if (!target) return reply(sock, msg, "❌ Nutzung: .promote @user");
+
+    await sock.groupParticipantsUpdate(from, [target], "promote");
+    reply(sock, msg, "⬆️ Nutzer ist jetzt Admin!");
+}
     if (command === "automsg") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 
     const sub = args[0];
+
+    if (!sub) {
+        return reply(sock, msg,
+`📌 AutoMsg Befehle:
+
+.automsg set <Minuten> <Text>
+.automsg stop
+.automsg list`);
+    }
 
     // =========================
     // SET
@@ -456,7 +512,10 @@ if (command === "hidetag") {
         }
 
         // alten stoppen
-        if (autoIntervals[from]) clearInterval(autoIntervals[from]);
+        if (autoIntervals[from]) {
+            clearInterval(autoIntervals[from]);
+            delete autoIntervals[from];
+        }
 
         // speichern
         botConfig.autoMessages[from] = {
@@ -470,7 +529,7 @@ if (command === "hidetag") {
             try {
                 await sock.sendMessage(from, { text });
             } catch (e) {
-                console.error(e);
+                console.error("AutoMsg Fehler:", e);
             }
         }, minutes * 60 * 1000);
 
@@ -500,7 +559,7 @@ if (command === "hidetag") {
     // LIST
     // =========================
     if (sub === "list") {
-        const entries = Object.entries(botConfig.autoMessages);
+        const entries = Object.entries(botConfig.autoMessages || {});
 
         if (!entries.length) {
             return reply(sock, msg, "❌ Keine AutoMsgs aktiv!");
@@ -517,16 +576,7 @@ if (command === "hidetag") {
         return reply(sock, msg, text);
     }
 
-    // =========================
-    // HELP
-    // =========================
-    return reply(sock, msg,
-`📌 AutoMsg Befehle:
-
-.automsg set <Minuten> <Text>
-.automsg stop
-.automsg list`
-    );
+    return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
 }
 

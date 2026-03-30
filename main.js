@@ -249,6 +249,23 @@ if (command === "newbot") {
 
     sock2.ev.on("creds.update", saveCreds);
 
+    // 🔥 Speichern damit du später drauf zugreifen kannst
+    global.bots = global.bots || {};
+    global.bots[phoneNumber] = sock2;
+
+    let sentCode = false;
+
+    // 🔁 Retry Funktion
+    async function getCode(retries = 3) {
+        try {
+            return await sock2.requestPairingCode(phoneNumber, "WANTEBOT");
+        } catch (err) {
+            if (retries <= 0) throw err;
+            await new Promise(r => setTimeout(r, 2000));
+            return getCode(retries - 1);
+        }
+    }
+
     sock2.ev.on("connection.update", async (update) => {
         const { connection } = update;
 
@@ -256,20 +273,30 @@ if (command === "newbot") {
             console.log(`🔄 Verbinde ${phoneNumber}...`);
         }
 
+        // ✅ Pairing-Code (mit Delay + Schutz)
+        if (!sock2.authState.creds.registered && !sentCode) {
+            sentCode = true;
+
+            setTimeout(async () => {
+                try {
+                    let code = await getCode();
+                    code = code?.match(/.{1,4}/g)?.join("-") || code;
+
+                    await reply(
+                        sock,
+                        msg,
+                        `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`
+                    );
+                } catch (err) {
+                    console.error("Pairing Fehler:", err);
+                    await reply(sock, msg, "❌ Fehler beim Pairing-Code!");
+                }
+            }, 3000); // 🔥 WICHTIG
+        }
+
         if (connection === "open") {
             console.log(`✅ Bot für ${phoneNumber} verbunden!`);
-        }
-        if (!sock2.authState.creds.registered && connection === "connecting") {
-            try {
-                let code = await sock2.requestPairingCode(phoneNumber, "WANTEBOT");
-                code = code?.match(/.{1,4}/g)?.join("-") || code;
-
-                await reply(sock, msg, 
-                    `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`
-                );
-            } catch (err) {
-                console.error("Pairing Fehler:", err);
-            }
+            reply(sock, msg, `✅ Bot für ${phoneNumber} ist jetzt online!`);
         }
 
         if (connection === "close") {

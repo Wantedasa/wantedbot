@@ -168,17 +168,12 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
 
         // Antidelete
         if (msg.message.protocolMessage?.type === 0) {
-            const deletedMsg = msg.message.protocolMessage;
-            const deletedId = deletedMsg.key.id;
-
+            
 const groupSetting = botConfig.groupSettings[from];
 if (!groupSetting?.antidelete) return;
 
 const deletedMsgKey = msg.message.protocolMessage?.key;
 if (!deletedMsgKey) return;
-
-const cached = messageCache[from]?.[deletedMsgKey.id];
-if (!cached) return;
 
 
             const cached = messageCache[from]?.[deletedId];

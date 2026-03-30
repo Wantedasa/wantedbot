@@ -1,7 +1,7 @@
 import { makeWASocket, useMultiFileAuthState } from "@angstvorfrauen/baileys";
 import fs from "fs";
 import path from "path";
-import pino from pino
+import pino from "pino";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {

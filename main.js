@@ -483,41 +483,28 @@ if (command === "hidetag") {
         reply(sock, msg, `❌ Add fehlgeschlagen\n🔗 ${link}`);
     }
 }
-    if (command === "demote") {
+// =========================
+// PROMOTE / DEMOTE
+// =========================
+if (command === "promote" || command === "demote") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
 
     const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
 
-    let targets = [];
+    // Erwähnte Nutzer holen
+    const targets = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    if (!targets || targets.length === 0) return reply(sock, msg, "❌ Nutzung: ." + command + " @user");
 
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (mentioned && mentioned.length > 0) {
-        targets = mentioned;
+    try {
+        await sock.groupParticipantsUpdate(from, targets, command === "promote" ? "promote" : "demote");
+        return reply(sock, msg, command === "promote" 
+            ? "⬆️ Nutzer wurde zum Admin gemacht!" 
+            : "⬇️ Nutzer ist kein Admin mehr!");
+    } catch (e) {
+        console.error("Fehler beim " + command + ":", e);
+        return reply(sock, msg, "❌ Fehler beim " + command + "!");
     }
-        
-    if (!targets) return reply(sock, msg, "❌ Nutzung: .demote @user");
-
-    await sock.groupParticipantsUpdate(from, [targets], "demote");
-    reply(sock, msg, "⬇️ Nutzer ist kein Admin mehr!");
-}
-    if (command === "promote") {
-    if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
-
-    const admin = await isAdmin(sock, from, sender);
-    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
-
-    let targets = [];
-
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (mentioned && mentioned.length > 0) {
-        targets = mentioned;
-    }
-        
-    if (!targets) return reply(sock, msg, "❌ Nutzung: .promote @user");
-
-    await sock.groupParticipantsUpdate(from, [targets], "promote");
-    reply(sock, msg, "⬆️ Nutzer ist jetzt Admin!");
 }
     if (command === "automsg") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");

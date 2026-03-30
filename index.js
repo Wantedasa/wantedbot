@@ -175,14 +175,13 @@ if (!groupSetting?.antidelete) return;
 const deletedMsgKey = msg.message.protocolMessage?.key;
 if (!deletedMsgKey) return;
 
+const deletedId = deletedMsg.key.id;
 
             const cached = messageCache[from]?.[deletedId];
             if (!cached) return;
 
             const originalMsg = cached.msg;
             const originalSender = cached.sender;
-
-const deletedId = deletedMsg.key.id;
 
             let deletedContent = "[Nicht darstellbare Nachricht]";
             if (originalMsg) {

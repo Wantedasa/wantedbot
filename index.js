@@ -182,6 +182,8 @@ if (!deletedMsgKey) return;
             const originalMsg = cached.msg;
             const originalSender = cached.sender;
 
+const deletedId = deletedMsg.key.id;
+
             let deletedContent = "[Nicht darstellbare Nachricht]";
             if (originalMsg) {
                 if (originalMsg.message?.conversation) deletedContent = originalMsg.message.conversation;

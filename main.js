@@ -130,7 +130,7 @@ if (command === "antidelete") {
 
     // Admin-Check
     const admin = await isAdmin(sock, from, sender);
-    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admins oder Owner können Antidelete setzen!");
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können Antidelete setzen!");
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
@@ -200,7 +200,6 @@ if (command === "public") {
 ║ ├ .kick
 ║ ├ .welcome on/off
 ║ ├ .leave on/off
-║ ├ .antidelete on/off
 ║ ├ .grpname
 ║ ├ .grpdesc
 ║ ├ .device
@@ -211,7 +210,7 @@ if (command === "public") {
 ║ ├ .self
 ║ ├ .public
 ║ ├ .autoread
-║ ├ .newbot
+║ ├ .antidelete on/off
 ╚═════════════════════`
         );
     }

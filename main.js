@@ -590,7 +590,6 @@ if (command === "promote" || command === "demote") {
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
-
 if (command === "info") {
     try {
         // Zielperson: auf Nachricht antworten oder Nummer angeben
@@ -606,9 +605,10 @@ if (command === "info") {
         let pushName = contact.notify || contact.name || "Unbekannt";
 
         // Profilbild prüfen (nur Status, kein Bild laden)
-        let ppAvailable = true;
+        let ppAvailable = false;
         try {
-            await sock.profilePictureUrl(target, "image").catch(() => { ppAvailable = false; });
+            await sock.profilePictureUrl(target, "image");
+            ppAvailable = true;
         } catch {
             ppAvailable = false;
         }
@@ -616,23 +616,22 @@ if (command === "info") {
         // Bio/Status abrufen
         let bio = "Nicht abrufbar";
         try {
-            const vcard = await sock.fetchStatus(target).catch(() => null);
-            bio = vcard?.status || "Kein Status";
+            const vcard = await sock.fetchStatus(target);
+            if (vcard?.status) bio = vcard.status;
         } catch {}
 
-        // Nachricht zusammenstellen
+        // Schöne formatierte Nachricht
         let infoMsg = `📌 *User Info*\n\n` +
-                      `👤 pushName: ${pushName}\n` +
-                      `🆔 JID/LID: ${target}\n` +
-                      `📷 Profilbild: ${ppAvailable ? "Vorhanden" : "Nicht abrufbar"}\n` +
-                      `💬 Bio: ${bio}`;
+                      `👤 *Name:* ${pushName}\n` +
+                      `🆔 *JID/LID:* ${target}\n` +
+                      `📷 *Profilbild:* ${ppAvailable ? "Vorhanden ✅" : "Nicht abrufbar ❌"}\n` +
+                      `💬 *Bio:* ${bio}`;
 
-        // Immer nur Text zurückgeben
+        // Nur Text senden
         reply(sock, msg, infoMsg);
 
     } catch (err) {
         console.log(err);
-        // Nur ganz unerwartete Fehler landen hier
         reply(sock, msg, "❌ Unbekannter Fehler beim Abrufen der User Info!");
     }
 }

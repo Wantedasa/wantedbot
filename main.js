@@ -392,10 +392,8 @@ if (command === "grpleave" || command === "leavegrp") {
     try {
         // 📤 Abschiedsnachricht
         await sock.sendMessage(from, {
-            text: "👋 Bye Leute, ich bin raus."
+            text: "👋 Bye"
         });
-
-        // 🚪 Gruppe verlassen
         await sock.groupLeave(from);
 
     } catch (err) {

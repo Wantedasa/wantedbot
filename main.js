@@ -266,18 +266,13 @@ if (command === "public") {
     }
 }
     
-//=========================//
-// GET PROFILE PICTURE
-//=========================//
 if (command === "getpic") {
     try {
         let target;
 
-        // 📌 Wenn auf Nachricht geantwortet wird
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             target = msg.message.extendedTextMessage.contextInfo.participant;
         }
-        // 📌 Wenn Nummer eingegeben wird
         else if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             target = number + "@s.whatsapp.net";
@@ -286,7 +281,6 @@ if (command === "getpic") {
             return reply(sock, msg, "❌ Nutzung: .getpic <nummer> oder auf Nachricht antworten");
         }
 
-        // 📸 Profilbild holen
         let ppUrl;
         try {
             ppUrl = await sock.profilePictureUrl(target, "image");
@@ -294,7 +288,6 @@ if (command === "getpic") {
             return reply(sock, msg, "❌ Kein Profilbild gefunden!");
         }
 
-        // 📤 Bild senden
         await sock.sendMessage(from, {
             image: { url: ppUrl },
             caption: `📸 Profilbild von:\n${target}`
@@ -338,22 +331,16 @@ if (command === "kickall") {
         }
     }
  
-//=========================//
-// GROUP LEAVE
-//=========================//
 if (command === "grpleave" || command === "leavegrp") {
-    // ❌ Nur Gruppen
     if (!isGroup(from)) {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     }
 
-    // 🔐 Owner Check
     if (!isOwner(sender)) {
         return reply(sock, msg, "❌ Nur der Owner darf den Bot entfernen!");
     }
 
     try {
-        // 📤 Abschiedsnachricht
         await sock.sendMessage(from, {
             text: "👋 Bye"
         });
@@ -416,9 +403,6 @@ if (command === "hidetag") {
     }
 }
 
-    //=========================//
-    // GROUP NAME & DESCRIPTION
-    //=========================//
     if (command === "grpname" || command === "grpdesc") {
         if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
         const admin = await isAdmin(sock, from, sender);
@@ -436,20 +420,17 @@ if (command === "hidetag") {
     }
 
   if (command === "del" || command === "delete") {
-    // Funktion nur für Gruppen
+
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
 
-    // Prüfen, ob Sender Admin oder Owner ist
     const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner darf Nachrichten löschen!");
 
-    // Prüfen, ob auf eine Nachricht geantwortet wurde
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
     if (!contextInfo?.stanzaId) {
         return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die gelöscht werden soll!");
     }
 
-    // Nachricht löschen
     try {
         await sock.sendMessage(from, { 
             delete: { 
@@ -483,23 +464,29 @@ if (command === "hidetag") {
         reply(sock, msg, `❌ Add fehlgeschlagen\n🔗 ${link}`);
     }
 }
-// =========================
-// PROMOTE / DEMOTE
-// =========================
+
 if (command === "promote" || command === "demote") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
 
     const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
 
-    // Erwähnte Nutzer holen
-    const targets = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (!targets || targets.length === 0) return reply(sock, msg, "❌ Nutzung: ." + command + " @user");
+    let targets = [];
+
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    if (mentioned && mentioned.length > 0) targets = mentioned;
+
+    if ((!targets || targets.length === 0) && msg.message?.extendedTextMessage?.contextInfo?.quotedMessage) {
+        const repliedUser = msg.message.extendedTextMessage.contextInfo.participant;
+        if (repliedUser) targets.push(repliedUser);
+    }
+
+    if (!targets || targets.length === 0) return reply(sock, msg, `❌ Nutzung: .${command} @user oder auf Nachricht antworten`);
 
     try {
         await sock.groupParticipantsUpdate(from, targets, command === "promote" ? "promote" : "demote");
-        return reply(sock, msg, command === "promote" 
-            ? "⬆️ Nutzer wurde zum Admin gemacht!" 
+        return reply(sock, msg, command === "promote"
+            ? "⬆️ Nutzer wurde zum Admin gemacht!"
             : "⬇️ Nutzer ist kein Admin mehr!");
     } catch (e) {
         console.error("Fehler beim " + command + ":", e);

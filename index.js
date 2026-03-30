@@ -208,8 +208,7 @@ const deletedId = deletedMsg.key.id;
             const timestamp = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
             await sock.sendMessage(from, {
-                text: `
-╔═════════════════════╗
+                text: `╔═════════════════════╗
 ║ 🛡️  ANTI-DELETE ALERT  ║
 ╠═════════════════════╣
 ║ ⏰ Zeit: ${timestamp}
@@ -218,8 +217,7 @@ const deletedId = deletedMsg.key.id;
 ╠═════════════════════╣
 ║ 🔹 Inhalt:
 ║   ${deletedContent.split("\n").join("\n║   ")}
-╚═════════════════════╝
-                `,
+╚═════════════════════╝`,
                 mentions: [originalSender]
             });
         }

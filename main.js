@@ -1,7 +1,5 @@
-import { makeWASocket, useMultiFileAuthState } from "@angstvorfrauen/baileys";
 import fs from "fs";
 import path from "path";
-import pino from "pino";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -227,84 +225,6 @@ if (command === "public") {
         const latency = Date.now() - start;
         return reply(sock, msg, `🏓 Pong!\n⏱️ Latenz: ${latency}ms`);
     }
-
-if (command === "newbot") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
-
-    let phoneNumber = args[0];
-    if (!phoneNumber) {
-        return reply(sock, msg, "⚙️ Nutzung: .newbot <Nummer mit Ländervorwahl>");
-    }
-
-    phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
-
-    const sessionPath = `./sessions/${phoneNumber}`;
-    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
-
-    const sock2 = makeWASocket({
-        auth: state,
-        printQRInTerminal: false,
-        logger: pino({ level: "silent" })
-    });
-
-    sock2.ev.on("creds.update", saveCreds);
-
-    // 🔥 Speichern damit du später drauf zugreifen kannst
-    global.bots = global.bots || {};
-    global.bots[phoneNumber] = sock2;
-
-    let sentCode = false;
-
-    // 🔁 Retry Funktion
-    async function getCode(retries = 3) {
-        try {
-            return await sock2.requestPairingCode(phoneNumber, "WANTEBOT");
-        } catch (err) {
-            if (retries <= 0) throw err;
-            await new Promise(r => setTimeout(r, 2000));
-            return getCode(retries - 1);
-        }
-    }
-
-    sock2.ev.on("connection.update", async (update) => {
-        const { connection } = update;
-
-        if (connection === "connecting") {
-            console.log(`🔄 Verbinde ${phoneNumber}...`);
-        }
-
-        // ✅ Pairing-Code (mit Delay + Schutz)
-        if (!sock2.authState.creds.registered && !sentCode) {
-            sentCode = true;
-
-            setTimeout(async () => {
-                try {
-                    let code = await getCode();
-                    code = code?.match(/.{1,4}/g)?.join("-") || code;
-
-                    await reply(
-                        sock,
-                        msg,
-                        `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`
-                    );
-                } catch (err) {
-                    console.error("Pairing Fehler:", err);
-                    await reply(sock, msg, "❌ Fehler beim Pairing-Code!");
-                }
-            }, 3000); // 🔥 WICHTIG
-        }
-
-        if (connection === "open") {
-            console.log(`✅ Bot für ${phoneNumber} verbunden!`);
-            reply(sock, msg, `✅ Bot für ${phoneNumber} ist jetzt online!`);
-        }
-
-        if (connection === "close") {
-            console.log(`❌ Verbindung zu ${phoneNumber} verloren`);
-        }
-    });
-}
-
     if (command === "kick") {
     if (!isGroup(from)) return;
 

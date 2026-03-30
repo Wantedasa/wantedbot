@@ -494,10 +494,16 @@ if (command === "hidetag") {
     const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
 
-    const target = getTarget(msg, args);
-    if (!target) return reply(sock, msg, "❌ Nutzung: .demote @user");
+    let targets = [];
 
-    await sock.groupParticipantsUpdate(from, [target], "demote");
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    if (mentioned && mentioned.length > 0) {
+        targets = mentioned;
+    }
+        
+    if (!targets) return reply(sock, msg, "❌ Nutzung: .demote @user");
+
+    await sock.groupParticipantsUpdate(from, [targets], "demote");
     reply(sock, msg, "⬇️ Nutzer ist kein Admin mehr!");
 }
     if (command === "promote") {
@@ -506,10 +512,16 @@ if (command === "hidetag") {
     const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
 
-    const target = getTarget(msg, args);
-    if (!target) return reply(sock, msg, "❌ Nutzung: .promote @user");
+    let targets = [];
 
-    await sock.groupParticipantsUpdate(from, [target], "promote");
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    if (mentioned && mentioned.length > 0) {
+        targets = mentioned;
+    }
+        
+    if (!targets) return reply(sock, msg, "❌ Nutzung: .promote @user");
+
+    await sock.groupParticipantsUpdate(from, [targets], "promote");
     reply(sock, msg, "⬆️ Nutzer ist jetzt Admin!");
 }
     if (command === "automsg") {

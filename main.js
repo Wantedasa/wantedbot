@@ -234,7 +234,7 @@ if (command === "newbot") {
     if (!number) return reply(sock, msg, "⚠️ Nutzung: !newbot <Nummer>");
 
     const SESSION_PATH = `./sessions/${number}/auth_info.json`;
-    const { state, saveCreds } = useSingleFileAuthState(SESSION_PATH);
+    const { state, saveCreds } = useMultiFileAuthState(SESSION_PATH);
 
     const sock2 = makeWASocket({
         auth: state,

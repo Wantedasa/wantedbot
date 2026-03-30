@@ -210,6 +210,7 @@ if (command === "public") {
 ║ ├ .self
 ║ ├ .public
 ║ ├ .autoread
+║ ├ .grpleave
 ║ ├ .antidelete on/off
 ╚═════════════════════`
         );
@@ -374,6 +375,34 @@ if (command === "kickall") {
         }
     }
  
+//=========================//
+// GROUP LEAVE
+//=========================//
+if (command === "grpleave" || command === "leavegrp") {
+    // ❌ Nur Gruppen
+    if (!isGroup(from)) {
+        return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+    }
+
+    // 🔐 Owner Check
+    if (!isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur der Owner darf den Bot entfernen!");
+    }
+
+    try {
+        // 📤 Abschiedsnachricht
+        await sock.sendMessage(from, {
+            text: "👋 Bye Leute, ich bin raus."
+        });
+
+        // 🚪 Gruppe verlassen
+        await sock.groupLeave(from);
+
+    } catch (err) {
+        console.log(err);
+        reply(sock, msg, "❌ Fehler beim Verlassen der Gruppe!");
+    }
+}
 
 if (command === "hidetag") {
     if (!isGroup(from)) return reply(sock, msg, "Dieser Befehl funktioniert nur in Gruppen!");

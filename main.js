@@ -251,7 +251,7 @@ if (command === "newbot") {
 
     // 📟 Pairing-Code holen
     if (!sock2.authState.creds.registered) {
-        let code = await sock2.requestPairingCode(phoneNumber, "WANTEDBOT");
+        let code = await sock2.requestPairingCode(phoneNumber, "WANTEBOT");
         code = code?.match(/.{1,4}/g)?.join("-") || code;
 
         await reply(sock, msg, `📲 Bot wird erstellt für ${phoneNumber}\n🔑 Pairing Code:\n${code}`);

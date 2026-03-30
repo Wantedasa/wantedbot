@@ -302,6 +302,46 @@ if (command === "public") {
         }
     }
 
+//=========================//
+// GET PROFILE PICTURE
+//=========================//
+if (command === "getpic") {
+    try {
+        let target;
+
+        // 📌 Wenn auf Nachricht geantwortet wird
+        if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
+            target = msg.message.extendedTextMessage.contextInfo.participant;
+        }
+        // 📌 Wenn Nummer eingegeben wird
+        else if (args[0]) {
+            let number = args[0].replace(/[^0-9]/g, "");
+            target = number + "@s.whatsapp.net";
+        } 
+        else {
+            return reply(sock, msg, "❌ Nutzung: .getpic <nummer> oder auf Nachricht antworten");
+        }
+
+        // 📸 Profilbild holen
+        let ppUrl;
+        try {
+            ppUrl = await sock.profilePictureUrl(target, "image");
+        } catch {
+            return reply(sock, msg, "❌ Kein Profilbild gefunden!");
+        }
+
+        // 📤 Bild senden
+        await sock.sendMessage(from, {
+            image: { url: ppUrl },
+            caption: `📸 Profilbild von:\n${target}`
+        }, { quoted: msg });
+
+    } catch (err) {
+        console.log(err);
+        reply(sock, msg, "❌ Fehler beim Abrufen!");
+    }
+}
+
 if (command === "kickall") {
     if (!isGroup(from)) return;
 

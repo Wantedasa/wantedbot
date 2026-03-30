@@ -590,6 +590,7 @@ if (command === "promote" || command === "demote") {
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
+
 if (command === "info") {
     try {
         let target = msg.message?.extendedTextMessage?.contextInfo?.participant;
@@ -603,26 +604,31 @@ if (command === "info") {
         let contact = sock.store.contacts[target] || {};
         let pushName = contact.notify || contact.name || "Unbekannt";
 
-        // Profilbild
+        // Profilbild prüfen
+        let ppAvailable = true;
         let ppUrl = null;
         try {
-            ppUrl = await sock.profilePictureUrl(target, "image").catch(() => null);
-        } catch {}
+            ppUrl = await sock.profilePictureUrl(target, "image");
+        } catch {
+            ppAvailable = false;
+        }
 
-        // Status
-        let status = "Unbekannt";
+        // Bio/Status abrufen
+        let bio = "Nicht abrufbar";
         try {
-            const vcard = await sock.fetchStatus(target).catch(() => null);
-            status = vcard?.status || "Kein Status";
+            const vcard = await sock.fetchStatus(target);
+            bio = vcard?.status || "Kein Status";
         } catch {}
 
-        // Nachricht senden
+        // Nachricht zusammenstellen
         let infoMsg = `📌 *User Info*\n\n` +
                       `👤 pushName: ${pushName}\n` +
                       `🆔 JID/LID: ${target}\n` +
-                      `💬 Status: ${status}`;
+                      `📷 Profilbild: ${ppAvailable ? "Vorhanden" : "Nicht abrufbar"}\n` +
+                      `💬 Bio: ${bio}`;
 
-        if (ppUrl) {
+        // Profilbild mit Caption senden, falls vorhanden
+        if (ppAvailable && ppUrl) {
             await sock.sendMessage(from, { image: { url: ppUrl }, caption: infoMsg }, { quoted: msg });
         } else {
             reply(sock, msg, infoMsg);
@@ -633,7 +639,6 @@ if (command === "info") {
         reply(sock, msg, "❌ Fehler beim Abrufen der User Info!");
     }
 }
-
 
 }
 

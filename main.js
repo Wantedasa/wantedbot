@@ -148,7 +148,7 @@ if (command === "autoread") {
     if (!value || !["on","off"].includes(value)) return reply(sock, msg, "⚙️ Nutzung: !autoread on/off");
 
     botConfig.autoRead = value === "on";
-    saveConfig();
+    saveBotConfig();
     return reply(sock, msg, `✅ Automatisches Lesen ist jetzt ${botConfig.autoRead ? "aktiviert" : "deaktiviert"}`);
 }
 

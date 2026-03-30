@@ -216,6 +216,7 @@ if (command === "public") {
 ║ 🔒 OWNER
 ║ ├ .self
 ║ ├ .public
+║ ├ .info
 ║ ├ .autoread
 ║ ├ .grpleave
 ║ ├ .antidelete on/off
@@ -589,6 +590,54 @@ if (command === "promote" || command === "demote") {
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
+
+if (command === "info") {
+    try {
+        // 📌 Zielperson: reply oder Nummer
+        let target = msg.message?.extendedTextMessage?.contextInfo?.participant;
+        if (!target && args[0]) {
+            let number = args[0].replace(/[^0-9]/g, "");
+            target = number + "@s.whatsapp.net";
+        }
+        if (!target) return reply(sock, msg, "❌ Bitte auf eine Nachricht antworten oder Nummer angeben!");
+
+        // 🔹 pushName abrufen
+        let contact = sock.store.contacts[target] || {};
+        let pushName = contact.notify || contact.name || "Unbekannt";
+
+        // 🔹 Profilbild abrufen
+        let ppUrl;
+        try {
+            ppUrl = await sock.profilePictureUrl(target, "image");
+        } catch {
+            ppUrl = null;
+        }
+
+        // 🔹 Status abrufen (optional)
+        let status = "Unbekannt";
+        try {
+            const vcard = await sock.fetchStatus(target);
+            status = vcard?.status || "Kein Status";
+        } catch {}
+
+        // 🔹 Nachricht senden
+        let infoMsg = `📌 *User Info*\n\n` +
+                      `👤 pushName: ${pushName}\n` +
+                      `🆔 JID/LID: ${target}\n` +
+                      `💬 Status: ${status}`;
+
+        if (ppUrl) {
+            await sock.sendMessage(from, { image: { url: ppUrl }, caption: infoMsg }, { quoted: msg });
+        } else {
+            reply(sock, msg, infoMsg);
+        }
+
+    } catch (err) {
+        console.log(err);
+        reply(sock, msg, "❌ Fehler beim Abrufen der User Info!");
+    }
+}
+
 }
 
 export const loadAutoMessages = (sock) => {

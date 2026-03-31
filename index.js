@@ -114,7 +114,10 @@ async function connectBot() {
             setTimeout(connectBot, 5000);
         } else if (connection === "open") {
             console.log(chalk.green("✅ Verbunden mit WhatsApp!"));
+
             loadAutoMessages(sock);
+      loadWerbelistIntervals(sock);
+
         }
     });
 

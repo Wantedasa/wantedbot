@@ -605,11 +605,11 @@ if (command === "info") {
     try {
         let target;
 
-        // 1️⃣ Ziel bestimmen: Antwort, Markierung, oder Nummer
+        // Ziel bestimmen: Antwort, Markierung oder Nummer
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             target = msg.message.extendedTextMessage.contextInfo.participant;
         } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
-            target = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid[0];
+            target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
         } else if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             target = number + "@s.whatsapp.net";
@@ -617,18 +617,18 @@ if (command === "info") {
             return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
         }
 
-        const number = target.split("@")[0];
-        const jid = target;
-        const lid = msg.key.mentionedJid || msg.threadId.partcipant
+        const jid = target;                     // Vollständige JID
+        const number = target.split("@")[0];    // Nur Nummer
+        const lid = msg.key?.participant || number;  // LID aus msg.key oder fallback
 
-        // 👤 PushName holen
+        // PushName
         let pushName = "Unbekannt";
         try {
             const contact = sock.contacts[target];
             if (contact?.notify) pushName = contact.notify;
         } catch {}
 
-        // 🖼 Profilbild
+        // Profilbild
         let ppUrl = null;
         let hasProfilePic = "❌ Nein";
         try {
@@ -636,14 +636,14 @@ if (command === "info") {
             hasProfilePic = "✅ Ja";
         } catch {}
 
-        // 🏢 Business
+        // Business
         let isBusiness = "❌ Nein";
         try {
             const biz = await sock.getBusinessProfile(target);
             if (biz) isBusiness = "✅ Ja";
         } catch {}
 
-        // 👥 Gemeinsame Gruppen
+        // Gemeinsame Gruppen
         let mutualGroups = [];
         try {
             const groups = await sock.groupFetchAllParticipating();
@@ -657,7 +657,7 @@ if (command === "info") {
             ? mutualGroups.slice(0, 25).map(g => `• ${g}`).join("\n")
             : "Keine gemeinsamen Gruppen";
 
-        // 📅 Account-Erstellung schätzen
+        // Account-Erstellung schätzen
         function getCreationDate(jid) {
             try {
                 const id = jid.split("@")[0];
@@ -678,21 +678,24 @@ if (command === "info") {
         }
         const createdAt = getCreationDate(target);
 
-        // 📝 Ausgabe bauen
+        // Ausgabe bauen mit Doppelstrich
+        const line = "──────────────────────────";
         const text = `╭───〔 👤 USER INFO 〕───⬣
 │
 │ 📱 Nummer: ${number}
 │ 🆔 JID: ${jid}
 │ 🆔 LID: ${lid}
+${line}
 │ 👤 Name: ${pushName}
 │ 🖼️ Profilbild: ${hasProfilePic}
 │ 🏢 Business: ${isBusiness}
 │ 📅 Erstellt: ${createdAt}
-│
+${line}
 │ 👥 Gemeinsame Gruppen: ${groupCount}
 ${groupList}
 ╰────────────────⬣`;
 
+        // Senden
         if (ppUrl) {
             await sock.sendMessage(from, {
                 image: { url: ppUrl },

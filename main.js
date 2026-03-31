@@ -44,6 +44,8 @@ export {botConfig};
 
 const autoIntervals = {};
 const chats = {};
+const autoFailCount = {};
+
 
 
 // ========================= GROUP SETTINGS =========================
@@ -684,11 +686,32 @@ export const loadAutoMessages = (sock) => {
     for (const chatId in botConfig.autoMessages) {
         const data = botConfig.autoMessages[chatId];
 
+        autoFailCount[chatId] = 0;
+
         autoIntervals[chatId] = setInterval(async () => {
             try {
                 await sock.sendMessage(chatId, { text: data.text });
+
+                // Reset bei Erfolg
+                autoFailCount[chatId] = 0;
+
             } catch (e) {
                 console.error("AutoMsg Fehler:", e);
+
+                autoFailCount[chatId]++;
+
+                if (autoFailCount[chatId] >= 5) {
+                    console.log(`❌ AutoMsg deaktiviert für ${chatId}`);
+                    clearInterval(autoIntervals[chatId]);
+                    delete autoIntervals[chatId];
+                    delete
+                    if (typeof saveBotConfig === "function") {
+                        saveBotConfig();
+                    }
+                    await sock.sendMessage(ownerJid, {
+                        text: `⚠️ Auto-Message deaktiviert!\n\nChat: ${chatId}\nGrund: 5x Fehler beim Senden.`
+                    });
+                }
             }
         }, data.interval * 60 * 1000);
     }

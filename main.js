@@ -680,47 +680,52 @@ if (command === "unblock") {
 
 }
 
-export const loadAutoMessages = (sock) => {
+
+export const loadAutoMessages = async (sock) => {
     if (!botConfig.autoMessages) return;
+
     for (const chatId in botConfig.autoMessages) {
         const data = botConfig.autoMessages[chatId];
-const metadata = await sock.groupMetadata(chatId);
-const groupName = metadata.subject;
 
+        // Gruppennamen sicher holen
+        let groupName = chatId; // Fallback falls kein Name
+        try {
+            if (chatId.endsWith("@g.us")) { // nur bei Gruppen
+                const metadata = await sock.groupMetadata(chatId);
+                groupName = metadata.subject || chatId;
+            }
+        } catch (err) {
+            console.error(`Fehler beim Abrufen des Gruppennamens für ${chatId}:`, err);
+        }
 
         autoFailCount[chatId] = 0;
 
+        // Intervall starten
         autoIntervals[chatId] = setInterval(async () => {
             try {
                 await sock.sendMessage(chatId, { text: data.text });
-
-                // Reset bei Erfolg
-                autoFailCount[chatId] = 0;
+                autoFailCount[chatId] = 0; // Reset bei Erfolg
 
             } catch (e) {
                 console.error("AutoMsg Fehler:", e);
-
                 autoFailCount[chatId]++;
-await sock.sendMessage(ownerJid, {
-                            text: `⚠️ Auto-Message fehlgeschlagen!\n\nChat: ${groupName} (${chatId})\nGrund: Fehler beim Senden.`
-                        });
 
+                // Direkt Owner informieren
+                try {
+                    await sock.sendMessage(ownerJid, {
+                        text: `⚠️ Auto-Message fehlgeschlagen!\n\nChat: ${groupName} (${chatId})\nGrund: Fehler beim Senden.`
+                    });
+                } catch {}
+
+                // Nach 5 Fehlern deaktivieren
                 if (autoFailCount[chatId] >= 5) {
                     console.log(`❌ AutoMsg deaktiviert für ${chatId}`);
-
-                    // Intervall stoppen
                     clearInterval(autoIntervals[chatId]);
                     delete autoIntervals[chatId];
-
-                    // AutoMsg aus Config löschen
                     delete botConfig.autoMessages[chatId];
 
-                    // Optional speichern
-                    if (typeof saveBotConfig === "function") {
-                        saveBotConfig();
-                    }
+                    if (typeof saveBotConfig === "function") saveBotConfig();
 
-                    // Owner benachrichtigen (try/catch damit kein Crash)
                     try {
                         await sock.sendMessage(ownerJid, {
                             text: `⚠️ Auto-Message deaktiviert!\n\nChat: ${groupName} (${chatId})\nGrund: 5x Fehler beim Senden.`

@@ -772,32 +772,7 @@ if (command === "unblock") {
         reply(sock, msg, "❌ Entblocken fehlgeschlagen.");
     }
 }
-if (command === "listmembers") {
-    try {
-        if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
-
-        // Gruppenmetadata abrufen
-        const metadata = await sock.groupMetadata(from);
-        const participants = metadata.participants;
-
-        if (!participants || participants.length === 0) {
-            return reply(sock, msg, "❌ Keine Mitglieder gefunden!");
-        }
-
-        // Nur die vollständigen WhatsApp-JIDs
-        const memberList = participants.map(p => p.id); // z.B. 49123456789@s.whatsapp.net
-
-        const text = `╭───〔 👥 Gruppenmitglieder 〕───⬣\n` +
-                     memberList.join(", ") + // durch Komma getrennt
-                     `\n╰──────────────────────────⬣`;
-
-        reply(sock, msg, text);
-
-    } catch (err) {
-        console.error(err);
-        reply(sock, msg, "❌ Fehler beim Abrufen der Mitglieder!");
-    }
-}
+    
 }
 
 

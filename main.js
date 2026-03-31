@@ -534,94 +534,7 @@ if (command === "promote" || command === "demote") {
         return reply(sock, msg, "❌ Fehler beim " + command + "!");
     }
 }
-    if (command === "automsg") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
-
-    const sub = args[0];
-
-    if (!sub) {
-        return reply(sock, msg,
-`📌 AutoMsg Befehle:
-
-.automsg set <Minuten> <Text>
-.automsg stop
-.automsg list`);
-    }
-
-    // =========================
-    // SET
-    // =========================
-    if (sub === "set") {
-        const minutes = parseInt(args[1]);
-        const text = args.slice(2).join(" ");
-
-        if (!minutes || !text) {
-            return reply(sock, msg, "❌ Nutzung: .automsg set <Minuten> <Text>");
-        }
-
-        if (minutes <= 0) {
-            return reply(sock, msg, "❌ Minuten müssen > 0 sein!");
-        }
-
-        // alten stoppen
-        if (autoIntervals[from]) {
-            clearInterval(autoIntervals[from]);
-            delete autoIntervals[from];
-        }
-
-        // speichern
-        botConfig.autoMessages[from] = {
-            text,
-            interval: minutes
-        };
-        saveBotConfig();
-
-        // starten
-        autoIntervals[from] = setInterval(async () => {
-            try {
-                await sock.sendMessage(from, { text });
-            } catch (e) {
-                console.error("AutoMsg Fehler:", e);
-            }
-        }, minutes * 60 * 1000);
-
-        return reply(sock, msg, `✅ AutoMsg gesetzt (${minutes} min)`);
-    }
-    if (sub === "stop") {
-        if (!botConfig.autoMessages[from]) {
-            return reply(sock, msg, "❌ Keine AutoMsg aktiv!");
-        }
-
-        if (autoIntervals[from]) {
-            clearInterval(autoIntervals[from]);
-            delete autoIntervals[from];
-        }
-
-        delete botConfig.autoMessages[from];
-        saveBotConfig();
-
-        return reply(sock, msg, "⏹ AutoMsg gestoppt!");
-    }
-    if (sub === "list") {
-        const entries = Object.entries(botConfig.autoMessages || {});
-
-        if (!entries.length) {
-            return reply(sock, msg, "❌ Keine AutoMsgs aktiv!");
-        }
-
-        let text = "📋 AutoMsgs:\n\n";
-
-        entries.forEach(([chatId, data], i) => {
-            text += `${i + 1}. ${chatId}\n`;
-            text += `⏱ ${data.interval} min\n`;
-            text += `💬 ${data.text}\n\n`;
-        });
-
-        return reply(sock, msg, text);
-    }
-
-    return reply(sock, msg, "❌ Unbekannter Subcommand!");
-}
+    
 if (command === "info") {
     try {
         let target;
@@ -786,7 +699,97 @@ if (command === "unblock") {
     }
 }
     
+if (command === "automsg") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+
+    const sub = args[0];
+
+    if (!sub) {
+        return reply(sock, msg,
+`📌 AutoMsg Befehle:
+
+.automsg set <Minuten> <Text>
+.automsg stop
+.automsg list`);
+    }
+
+    // =========================
+    // SET
+    // =========================
+    if (sub === "set") {
+        const minutes = parseInt(args[1]);
+        const text = args.slice(2).join(" ");
+
+        if (!minutes || !text) {
+            return reply(sock, msg, "❌ Nutzung: .automsg set <Minuten> <Text>");
+        }
+
+        if (minutes <= 0) {
+            return reply(sock, msg, "❌ Minuten müssen > 0 sein!");
+        }
+
+        // alten stoppen
+        if (autoIntervals[from]) {
+            clearInterval(autoIntervals[from]);
+            delete autoIntervals[from];
+        }
+
+        // speichern
+        botConfig.autoMessages[from] = {
+    text,
+    interval: minutes,
+    lastSent: 0
+};
+saveBotConfig();
+
+        // starten
+        autoIntervals[from] = setInterval(async () => {
+            try {
+                await sock.sendMessage(from, { text });
+            } catch (e) {
+                console.error("AutoMsg Fehler:", e);
+            }
+        }, minutes * 60 * 1000);
+
+        return reply(sock, msg, `✅ AutoMsg gesetzt (${minutes} min)`);
+    }
+    if (sub === "stop") {
+        if (!botConfig.autoMessages[from]) {
+            return reply(sock, msg, "❌ Keine AutoMsg aktiv!");
+        }
+
+        if (autoIntervals[from]) {
+            clearInterval(autoIntervals[from]);
+            delete autoIntervals[from];
+        }
+
+        delete botConfig.autoMessages[from];
+        saveBotConfig();
+
+        return reply(sock, msg, "⏹ AutoMsg gestoppt!");
+    }
+    if (sub === "list") {
+        const entries = Object.entries(botConfig.autoMessages || {});
+
+        if (!entries.length) {
+            return reply(sock, msg, "❌ Keine AutoMsgs aktiv!");
+        }
+
+        let text = "📋 AutoMsgs:\n\n";
+
+        entries.forEach(([chatId, data], i) => {
+            text += `${i + 1}. ${chatId}\n`;
+            text += `⏱ ${data.interval} min\n`;
+            text += `💬 ${data.text}\n\n`;
+        });
+
+        return reply(sock, msg, text);
+    }
+
+    return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
+}
+
 
 
 export const loadAutoMessages = async (sock) => {
@@ -795,7 +798,6 @@ export const loadAutoMessages = async (sock) => {
     for (const chatId in botConfig.autoMessages) {
         const data = botConfig.autoMessages[chatId];
 
-        // Gruppennamen sicher holen
         let groupName = chatId;
         try {
             if (chatId.endsWith("@g.us")) {
@@ -808,47 +810,51 @@ export const loadAutoMessages = async (sock) => {
 
         autoFailCount[chatId] = 0;
 
-        // Intervall starten
-        autoIntervals[chatId] = setInterval(async () => {
+        const now = Date.now();
+        const lastSent = data.lastSent || 0;
+        const intervalMs = data.interval * 60 * 1000;
+        const timeSinceLast = now - lastSent;
+
+        // Wenn Zeit vergangen ist oder lastSent nicht existiert → sofort senden
+        if (!data.lastSent || timeSinceLast >= intervalMs) {
             try {
                 await sock.sendMessage(chatId, { text: data.text });
-                autoFailCount[chatId] = 0; // Reset bei Erfolg
-
+                botConfig.autoMessages[chatId].lastSent = Date.now();
+                saveBotConfig();
+                autoFailCount[chatId] = 0;
             } catch (e) {
-                console.error("AutoMsg Fehler:", e);
+                console.error("AutoMsg Fehler beim ersten Senden:", e);
                 autoFailCount[chatId]++;
+            }
+        }
 
-                // Direkt Owner informieren
+        // Berechne Restzeit bis zur nächsten Nachricht
+        const delay = lastSent ? Math.max(intervalMs - timeSinceLast, 0) : intervalMs;
+
+        // Timeout für nächste Nachricht
+        setTimeout(() => {
+            autoIntervals[chatId] = setInterval(async () => {
                 try {
-                    await sock.sendMessage(ownerJid, {
-                        text: `⚠️ Auto-Message fehlgeschlagen!\n\nChat: ${groupName} (${chatId})\nGrund: Fehler beim Senden.`
-                    });
-                } catch {}
-
-                // Nach 5 Fehlern deaktivieren
-                if (autoFailCount[chatId] >= 5) {
-                    console.log(`❌ AutoMsg deaktiviert für ${chatId}`);
-                    clearInterval(autoIntervals[chatId]);
-                    delete autoIntervals[chatId];
-                    delete botConfig.autoMessages[chatId];
-
-                    if (typeof saveBotConfig === "function") saveBotConfig();
-
-                    try {
-                        await sock.sendMessage(ownerJid, {
-                            text: `⚠️ Auto-Message deaktiviert!\n\nChat: ${groupName} (${chatId})\nGrund: 5x Fehler beim Senden.`
-                        });
-                    } catch (err) {
-                        console.error("Owner Nachricht fehlgeschlagen:", err);
+                    await sock.sendMessage(chatId, { text: data.text });
+                    botConfig.autoMessages[chatId].lastSent = Date.now();
+                    saveBotConfig();
+                    autoFailCount[chatId] = 0;
+                } catch (e) {
+                    console.error("AutoMsg Fehler:", e);
+                    autoFailCount[chatId]++;
+                    if (autoFailCount[chatId] >= 5) {
+                        clearInterval(autoIntervals[chatId]);
+                        delete autoIntervals[chatId];
+                        delete botConfig.autoMessages[chatId];
+                        saveBotConfig();
                     }
                 }
-            }
-        }, data.interval * 60 * 1000);
+            }, intervalMs);
+        }, delay);
     }
 
     console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
 };
-
 //=========================//
 // GROUP EVENTS
 //=========================//

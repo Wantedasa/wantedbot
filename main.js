@@ -581,10 +581,6 @@ if (command === "promote" || command === "demote") {
 
         return reply(sock, msg, "⏹ AutoMsg gestoppt!");
     }
-
-    // =========================
-    // LIST
-    // =========================
     if (sub === "list") {
         const entries = Object.entries(botConfig.autoMessages || {});
 
@@ -607,50 +603,112 @@ if (command === "promote" || command === "demote") {
 }
 if (command === "info") {
     try {
-        // Zielperson: auf Nachricht antworten oder Nummer angeben
-        let target = msg.message?.extendedTextMessage?.contextInfo?.participant;
-        if (!target && args[0]) {
+        let target;
+
+        // 🔍 Ziel bestimmen
+        if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
+            target = msg.message.extendedTextMessage.contextInfo.participant;
+        } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
+            target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
+        } else if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             target = number + "@s.whatsapp.net";
-        }
-        if (!target) return reply(sock, msg, "❌ Bitte auf eine Nachricht antworten oder Nummer angeben!");
-
-        // pushName
-        let contact = sock.store.contacts[target] || {};
-        let pushName = contact.notify || contact.name || "Unbekannt";
-
-        // Profilbild prüfen (nur Status, kein Bild laden)
-        let ppAvailable = false;
-        try {
-            await sock.profilePictureUrl(target, "image");
-            ppAvailable = true;
-        } catch {
-            ppAvailable = false;
+        } else {
+            return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
         }
 
-        // Bio/Status abrufen
-        let bio = "Nicht abrufbar";
+        const number = target.split("@")[0];
+
+        // 👤 Name holen
+        let pushName = "Unbekannt";
         try {
-            const vcard = await sock.fetchStatus(target);
-            if (vcard?.status) bio = vcard.status;
+            const contact = sock.contacts[target];
+            if (contact?.notify) pushName = contact.notify;
         } catch {}
 
-        // Schöne formatierte Nachricht
-        let infoMsg = `📌 *User Info*\n\n` +
-                      `👤 *Name:* ${pushName}\n` +
-                      `🆔 *JID/LID:* ${target}\n` +
-                      `📷 *Profilbild:* ${ppAvailable ? "Vorhanden ✅" : "Nicht abrufbar ❌"}\n` +
-                      `💬 *Bio:* ${bio}`;
+        // 🖼️ Profilbild holen
+        let ppUrl = null;
+        let hasProfilePic = "❌ Nein";
+        try {
+            ppUrl = await sock.profilePictureUrl(target, "image");
+            hasProfilePic = "✅ Ja";
+        } catch {}
 
-        // Nur Text senden
-        reply(sock, msg, infoMsg);
+        // 🏢 Business Check
+        let isBusiness = "❌ Nein";
+        try {
+            const biz = await sock.getBusinessProfile(target);
+            if (biz) isBusiness = "✅ Ja";
+        } catch {}
+
+        // 👥 Gemeinsame Gruppen finden
+        let mutualGroups = [];
+        try {
+            const groups = await sock.groupFetchAllParticipating();
+            for (let id in groups) {
+                let participants = groups[id].participants.map(p => p.id);
+                if (participants.includes(target)) {
+                    mutualGroups.push(groups[id].subject);
+                }
+            }
+        } catch {}
+
+        let groupList = mutualGroups.length > 0
+            ? mutualGroups.slice(0, 10).map(g => `• ${g}`).join("\n")
+            : "Keine gemeinsamen Gruppen";
+
+        // 📅 Account-Erstellungsdatum schätzen
+        function getCreationDate(jid) {
+            try {
+                const id = jid.split("@")[0];
+                const timestamp = parseInt(id.substring(0, 10));
+                if (!isNaN(timestamp)) {
+                    const date = new Date(timestamp * 1000);
+                    return date.toLocaleString("de-DE", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    });
+                } else {
+                    return "Unbekannt";
+                }
+            } catch {
+                return "Unbekannt";
+            }
+        }
+
+        const createdAt = getCreationDate(target);
+
+        // 📄 Text bauen
+        let text = `╭───〔 👤 PREMIUM USER INFO 〕───⬣
+│
+│ 📱 Nummer: ${number}
+│ 🆔 JID: ${target}
+│ 👤 Name: ${pushName}
+│ 🖼️ Profilbild: ${hasProfilePic}
+│ 🏢 Business: ${isBusiness}
+│ 📅 Erstellt: ${createdAt}
+│
+│ 👥 Gemeinsame Gruppen:
+${groupList}
+│
+╰────────────────⬣`;
+        if (ppUrl) {
+            await sock.sendMessage(from, {
+                image: { url: ppUrl },
+                caption: text
+            }, { quoted: msg });
+        } else {
+            reply(sock, msg, text);
+        }
 
     } catch (err) {
-        console.log(err);
-        reply(sock, msg, "❌ Unbekannter Fehler beim Abrufen der User Info!");
+        console.error(err);
+        reply(sock, msg, "❌ Fehler beim Abrufen der Infos!");
     }
 }
-
 if (command === "block") {
     // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");

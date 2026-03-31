@@ -153,14 +153,17 @@ if (command === "autoread") {
     if (!args[0]) return reply(sock, msg, "❌ Nutzung: .autoread <on|off> [groups|private]");
 
     const state = args[0].toLowerCase() === "on";
-    const type = args[1]?.toLowerCase() || "groups";
+    const type = args[1]?.toLowerCase();
 
-    if (type === "groups" || type === "grp") {
+    if (!type) {
         botConfig.autoReadGroups = state;
         reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
     } else if (type === "private" || type === "pn") {
         botConfig.autoReadPrivate = state;
         reply(sock, msg, `✅ AutoRead für Private Chats ${state ? "aktiviert" : "deaktiviert"}`);
+    } else if (type === "groups" || type === "grp") {
+        botConfig.autoReadGroups = state;
+        reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
     } else {
         reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
     }

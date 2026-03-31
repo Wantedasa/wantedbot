@@ -691,7 +691,6 @@ if (command === "info") {
 │
 │ 👥 Gemeinsame Gruppen: ${groupCount}
 ${groupList}
-│
 ╰────────────────⬣`;
 
         if (ppUrl) {
@@ -725,6 +724,30 @@ if (command === "block") {
     } catch (err) {
         console.error(err);
         reply(sock, msg, "❌ Blockieren fehlgeschlagen.");
+    }
+}
+    if (command === "msgraw") {
+    try {
+        // Nachricht in JSON-Format umwandeln und formatieren
+        const rawMsg = JSON.stringify(msg, null, 2);
+
+        // Prüfen, ob die Nachricht zu groß für WhatsApp ist
+        if (rawMsg.length > 4000) {
+            reply(sock, msg, "❌ Nachricht zu groß zum Senden. Speichere sie als Datei.");
+            // Optional: Speichern als Datei
+            const fs = require('fs');
+            const fileName = `raw_${Date.now()}.json`;
+            fs.writeFileSync(fileName, rawMsg);
+            await sock.sendMessage(from, { document: { url: fileName }, fileName: fileName, mimetype: "application/json" }, { quoted: msg });
+            return;
+        }
+
+        // Nachricht direkt senden
+        reply(sock, msg, "📄 Raw Message:\n" + rawMsg);
+
+    } catch (err) {
+        console.error(err);
+        reply(sock, msg, "❌ Fehler beim Abrufen der Raw Message!");
     }
 }
 if (command === "unblock") {

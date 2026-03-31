@@ -229,6 +229,7 @@ if (command === "public") {
 ║ ├ .delete
 ║ ├ .promote/demote
 ║ ├ .mute/unmute
+║ ├ .grouplink
 ║
 ║ 🔒 OWNER
 ║ ├ .self
@@ -350,7 +351,18 @@ if (command === "kickall") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
         }
     }
- 
+if (command === "grouplink" || command === "gc") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+    if (!isAdmin(sock, from, sender)) return reply(sock, msg, "❌ Nur Admins können den Gruppenlink abrufen!");
+
+    try {
+        const invite = await sock.groupInviteCode(from);
+        return await reply(sock, msg, `🔗 Gruppenlink: https://chat.whatsapp.com/${invite}`);
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");
+    }
+}
 if (command === "grpleave" || command === "leavegrp") {
     if (!isGroup(from)) {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");

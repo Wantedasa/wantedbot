@@ -683,6 +683,8 @@ if (command === "unblock") {
 export const loadAutoMessages = (sock) => {
     if (!botConfig.autoMessages) return;
 
+    const ownerJid = "4915732218608@s.whatsapp.net"; // deine Owner Nummer
+
     for (const chatId in botConfig.autoMessages) {
         const data = botConfig.autoMessages[chatId];
 
@@ -702,15 +704,27 @@ export const loadAutoMessages = (sock) => {
 
                 if (autoFailCount[chatId] >= 5) {
                     console.log(`❌ AutoMsg deaktiviert für ${chatId}`);
+
+                    // Intervall stoppen
                     clearInterval(autoIntervals[chatId]);
                     delete autoIntervals[chatId];
-                    delete
+
+                    // AutoMsg aus Config löschen
+                    delete botConfig.autoMessages[chatId];
+
+                    // Optional speichern
                     if (typeof saveBotConfig === "function") {
                         saveBotConfig();
                     }
-                    await sock.sendMessage(ownerJid, {
-                        text: `⚠️ Auto-Message deaktiviert!\n\nChat: ${chatId}\nGrund: 5x Fehler beim Senden.`
-                    });
+
+                    // Owner benachrichtigen (try/catch damit kein Crash)
+                    try {
+                        await sock.sendMessage(ownerJid, {
+                            text: `⚠️ Auto-Message deaktiviert!\n\nChat: ${chatId}\nGrund: 5x Fehler beim Senden.`
+                        });
+                    } catch (err) {
+                        console.error("Owner Nachricht fehlgeschlagen:", err);
+                    }
                 }
             }
         }, data.interval * 60 * 1000);

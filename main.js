@@ -574,10 +574,6 @@ if (command === "promote" || command === "demote") {
 
         return reply(sock, msg, `✅ AutoMsg gesetzt (${minutes} min)`);
     }
-
-    // =========================
-    // STOP
-    // =========================
     if (sub === "stop") {
         if (!botConfig.autoMessages[from]) {
             return reply(sock, msg, "❌ Keine AutoMsg aktiv!");
@@ -616,8 +612,6 @@ if (command === "promote" || command === "demote") {
 if (command === "info") {
     try {
         let target;
-
-        // Ziel bestimmen: Antwort, Markierung oder Nummer
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             target = msg.message.extendedTextMessage.contextInfo.participant;
         } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
@@ -639,23 +633,17 @@ if (command === "info") {
         } catch {
             Name = "unbekannt";
         }
-
-        // Profilbild
         let ppUrl = null;
         let hasProfilePic = "❌ Nein";
         try {
             ppUrl = await sock.profilePictureUrl(target, "image");
             hasProfilePic = "✅ Ja";
         } catch {}
-
-        // Business
         let isBusiness = "❌ Nein";
         try {
             const biz = await sock.getBusinessProfile(target);
             if (biz) isBusiness = "✅ Ja";
         } catch {}
-
-        // Gemeinsame Gruppen
         let mutualGroups = [];
         try {
             const groups = await sock.groupFetchAllParticipating();
@@ -796,19 +784,11 @@ if (command === "listmembers") {
             return reply(sock, msg, "❌ Keine Mitglieder gefunden!");
         }
 
-        // Alle Mitglieder auflisten: Name + Nummer
-        const memberList = participants.map((p, i) => {
-            const jid = p.id;
-            const number = jid.split("@")[0];
-            let name = "Unbekannt";
-            try {
-                const contact = sock.contacts[jid];
-                if (contact?.notify) name = contact.notify;
-            } catch {}
-            return `${number}`;
-        });
+        // Nur die vollständigen WhatsApp-JIDs
+        const memberList = participants.map(p => p.id); // z.B. 49123456789@s.whatsapp.net
+
         const text = `╭───〔 👥 Gruppenmitglieder 〕───⬣\n` +
-                     memberList.join(",") +
+                     memberList.join(", ") + // durch Komma getrennt
                      `\n╰──────────────────────────⬣`;
 
         reply(sock, msg, text);

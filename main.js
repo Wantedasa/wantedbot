@@ -460,7 +460,7 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
     }
 }; 
-    if (command === "add") {
+if (command === "add") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
 
     const admin = await isAdmin(sock, from, sender);
@@ -468,17 +468,29 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
 
     if (!args[0]) return reply(sock, msg, "❌ Nutzung: .add 49123,49222");
 
-    let numbers = args[0].split(",");
-    let jids = numbers.map(n => n.replace(/[^0-9]/g, "") + "@s.whatsapp.net");
+    // Zahlen extrahieren
+    let numbers = args[0].split(/[, ]+/).map(n => n.replace(/\D/g, "")).filter(n => n.length > 0);
 
-    try {
-        await sock.groupParticipantsUpdate(from, jids, "add");
-        reply(sock, msg, "✅ Nutzer hinzugefügt!");
-    } catch {
-        const code = await sock.groupInviteCode(from);
-        const link = `https://chat.whatsapp.com/${code}`;
-        reply(sock, msg, `❌ Add fehlgeschlagen\n🔗 ${link}`);
+    if (numbers.length === 0) return reply(sock, msg, "❌ Keine gültigen Nummern gefunden!");
+
+    let success = 0;
+    let fail = 0;
+
+    // Funktion zum warten
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    for (let number of numbers) {
+        let jid = number + "@s.whatsapp.net";
+        try {
+            await sock.groupParticipantsUpdate(from, [jid], "add");
+            success++;
+        } catch {
+            fail++;
+        }
+        await wait(2000);
     }
+
+    reply(sock, msg, `✅ Fertig!\nErfolgreich hinzugefügt: ${success}\nFehlgeschlagen: ${fail}`);
 }
 
 if (command === "promote" || command === "demote") {
@@ -772,7 +784,40 @@ if (command === "unblock") {
         reply(sock, msg, "❌ Entblocken fehlgeschlagen.");
     }
 }
+if (command === "listmembers") {
+    try {
+        if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
 
+        // Gruppenmetadata abrufen
+        const metadata = await sock.groupMetadata(from);
+        const participants = metadata.participants;
+
+        if (!participants || participants.length === 0) {
+            return reply(sock, msg, "❌ Keine Mitglieder gefunden!");
+        }
+
+        // Alle Mitglieder auflisten: Name + Nummer
+        const memberList = participants.map((p, i) => {
+            const jid = p.id;
+            const number = jid.split("@")[0];
+            let name = "Unbekannt";
+            try {
+                const contact = sock.contacts[jid];
+                if (contact?.notify) name = contact.notify;
+            } catch {}
+            return `${i+1}. ${name} (${number})`;
+        });
+        const text = `╭───〔 👥 Gruppenmitglieder 〕───⬣\n` +
+                     memberList.join("\n") +
+                     `\n╰──────────────────────────⬣`;
+
+        reply(sock, msg, text);
+
+    } catch (err) {
+        console.error(err);
+        reply(sock, msg, "❌ Fehler beim Abrufen der Mitglieder!");
+    }
+}
 }
 
 

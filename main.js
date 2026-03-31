@@ -688,9 +688,9 @@ export const loadAutoMessages = async (sock) => {
         const data = botConfig.autoMessages[chatId];
 
         // Gruppennamen sicher holen
-        let groupName = chatId; // Fallback falls kein Name
+        let groupName = chatId;
         try {
-            if (chatId.endsWith("@g.us")) { // nur bei Gruppen
+            if (chatId.endsWith("@g.us")) {
                 const metadata = await sock.groupMetadata(chatId);
                 groupName = metadata.subject || chatId;
             }

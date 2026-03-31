@@ -618,15 +618,15 @@ if (command === "info") {
         }
 
         const jid = target;
-        const number = ;
+        const number = target;
         const lid = msg.key?.mentionedJid || msg.message?.paticipant;
-
-        // PushName
-        let pushName = "Unbekannt";
+        let name = "Unbekannt";
         try {
             const contact = sock.contacts[target];
-            if (contact?.notify) pushName = contact.notify;
-        } catch {}
+            if (contact?.notify) Name = contact.notify;
+        } catch {
+            Name = "unbekannt";
+        }
 
         // Profilbild
         let ppUrl = null;
@@ -686,7 +686,7 @@ if (command === "info") {
 │ 🆔 JID: ${jid}
 │ 🆔 LID: ${lid}
 ${line}
-│ 👤 Name: ${pushName}
+│ 👤 Name: ${name}
 │ 🖼️ Profilbild: ${hasProfilePic}
 │ 🏢 Business: ${isBusiness}
 │ 📅 Erstellt: ${createdAt}

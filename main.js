@@ -3,7 +3,7 @@ import path from "path";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
-    ownerJid: "218507098771705@s.whatsapp.net",
+    ownerJid: "4915129559931@s.whatsapp.net",
     ownerJidLid: "218507098771705@lid",
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",

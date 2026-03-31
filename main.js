@@ -682,11 +682,11 @@ if (command === "unblock") {
 
 export const loadAutoMessages = (sock) => {
     if (!botConfig.autoMessages) return;
+    for (const chatId in botConfig.autoMessages) {
+        const data = botConfig.autoMessages[chatId];
 const metadata = await sock.groupMetadata(chatId);
 const groupName = metadata.subject;
 
-    for (const chatId in botConfig.autoMessages) {
-        const data = botConfig.autoMessages[chatId];
 
         autoFailCount[chatId] = 0;
 

@@ -619,7 +619,7 @@ if (command === "info") {
 
         const number = target.split("@")[0];
         const jid = target;
-        const lid = msg.key.mentionedJid ││ msg.threadId.partcipant
+        const lid = msg.key.mentionedJid || msg.threadId.partcipant
 
         // 👤 PushName holen
         let pushName = "Unbekannt";

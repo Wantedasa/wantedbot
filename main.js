@@ -617,9 +617,9 @@ if (command === "info") {
             return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
         }
 
-        const jid = target;                     // Vollständige JID
-        const number = target.split("@")[0];    // Nur Nummer
-        const lid = msg.key?.participant || number;  // LID aus msg.key oder fallback
+        const jid = target;
+        const number = ;
+        const lid = msg.key?.mentionedJid || msg.message?.paticipant;
 
         // PushName
         let pushName = "Unbekannt";

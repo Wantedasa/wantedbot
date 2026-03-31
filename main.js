@@ -605,11 +605,11 @@ if (command === "info") {
     try {
         let target;
 
-        // 🔍 Ziel bestimmen
+        // 1️⃣ Ziel bestimmen: Antwort, Markierung, oder Nummer
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             target = msg.message.extendedTextMessage.contextInfo.participant;
         } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
-            target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
+            target = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid[0];
         } else if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             target = number + "@s.whatsapp.net";
@@ -617,16 +617,18 @@ if (command === "info") {
             return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
         }
 
-        const number = target.split("@")[0];
+        const number = target.split("@")[0]; // reine Nummer/LID
+        const jid = target;
+        const lid = msg.key.lid
 
-        // 👤 Name holen
+        // 👤 PushName holen
         let pushName = "Unbekannt";
         try {
             const contact = sock.contacts[target];
             if (contact?.notify) pushName = contact.notify;
         } catch {}
 
-        // 🖼️ Profilbild holen
+        // 🖼 Profilbild
         let ppUrl = null;
         let hasProfilePic = "❌ Nein";
         try {
@@ -634,30 +636,28 @@ if (command === "info") {
             hasProfilePic = "✅ Ja";
         } catch {}
 
-        // 🏢 Business Check
+        // 🏢 Business
         let isBusiness = "❌ Nein";
         try {
             const biz = await sock.getBusinessProfile(target);
             if (biz) isBusiness = "✅ Ja";
         } catch {}
 
-        // 👥 Gemeinsame Gruppen finden
+        // 👥 Gemeinsame Gruppen
         let mutualGroups = [];
         try {
             const groups = await sock.groupFetchAllParticipating();
             for (let id in groups) {
                 let participants = groups[id].participants.map(p => p.id);
-                if (participants.includes(target)) {
-                    mutualGroups.push(groups[id].subject);
-                }
+                if (participants.includes(target)) mutualGroups.push(groups[id].subject);
             }
         } catch {}
-
-        let groupList = mutualGroups.length > 0
-            ? mutualGroups.slice(0, 10).map(g => `• ${g}`).join("\n")
+        const groupCount = mutualGroups.length;
+        const groupList = groupCount > 0
+            ? mutualGroups.slice(0, 25).map(g => `• ${g}`).join("\n")
             : "Keine gemeinsamen Gruppen";
 
-        // 📅 Account-Erstellungsdatum schätzen
+        // 📅 Account-Erstellung schätzen
         function getCreationDate(jid) {
             try {
                 const id = jid.split("@")[0];
@@ -671,30 +671,29 @@ if (command === "info") {
                         hour: "2-digit",
                         minute: "2-digit"
                     });
-                } else {
-                    return "Unbekannt";
-                }
+                } else return "Unbekannt";
             } catch {
                 return "Unbekannt";
             }
         }
-
         const createdAt = getCreationDate(target);
 
-        // 📄 Text bauen
-        let text = `╭───〔 👤 PREMIUM USER INFO 〕───⬣
+        // 📝 Ausgabe bauen
+        const text = `╭───〔 👤 USER INFO 〕───⬣
 │
 │ 📱 Nummer: ${number}
-│ 🆔 JID: ${target}
+│ 🆔 JID: ${jid}
+│ 🆔 LID: ${lid}
 │ 👤 Name: ${pushName}
 │ 🖼️ Profilbild: ${hasProfilePic}
 │ 🏢 Business: ${isBusiness}
 │ 📅 Erstellt: ${createdAt}
 │
-│ 👥 Gemeinsame Gruppen:
+│ 👥 Gemeinsame Gruppen: ${groupCount}
 ${groupList}
 │
 ╰────────────────⬣`;
+
         if (ppUrl) {
             await sock.sendMessage(from, {
                 image: { url: ppUrl },

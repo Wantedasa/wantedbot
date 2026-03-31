@@ -137,7 +137,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
             if (!messageCache[from]) messageCache[from] = {};
             messageCache[from][id] = {
                 msg,
-                sender, // Richtiger Absender wird gespeichert
+                sender,
             };
 
             if (Object.keys(messageCache[from]).length > 999) {
@@ -147,13 +147,16 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         }
 
         await handleCommands(sock, msg);
-          if (botConfig.autoRead) {
-            try {
-                await sock.readMessages([msg.key]);
-            } catch (err) {
-                console.error("Fehler beim Lesen der Nachricht:", err);
-            }
-        }
+const isGroupChat = from.endsWith("@g.us");
+const isPrivateChat = from.endsWith("@s.whatsapp.net");
+
+if ((isGroupChat && botConfig.autoReadGroups) || (isPrivateChat && botConfig.autoReadPrivate)) {
+    try {
+        await sock.readMessages([msg.key]);
+    } catch (err) {
+        console.error("Fehler beim Lesen der Nachricht:", err);
+    }
+}
 
         // Nachrichtentext für Logging
         let text = "";

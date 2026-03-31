@@ -954,20 +954,33 @@ export const loadAutoMessages = async (sock) => {
 
     console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
 };
-// ===========================
-// Werbelist Auto-Interval mit Uhrzeit
-// ===========================
 
-// Hilfsfunktion, um nächste Ausführung in ms zu berechnen
+export const sendWerbelist = async (sock, chatId) => {
+    try {
+        if (!botConfig.werbelist || !botConfig.werbelist.length) return;
+
+        const listMessage = botConfig.werbelist
+            .map((item) => `• ${item}`)
+            .join("\n");
+
+        const message = `᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Werbeliste\n\n${listMessage}`;
+
+        await sock.sendMessage(chatId, { text: message });
+        console.log(`✅ Werbelist an ${chatId} gesendet.`);
+    } catch (err) {
+        console.error(`❌ Fehler beim Senden der Werbelist an ${chatId}:`, err);
+        throw err;
+    }
+};
+
 function getDelayToNextSend(hour, minute) {
     const now = new Date();
     const next = new Date();
     next.setHours(hour, minute, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1); // falls Zeit schon vorbei, auf morgen
+    if (next <= now) next.setDate(next.getDate() + 1);
     return next - now;
 }
 
-// Lädt alle Werbelist-Intervalle beim Botstart
 export const loadWerbelistIntervals = async (sock) => {
     if (!botConfig.werbelist || !botConfig.werbelist.length) return;
     if (!botConfig.groupSettings) return;
@@ -976,28 +989,24 @@ export const loadWerbelistIntervals = async (sock) => {
         const groupData = botConfig.groupSettings[chatId];
         if (!groupData.werbelist) continue;
 
-        const intervalMinutes = groupData.interval || 1440; // Default 24h
+        const intervalMinutes = groupData.interval || 1440;
         const lastSent = groupData.lastSent || 0;
 
-        // Wenn Uhrzeit eingestellt ist, berechne Delay
         let delay = intervalMinutes * 60 * 1000;
         if (groupData.sendTime) {
             const [hour, minute] = groupData.sendTime.split(":").map(Number);
             delay = getDelayToNextSend(hour, minute);
         } else if (lastSent) {
-            // Wenn letzte Nachricht schon gesendet, berechne Restzeit
             const passed = Date.now() - lastSent;
             delay = Math.max(delay - passed, 0);
         }
 
-        // Sofort senden, falls fällig oder noch nie gesendet
         if (!lastSent || delay <= 0) {
             await sendWerbelist(sock, chatId);
             botConfig.groupSettings[chatId].lastSent = Date.now();
             saveBotConfig();
         }
 
-        // Timeout + Intervall
         setTimeout(() => {
             werbelistIntervals[chatId] = setInterval(async () => {
                 try {
@@ -1018,7 +1027,6 @@ export const loadWerbelistIntervals = async (sock) => {
         }, delay);
     }
 };
-
 
 //=========================//
 // GROUP EVENTS

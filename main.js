@@ -367,11 +367,9 @@ if ((command === "mute" || command === "unmute") && isGroup(from)) {
 
     try {
         if (command === "mute") {
-            // Nur Admins dürfen schreiben
             await sock.groupSettingUpdate(from, "announcement");
             return reply(sock, msg, "🔇 Gruppen-Einstellungen geändert: Nur Admins dürfen jetzt schreiben!");
         } else {
-            // Alle dürfen schreiben
             await sock.groupSettingUpdate(from, "not_announcement");
             return reply(sock, msg, "🔊 Gruppen-Einstellungen geändert: Alle dürfen jetzt schreiben!");
         }
@@ -382,28 +380,42 @@ if ((command === "mute" || command === "unmute") && isGroup(from)) {
 }
 
 if (command === "hidetag") {
-    if (!isGroup(from)) return reply(sock, msg, "Dieser Befehl funktioniert nur in Gruppen!");
-    if (!isAdmin(sock, from, sender)) return reply(sock, msg, "Nur Admins können hidetag nutzen!");
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+    
+    const admin = await isAdmin(sock, from, sender);
+    if (!admin && !isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Admins oder Owner können hidetag nutzen!");
+    }
 
     const text = args.join(" ");
-    if (!text) return reply(sock, msg, "Benutzung: +hidetag <Nachricht>");
+    if (!text) return reply(sock, msg, "❌ Benutzung: .hidetag <Nachricht>");
 
     try {
-        // Alle Gruppenmitglieder abrufen
         const groupMetadata = await sock.groupMetadata(from);
         const mentions = groupMetadata.participants.map(p => p.id);
 
-        // Nachricht senden mit Mentions
-        await sock.sendMessage(from, { text, mentions });
+        let styledText;
 
-        // Ursprüngliche Nachricht löschen
-        if (msg.key.fromMe || isAdmin(sock, from, sender)) {
-            await sock.sendMessage(from, { delete: msg.key });
+        if (isOwner(sender)) {
+            styledText = `${text}\n\n— by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ`;
+        } else {
+            styledText = `\`\`\`
+╔══════════════════╗
+${text}
+╚══════════════════╝
+
+by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
+\`\`\``;
         }
+        await sock.sendMessage(from, {
+            text: styledText,
+            mentions
+        });
+        await sock.sendMessage(from, { delete: msg.key });
 
     } catch (err) {
         console.error("Fehler bei hidetag:", err);
-        reply(sock, msg, "Fehler beim Senden der Hidetag-Nachricht.");
+        reply(sock, msg, "❌ Fehler beim Senden der Hidetag-Nachricht.");
     }
 }
 

@@ -45,6 +45,9 @@ export {botConfig};
 const autoIntervals = {};
 const chats = {};
 const autoFailCount = {};
+const werbelistIntervals = {};
+const werbelistFailCount = {};
+
 
 
 
@@ -698,7 +701,8 @@ if (command === "unblock") {
         reply(sock, msg, "❌ Entblocken fehlgeschlagen.");
     }
 }
-    
+
+
 if (command === "automsg") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 
@@ -788,6 +792,100 @@ saveBotConfig();
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
+if (command === "werbelist") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+
+    const sub = args[0];
+
+    if (!sub) {
+        return reply(sock, msg,
+`📌 Werbelist Befehle:
+
+.werbelist add <Name> <Link>
+.werbelist remove <Nummer>
+.werbelist list
+.werbelist on/off (in dieser Gruppe)
+.werbelist interval <Minuten>
+.werbelist time <HH:MM>`);
+    }
+
+    // ADD
+    if (sub === "add") {
+        const name = args[1];
+        const link = args[2];
+        if (!name || !link) return reply(sock, msg, "❌ Nutzung: .werbelist add <Name> <Link>");
+
+        botConfig.werbelist = botConfig.werbelist || [];
+        botConfig.werbelist.push({ name, link });
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ Link hinzugefügt: ${name} → ${link}`);
+    }
+
+    // REMOVE
+    if (sub === "remove") {
+        const index = parseInt(args[1]) - 1;
+        if (!botConfig.werbelist?.[index]) return reply(sock, msg, "❌ Ungültige Nummer!");
+
+        const removed = botConfig.werbelist.splice(index, 1)[0];
+        saveBotConfig();
+
+        return reply(sock, msg, `🗑️ Link entfernt: ${removed.name}`);
+    }
+
+    // LIST
+    if (sub === "list") {
+        if (!botConfig.werbelist?.length) return reply(sock, msg, "❌ Keine Links in der Werbelist!");
+
+        let text = "📋 Werbelist:\n\n";
+        botConfig.werbelist.forEach((entry, i) => {
+            text += `${i + 1}. ${entry.name}\n${entry.link}\n\n`;
+        });
+
+        return reply(sock, msg, text);
+    }
+
+    // ON/OFF
+    if (sub === "on" || sub === "off") {
+        if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
+        botConfig.groupSettings = botConfig.groupSettings || {};
+        botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
+        botConfig.groupSettings[from].werbelist = sub === "on";
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ Werbelist in dieser Gruppe ${sub === "on" ? "aktiviert" : "deaktiviert"}`);
+    }
+
+    // INTERVAL
+    if (sub === "interval") {
+        if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
+        const minutes = parseInt(args[1]);
+        if (!minutes || minutes <= 0) return reply(sock, msg, "❌ Nutzung: .werbelist interval <Minuten>");
+
+        botConfig.groupSettings = botConfig.groupSettings || {};
+        botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
+        botConfig.groupSettings[from].interval = minutes;
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ Werbelist Intervall auf ${minutes} Minuten gesetzt`);
+    }
+
+    // TIME
+    if (sub === "time") {
+        if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
+        if (!args[1] || !/^([01]?\d|2[0-3]):([0-5]\d)$/.test(args[1])) 
+            return reply(sock, msg, "❌ Nutzung: .werbelist time <HH:MM> (24h Format)");
+
+        botConfig.groupSettings = botConfig.groupSettings || {};
+        botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
+        botConfig.groupSettings[from].sendTime = args[1];
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ Werbelist wird jetzt täglich um ${args[1]} gesendet`);
+    }
+
+    return reply(sock, msg, "❌ Unbekannter Subcommand!");
+}
 }
 
 
@@ -855,6 +953,72 @@ export const loadAutoMessages = async (sock) => {
 
     console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
 };
+// ===========================
+// Werbelist Auto-Interval mit Uhrzeit
+// ===========================
+
+// Hilfsfunktion, um nächste Ausführung in ms zu berechnen
+function getDelayToNextSend(hour, minute) {
+    const now = new Date();
+    const next = new Date();
+    next.setHours(hour, minute, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1); // falls Zeit schon vorbei, auf morgen
+    return next - now;
+}
+
+// Lädt alle Werbelist-Intervalle beim Botstart
+export const loadWerbelistIntervals = async (sock) => {
+    if (!botConfig.werbelist || !botConfig.werbelist.length) return;
+    if (!botConfig.groupSettings) return;
+
+    for (const chatId in botConfig.groupSettings) {
+        const groupData = botConfig.groupSettings[chatId];
+        if (!groupData.werbelist) continue;
+
+        const intervalMinutes = groupData.interval || 1440; // Default 24h
+        const lastSent = groupData.lastSent || 0;
+
+        // Wenn Uhrzeit eingestellt ist, berechne Delay
+        let delay = intervalMinutes * 60 * 1000;
+        if (groupData.sendTime) {
+            const [hour, minute] = groupData.sendTime.split(":").map(Number);
+            delay = getDelayToNextSend(hour, minute);
+        } else if (lastSent) {
+            // Wenn letzte Nachricht schon gesendet, berechne Restzeit
+            const passed = Date.now() - lastSent;
+            delay = Math.max(delay - passed, 0);
+        }
+
+        // Sofort senden, falls fällig oder noch nie gesendet
+        if (!lastSent || delay <= 0) {
+            await sendWerbelist(sock, chatId);
+            botConfig.groupSettings[chatId].lastSent = Date.now();
+            saveBotConfig();
+        }
+
+        // Timeout + Intervall
+        setTimeout(() => {
+            werbelistIntervals[chatId] = setInterval(async () => {
+                try {
+                    await sendWerbelist(sock, chatId);
+                    botConfig.groupSettings[chatId].lastSent = Date.now();
+                    saveBotConfig();
+                    werbelistFailCount[chatId] = 0;
+                } catch (e) {
+                    console.error("Werbelist AutoMsg Fehler:", e);
+                    werbelistFailCount[chatId] = (werbelistFailCount[chatId] || 0) + 1;
+                    if (werbelistFailCount[chatId] >= 5) {
+                        clearInterval(werbelistIntervals[chatId]);
+                        delete werbelistIntervals[chatId];
+                        console.log(`❌ Werbelist AutoMsg deaktiviert für ${chatId}`);
+                    }
+                }
+            }, intervalMinutes * 60 * 1000);
+        }, delay);
+    }
+};
+
+
 //=========================//
 // GROUP EVENTS
 //=========================//

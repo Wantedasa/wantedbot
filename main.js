@@ -150,14 +150,20 @@ if (command === "antidelete") {
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 if (command === "autoread") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur der Owner kann diese Einstellung ändern!");
+    if (!args[0]) return reply(sock, msg, "❌ Nutzung: .autoread <on|off> [groups|private]");
 
-    const value = args[0]?.toLowerCase();
-    if (!value || !["on","off"].includes(value)) return reply(sock, msg, "⚙️ Nutzung: !autoread on/off");
+    const state = args[0].toLowerCase() === "on";
+    const type = args[1]?.toLowerCase() || "groups";
 
-    botConfig.autoRead = value === "on";
-    saveBotConfig();
-    return reply(sock, msg, `✅ Automatisches Lesen ist jetzt ${botConfig.autoRead ? "aktiviert" : "deaktiviert"}`);
+    if (type === "groups" || type === "grp") {
+        botConfig.autoReadGroups = state;
+        reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
+    } else if (type === "private" || type === "pn") {
+        botConfig.autoReadPrivate = state;
+        reply(sock, msg, `✅ AutoRead für Private Chats ${state ? "aktiviert" : "deaktiviert"}`);
+    } else {
+        reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
+    }
 }
 
     //=========================//

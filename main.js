@@ -859,29 +859,18 @@ if (command === "werbelist") {
 
     // ON/OFF
     if (sub === "on" || sub === "off") {
-        if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
-        botConfig.groupSettings = botConfig.groupSettings || {};
-        botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
-        botConfig.groupSettings[from].werbelist = sub === "on";
-        saveBotConfig();
+    botConfig.groupSettings = botConfig.groupSettings || {};
+    botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
+    botConfig.groupSettings[from].werbelist = sub === "on";
+    saveBotConfig();
 
-        return reply(sock, msg, `✅ Werbelist in dieser Gruppe ${sub === "on" ? "aktiviert" : "deaktiviert"}`);
+    // Originalnachricht löschen
+    try {
+        await sock.sendMessage(from, { delete: msg.key });
+    } catch (err) {
+        console.error("Fehler beim Löschen der Nachricht:", err);
     }
-
-    // INTERVAL
-    if (sub === "interval") {
-        if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
-        const minutes = parseInt(args[1]);
-        if (!minutes || minutes <= 0) return reply(sock, msg, "❌ Nutzung: .werbelist interval <Minuten>");
-
-        botConfig.groupSettings = botConfig.groupSettings || {};
-        botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
-        botConfig.groupSettings[from].interval = minutes;
-        saveBotConfig();
-
-        return reply(sock, msg, `✅ Werbelist Intervall auf ${minutes} Minuten gesetzt`);
-    }
-
+}
     // TIME
     if (sub === "time") {
         if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");

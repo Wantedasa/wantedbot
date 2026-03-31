@@ -129,7 +129,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         if (!msg.message) return;
 
         const from = msg.key.remoteJid;
-        const sender = msg.key.participant || from; // Echte Absender-ID
+        const sender = msg.key.participant || from;
         const id = msg.key.id;
 
         // Cache für Gruppen

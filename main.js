@@ -805,10 +805,10 @@ if (command === "listmembers") {
                 const contact = sock.contacts[jid];
                 if (contact?.notify) name = contact.notify;
             } catch {}
-            return `${i+1}. ${name} (${number})`;
+            return `${number}`;
         });
         const text = `╭───〔 👥 Gruppenmitglieder 〕───⬣\n` +
-                     memberList.join("\n") +
+                     memberList.join(",") +
                      `\n╰──────────────────────────⬣`;
 
         reply(sock, msg, text);

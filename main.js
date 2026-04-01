@@ -188,7 +188,7 @@ if (command === "autoread") {
 ⚡ Version: ${OWNER_SETTINGS.version}
 🟢 Mode: ${mode}
 📖 Auto-Read Gruppen: ${autoReadGroups}
-📖 Auto-Read Private: ${autoReadPrivate}
+📖 Auto-Read Private: ${autoReadPrivate}`;
 
     return await reply(sock, msg, text);
 }

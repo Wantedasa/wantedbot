@@ -153,12 +153,21 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         
 
 const isGroupChat = from.endsWith("@g.us");
-const isPrivateChat = !isGroupChat
-if ((isGroupChat && botConfig.autoReadGroups) || (isPrivateChat && botConfig.autoReadPrivate)) {
+const isPrivateChat = !isGroupChat;
+
+if (isGroupChat && botConfig.autoReadGroups) {
     try {
         await sock.readMessages([msg.key]);
     } catch (err) {
-        console.error("Fehler beim Lesen der Nachricht:", err);
+        console.error("Fehler beim Lesen (Gruppe):", err);
+    }
+}
+
+if (isPrivateChat && botConfig.autoReadPrivate) {
+    try {
+        await sock.readMessages([msg.key]);
+    } catch (err) {
+        console.error("Fehler beim Lesen (Privat):", err);
     }
 }
 

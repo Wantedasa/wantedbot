@@ -353,47 +353,53 @@ if (command === "kickall") {
     }
 if (command === "device") {
     try {
-        // Prüfen, ob auf eine Nachricht geantwortet wurde
-        const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-        if (!quoted) {
-            return reply(sock, msg, "❌ Bitte antworte auf die Nachricht des Users, dessen Device du sehen willst!");
+        const ctx = msg.message?.extendedTextMessage?.contextInfo;
+
+        if (!ctx?.quotedMessage) {
+            return reply(sock, msg, "❌ Antworte auf eine Nachricht!");
         }
 
-        // Den User ermitteln, der die Originalnachricht gesendet hat
-        const sender = msg.message.extendedTextMessage.contextInfo.participant;
-        if (!sender) {
-            return reply(sock, msg, "❌ Konnte den Sender nicht ermitteln!");
+        const target = ctx.participant || ctx.remoteJid;
+        if (!target) {
+            return reply(sock, msg, "❌ User nicht gefunden!");
         }
 
-        // Gerät bestimmen
+        // Device bestimmen (Baileys msg key nutzen)
         let device = "Unbekannt";
-        const presence = sock.presences[sender];
-        if (presence?.platform) {
-            if (presence.platform === "android") device = "Android";
-            else if (presence.platform === "ios") device = "iOS";
-            else if (presence.platform === "web") device = "Web";
-        } else {
-            // Fallback Heuristik
-            const id = sender.split("@")[0];
-            device = id.length > 15 ? "Web" : "Android";
+
+        const quotedMsg = ctx.quotedMessage;
+        const msgType = Object.keys(quotedMsg)[0];
+
+        // einfache Heuristik (stabiler als presence)
+        if (msgType === "conversation" || msgType === "extendedTextMessage") {
+            device = "Android";
+        } else if (msgType === "imageMessage" || msgType === "videoMessage") {
+            device = "iOS";
         }
 
-        // Message-ID der Originalnachricht
-        const messageId = msg.message.extendedTextMessage.contextInfo.stanzaId || "Unbekannt";
+        // Wenn von Web (häufig längere IDs)
+        if (target.length > 20) {
+            device = "Web";
+        }
 
-        // Minimalistische Ausgabe
+        const messageId = ctx.stanzaId || "Unbekannt";
+
         const text = `╭───〔 📱 DEVICE 〕───⬣
 │
-│ User: ${sender.split("@")[0]}
+│ User: @${target.split("@")[0]}
 │ Gerät: ${device}
 │ Msg-ID: ${messageId}
 ╰────────────────⬣`;
 
-        reply(sock, msg, text);
+        await sock.sendMessage(
+            msg.key.remoteJid,
+            { text, mentions: [target] },
+            { quoted: msg }
+        );
 
     } catch (err) {
-        console.error(err);
-        reply(sock, msg, "❌ Fehler beim Abrufen des Geräts!");
+        console.error("DEVICE CMD ERROR:", err);
+        reply(sock, msg, "❌ Fehler beim Device-Befehl!");
     }
 }
 if (command === "grouplink" || command === "gc") {

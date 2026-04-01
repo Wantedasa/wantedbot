@@ -160,16 +160,23 @@ if (command === "autoread") {
 
     if (!type) {
         botConfig.autoReadGroups = state;
-        reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
-    } else if (type === "private" || type === "pn") {
+        saveBotConfig();
+        return reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
+    } 
+    
+    if (type === "private" || type === "pn") {
         botConfig.autoReadPrivate = state;
-        reply(sock, msg, `✅ AutoRead für Private Chats ${state ? "aktiviert" : "deaktiviert"}`);
-    } else if (type === "groups" || type === "grp") {
+        saveBotConfig();
+        return reply(sock, msg, `✅ AutoRead für Private Chats ${state ? "aktiviert" : "deaktiviert"}`);
+    } 
+    
+    if (type === "groups" || type === "grp") {
         botConfig.autoReadGroups = state;
-        reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
-    } else {
-        reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
-    }
+        saveBotConfig();
+        return reply(sock, msg, `✅ AutoRead für Gruppen ${state ? "aktiviert" : "deaktiviert"}`);
+    } 
+    
+    return reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
 }
 
 

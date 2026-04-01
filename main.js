@@ -719,7 +719,7 @@ ${groupList}
         reply(sock, msg, "❌ Fehler beim Abrufen der Infos!");
     }
 }  
-if command=== "block") {
+if (command === "block") {
     // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");
 

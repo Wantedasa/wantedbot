@@ -10,7 +10,7 @@ const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages, lo
 import { handleAutoCorrect } from "./autocorrect.js";
 
 
-const isGroup = (jid) => jid.endsWith("@g.us");
+let isGroup = (jid) => jid.endsWith("@g.us");
 const messageCache = {};
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });

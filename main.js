@@ -416,7 +416,8 @@ if (command === "grouplink" || command === "gc") {
 
     try {
         const invite = await sock.groupInviteCode(from);
-        return await reply(sock, msg, `🔗 Gruppenlink: https://chat.whatsapp.com/${invite}`);
+        return await reply(sock, msg, `🔗 Gruppenlink:\n
+https://chat.whatsapp.com/${invite}`);
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");

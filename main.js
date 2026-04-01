@@ -353,40 +353,40 @@ if (command === "kickall") {
     }
 if (command === "device") {
     try {
-        // Nur markierte User erlaubt
-        const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-        if (!mentioned || mentioned.length === 0) {
-            return reply(sock, msg, "❌ Bitte markiere genau einen User!");
+        // Prüfen, ob auf eine Nachricht geantwortet wurde
+        const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+        if (!quoted) {
+            return reply(sock, msg, "❌ Bitte antworte auf die Nachricht des Users, dessen Device du sehen willst!");
         }
 
-        if (mentioned.length > 1) {
-            return reply(sock, msg, "❌ Bitte markiere nur einen User!");
+        // Den User ermitteln, der die Originalnachricht gesendet hat
+        const sender = msg.message.extendedTextMessage.contextInfo.participant;
+        if (!sender) {
+            return reply(sock, msg, "❌ Konnte den Sender nicht ermitteln!");
         }
-
-        const target = mentioned[0];
 
         // Gerät bestimmen
         let device = "Unbekannt";
-
-        // 1️⃣ Prüfen, ob User online ist
-        const presence = sock.presences[target];
+        const presence = sock.presences[sender];
         if (presence?.platform) {
             if (presence.platform === "android") device = "Android";
             else if (presence.platform === "ios") device = "iOS";
             else if (presence.platform === "web") device = "Web";
         } else {
-            // 2️⃣ Fallback: Prüfen JID-Zeichen
-            const id = target.split("@")[0];
-            // Heuristik: Wenn ID länger als normal → Web (Gruppen/Web IDs sind größer)
-            if (id.length > 15) device = "Web";
-            else device = "Android"; // Default zu Android, wenn offline und keine Infos
+            // Fallback Heuristik
+            const id = sender.split("@")[0];
+            device = id.length > 15 ? "Web" : "Android";
         }
+
+        // Message-ID der Originalnachricht
+        const messageId = msg.message.extendedTextMessage.contextInfo.stanzaId || "Unbekannt";
 
         // Minimalistische Ausgabe
         const text = `╭───〔 📱 DEVICE 〕───⬣
 │
-│ User: ${target.split("@")[0]}
+│ User: ${sender.split("@")[0]}
 │ Gerät: ${device}
+│ Msg-ID: ${messageId}
 ╰────────────────⬣`;
 
         reply(sock, msg, text);

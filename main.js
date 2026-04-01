@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import { autoCorrectCommand } from "./autocorrect.js";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -172,9 +171,7 @@ if (command === "autoread") {
         reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
     }
 }
-if (command === "autocorrect") {
-    return autoCorrectCommand(sock, msg, args, botConfig, saveBotConfig, reply);
-}
+
 
     //=========================//
     // OWNER & BOT INFO
@@ -186,15 +183,12 @@ if (command === "autocorrect") {
     const autoReadGroups = botConfig?.autoReadGroups ? "✅ AN" : "❌ AUS";
     const autoReadPrivate = botConfig?.autoReadPrivate ? "✅ AN" : "❌ AUS";
 
-    const autocorrectStatus = botConfig?.autocorrect ? "✅ AN" : "❌ AUS";
-
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ⚡ Version: ${OWNER_SETTINGS.version}
 🟢 Mode: ${mode}
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}
-📝 Autokorrektur: ${autocorrectStatus}`;
 
     return await reply(sock, msg, text);
 }

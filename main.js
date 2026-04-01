@@ -238,6 +238,7 @@ if (command === "public") {
 ║ ├ .autoread
 ║ ├ .grpleave
 ║ ├ .device
+║ ├ .werbelist
 ║ ├ .block/unblock
 ║ ├ .antidelete on/off
 ║ ├ .automsg set/stop
@@ -406,7 +407,6 @@ if ((command === "mute" || command === "unmute") && isGroup(from)) {
         return reply(sock, msg, "❌ Fehler beim Ändern der Gruppen-Einstellungen!");
     }
 }
-
 if (command === "hidetag") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     
@@ -415,8 +415,20 @@ if (command === "hidetag") {
         return reply(sock, msg, "❌ Nur Admins oder Owner können hidetag nutzen!");
     }
 
-    const text = args.join(" ");
-    if (!text) return reply(sock, msg, "❌ Benutzung: .hidetag <Nachricht>");
+    let text = args.join(" ");
+
+    if (msg.message?.extendedTextMessage?.contextInfo?.quotedMessage) {
+        const quoted = msg.message.extendedTextMessage.contextInfo.quotedMessage;
+
+        text =
+            quoted.conversation ||
+            quoted.extendedTextMessage?.text ||
+            quoted.imageMessage?.caption ||
+            quoted.videoMessage?.caption ||
+            text;
+    }
+
+    if (!text) return reply(sock, msg, "❌ Benutzung: .hidetag <Nachricht> oder auf eine Nachricht antworten");
 
     try {
         const groupMetadata = await sock.groupMetadata(from);
@@ -435,10 +447,12 @@ ${text}
 by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
 \`\`\``;
         }
+
         await sock.sendMessage(from, {
             text: styledText,
             mentions
         });
+
         await sock.sendMessage(from, { delete: msg.key });
 
     } catch (err) {

@@ -352,6 +352,7 @@ if (command === "kickall") {
         }
     }
 if (command === "device") {
+if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
     try {
         const ctx = msg.message?.extendedTextMessage?.contextInfo;
 

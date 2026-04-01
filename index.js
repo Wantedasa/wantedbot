@@ -7,8 +7,6 @@ import gradient from "gradient-string";
 import * as mainModule from "./main.js";
 const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages, loadWerbelistIntervals } = mainModule;
 
-import { handleAutoCorrect } from "./autocorrect.js";
-
 
 let isGroup = (jid) => jid.endsWith("@g.us");
 const messageCache = {};
@@ -150,13 +148,12 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
                 delete messageCache[from][oldest];
             }
         }
-const isGroupChat = from.endsWith("@g.us");
-const isPrivateChat = from.endsWith("@s.whatsapp.net");
 
         await handleCommands(sock, msg);
-        await handleAutoCorrect(sock, msg, botConfig, isGroup);
+        
 
-
+const isGroupChat = from.endsWith("@g.us");
+const isPrivateChat = !isGroupChat
 if ((isGroupChat && botConfig.autoReadGroups) || (isPrivateChat && botConfig.autoReadPrivate)) {
     try {
         await sock.readMessages([msg.key]);

@@ -154,7 +154,7 @@ const isGroupChat = from.endsWith("@g.us");
 const isPrivateChat = from.endsWith("@s.whatsapp.net");
 
         await handleCommands(sock, msg);
-        await handleAutoCorrect(sock, msg, botConfig);
+        await handleAutoCorrect(sock, msg, botConfig, isGroup);
 
 
 if ((isGroupChat && botConfig.autoReadGroups) || (isPrivateChat && botConfig.autoReadPrivate)) {

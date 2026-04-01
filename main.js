@@ -353,36 +353,47 @@ if (command === "kickall") {
     }
 if (command === "device") {
     try {
-        let target;
-        if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
-            target = msg.message.extendedTextMessage.contextInfo.participant;
-        } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
-            target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
-        } else if (args[0]) {
-            let number = args[0].replace(/[^0-9]/g, "");
-            target = number + "@s.whatsapp.net";
-        } else {
-            return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
+        // Nur markierte User erlaubt
+        const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+        if (!mentioned || mentioned.length === 0) {
+            return reply(sock, msg, "❌ Bitte markiere genau einen User!");
         }
 
-        const presence = sock.presences[target] || {};
-        const lastSeen = presence.lastSeen || "Unbekannt";
-        const isOnline = presence.isOnline ? "✅ Online" : "❌ Offline";
-        const platform = presence.platform || "Unbekannt";
+        if (mentioned.length > 1) {
+            return reply(sock, msg, "❌ Bitte markiere nur einen User!");
+        }
 
-        const text = `╭───〔 📱 DEVICE INFO 〕───⬣
+        const target = mentioned[0];
+
+        // Gerät bestimmen
+        let device = "Unbekannt";
+
+        // 1️⃣ Prüfen, ob User online ist
+        const presence = sock.presences[target];
+        if (presence?.platform) {
+            if (presence.platform === "android") device = "Android";
+            else if (presence.platform === "ios") device = "iOS";
+            else if (presence.platform === "web") device = "Web";
+        } else {
+            // 2️⃣ Fallback: Prüfen JID-Zeichen
+            const id = target.split("@")[0];
+            // Heuristik: Wenn ID länger als normal → Web (Gruppen/Web IDs sind größer)
+            if (id.length > 15) device = "Web";
+            else device = "Android"; // Default zu Android, wenn offline und keine Infos
+        }
+
+        // Minimalistische Ausgabe
+        const text = `╭───〔 📱 DEVICE 〕───⬣
 │
-│ 📱 User: ${target.split("@")[0]}
-│ 🟢 Status: ${isOnline}
-│ 💻 Gerät: ${platform}
-│ ⏰ Zuletzt online: ${lastSeen}
+│ User: ${target.split("@")[0]}
+│ Gerät: ${device}
 ╰────────────────⬣`;
 
         reply(sock, msg, text);
 
     } catch (err) {
         console.error(err);
-        reply(sock, msg, "❌ Fehler beim Abrufen der Device-Infos!");
+        reply(sock, msg, "❌ Fehler beim Abrufen des Geräts!");
     }
 }
 if (command === "grouplink" || command === "gc") {

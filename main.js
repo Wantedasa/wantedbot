@@ -496,31 +496,61 @@ if (command === "add") {
 
     if (!args[0]) return reply(sock, msg, "❌ Nutzung: .add 49123,49222");
 
-    // Zahlen extrahieren
-    let numbers = args[0].split(/[, ]+/).map(n => n.replace(/\D/g, "")).filter(n => n.length > 0);
+    let numbers = args[0]
+        .split(/[, ]+/)
+        .map(n => n.replace(/\D/g, ""))
+        .filter(n => n.length > 0);
 
     if (numbers.length === 0) return reply(sock, msg, "❌ Keine gültigen Nummern gefunden!");
 
     let success = 0;
     let fail = 0;
+    let failedUsers = [];
 
-    // Funktion zum warten
     const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     for (let number of numbers) {
         let jid = number + "@s.whatsapp.net";
+
         try {
-            await sock.groupParticipantsUpdate(from, [jid], "add");
-            success++;
-        } catch {
+            const res = await sock.groupParticipantsUpdate(from, [jid], "add");
+
+            const status = res?.[0]?.status;
+
+            if (status === 200) {
+                success++;
+            } else {
+                fail++;
+
+                let reason = "Unbekannter Fehler";
+
+                if (status === 403) reason = "Privatsphäre-Einstellungen (Einladung nötig)";
+                if (status === 408) reason = "Timeout / Nummer nicht erreichbar";
+                if (status === 409) reason = "Bereits in der Gruppe";
+                if (status === 500) reason = "WhatsApp Fehler";
+
+                failedUsers.push(`+${number} → ${reason}`);
+            }
+
+        } catch (e) {
             fail++;
+            failedUsers.push(`+${number} → Fehler beim Hinzufügen`);
         }
-        await wait(2000);
+
+        // ⛔ Kein Delay wenn nur 1 User
+        if (numbers.length > 1) {
+            await wait(2000);
+        }
     }
 
-    reply(sock, msg, `✅ Fertig!\nErfolgreich hinzugefügt: ${success}\nFehlgeschlagen: ${fail}`);
-}
+    let msgText = `✅ Fertig!\nErfolgreich: ${success}\nFehlgeschlagen: ${fail}`;
 
+    if (failedUsers.length > 0) {
+        msgText += `\n\n❌ Fehler:\n${failedUsers.join("\n")}`;
+    }
+
+    reply(sock, msg, msgText);
+}
 if (command === "promote" || command === "demote") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
 

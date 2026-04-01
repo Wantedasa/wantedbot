@@ -351,6 +351,40 @@ if (command === "kickall") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
         }
     }
+if (command === "device") {
+    try {
+        let target;
+        if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
+            target = msg.message.extendedTextMessage.contextInfo.participant;
+        } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
+            target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
+        } else if (args[0]) {
+            let number = args[0].replace(/[^0-9]/g, "");
+            target = number + "@s.whatsapp.net";
+        } else {
+            return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
+        }
+
+        const presence = sock.presences[target] || {};
+        const lastSeen = presence.lastSeen || "Unbekannt";
+        const isOnline = presence.isOnline ? "✅ Online" : "❌ Offline";
+        const platform = presence.platform || "Unbekannt";
+
+        const text = `╭───〔 📱 DEVICE INFO 〕───⬣
+│
+│ 📱 User: ${target.split("@")[0]}
+│ 🟢 Status: ${isOnline}
+│ 💻 Gerät: ${platform}
+│ ⏰ Zuletzt online: ${lastSeen}
+╰────────────────⬣`;
+
+        reply(sock, msg, text);
+
+    } catch (err) {
+        console.error(err);
+        reply(sock, msg, "❌ Fehler beim Abrufen der Device-Infos!");
+    }
+}
 if (command === "grouplink" || command === "gc") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     if (!isAdmin(sock, from, sender)) return reply(sock, msg, "❌ Nur Admins können den Gruppenlink abrufen!");

@@ -592,81 +592,103 @@ if (command === "promote" || command === "demote") {
         return reply(sock, msg, "❌ Fehler beim " + command + "!");
     }
 }
-    
-if (command === "info") {
+ 
+ if (command === "info") {
     try {
-        let target;
+        // Ziel-User sammeln
+        let targets = [];
+
+        // 1️⃣ Kontext: Antwort auf Nachricht
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
-            target = msg.message.extendedTextMessage.contextInfo.participant;
-        } else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
-            target = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
-        } else if (args[0]) {
+            targets.push(msg.message.extendedTextMessage.contextInfo.participant);
+        }
+
+        // 2️⃣ Markierte User
+        if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
+            targets.push(...msg.message.extendedTextMessage.contextInfo.mentionedJid);
+        }
+
+        // 3️⃣ Nummer als Argument
+        if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
-            target = number + "@s.whatsapp.net";
-        } else {
-            return reply(sock, msg, "❌ Bitte markiere jemanden, antworte oder gib eine Nummer an!");
+            targets.push(number + "@s.whatsapp.net");
         }
 
-        const jid = target;
-        const number = target;
-        const lid = msg.key?.mentionedJid || msg.message?.paticipant;
-        let name = "Unbekannt";
-        try {
-            const contact = sock.contacts[target];
-            if (contact?.notify) Name = contact.notify;
-        } catch {
-            Name = "unbekannt";
+        if (targets.length === 0) {
+            return reply(sock, msg, "❌ Bitte markiere jemanden, antworte auf eine Nachricht oder gib eine Nummer an!");
         }
-        let ppUrl = null;
-        let hasProfilePic = "❌ Nein";
-        try {
-            ppUrl = await sock.profilePictureUrl(target, "image");
-            hasProfilePic = "✅ Ja";
-        } catch {}
-        let isBusiness = "❌ Nein";
-        try {
-            const biz = await sock.getBusinessProfile(target);
-            if (biz) isBusiness = "✅ Ja";
-        } catch {}
-        let mutualGroups = [];
-        try {
-            const groups = await sock.groupFetchAllParticipating();
-            for (let id in groups) {
-                let participants = groups[id].participants.map(p => p.id);
-                if (participants.includes(target)) mutualGroups.push(groups[id].subject);
-            }
-        } catch {}
-        const groupCount = mutualGroups.length;
-        const groupList = groupCount > 0
-            ? mutualGroups.slice(0, 25).map(g => `• ${g}`).join("\n")
-            : "Keine gemeinsamen Gruppen";
 
-        // Account-Erstellung schätzen
-        function getCreationDate(jid) {
+        // Duplikate entfernen
+        targets = [...new Set(targets)];
+
+        // Funktion: Infos für einen User abrufen
+        async function getUserInfo(target) {
+            const jid = target;
+            const numberOnly = target.split("@")[0];
+            const lid = msg.key?.mentionedJid || msg.key?.participant || "Unbekannt";
+
+            // Name
+            let name = "Unbekannt";
             try {
-                const id = jid.split("@")[0];
-                const timestamp = parseInt(id.substring(0, 10));
-                if (!isNaN(timestamp)) {
-                    const date = new Date(timestamp * 1000);
-                    return date.toLocaleString("de-DE", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit"
-                    });
-                } else return "Unbekannt";
-            } catch {
-                return "Unbekannt";
-            }
-        }
-        const createdAt = getCreationDate(target);
+                const contact = sock.contacts[target];
+                if (contact?.notify) name = contact.notify;
+            } catch {}
 
-        // Ausgabe bauen mit Doppelstrich
-        const line = "──────────────────────────";
-        const text = `╭───〔 👤 USER INFO 〕───⬣
+            // Profilbild
+            let ppUrl = null;
+            let hasProfilePic = "❌ Nein";
+            try {
+                ppUrl = await sock.profilePictureUrl(target, "image");
+                hasProfilePic = "✅ Ja";
+            } catch {}
+
+            // Business
+            let isBusiness = "❌ Nein";
+            try {
+                const biz = await sock.getBusinessProfile(target);
+                if (biz) isBusiness = "✅ Ja";
+            } catch {}
+
+            // Gemeinsame Gruppen
+            let mutualGroups = [];
+            try {
+                const groups = await sock.groupFetchAllParticipating();
+                for (let id in groups) {
+                    let participants = groups[id].participants.map(p => p.id);
+                    if (participants.includes(target)) mutualGroups.push(groups[id].subject);
+                }
+            } catch {}
+            const groupCount = mutualGroups.length;
+            const groupList = groupCount > 0
+                ? mutualGroups.slice(0, 25).map(g => `• ${g}`).join("\n")
+                : "Keine gemeinsamen Gruppen";
+
+            // Account-Erstellung
+            function getCreationDate(jid) {
+                try {
+                    const id = jid.split("@")[0];
+                    const timestamp = parseInt(id.substring(0, 10));
+                    if (!isNaN(timestamp)) {
+                        const date = new Date(timestamp * 1000);
+                        return date.toLocaleString("de-DE", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        });
+                    } else return "Unbekannt";
+                } catch {
+                    return "Unbekannt";
+                }
+            }
+            const createdAt = getCreationDate(target);
+
+            // Ausgabe bauen
+            const line = "──────────────────────────";
+            const text = `╭───〔 👤 USER INFO 〕───⬣
 │
-│ 📱 Nummer: ${number}
+│ 📱 Nummer: ${numberOnly}
 │ 🆔 JID: ${jid}
 │ 🆔 LID: ${lid}
 ${line}
@@ -679,22 +701,25 @@ ${line}
 ${groupList}
 ╰────────────────⬣`;
 
-        // Senden
-        if (ppUrl) {
-            await sock.sendMessage(from, {
-                image: { url: ppUrl },
-                caption: text
-            }, { quoted: msg });
-        } else {
-            reply(sock, msg, text);
+            return { text, ppUrl };
+        }
+
+        // Infos für alle User abrufen und senden
+        for (let target of targets) {
+            const { text, ppUrl } = await getUserInfo(target);
+            if (ppUrl) {
+                await sock.sendMessage(from, { image: { url: ppUrl }, caption: text }, { quoted: msg });
+            } else {
+                reply(sock, msg, text);
+            }
         }
 
     } catch (err) {
         console.error(err);
         reply(sock, msg, "❌ Fehler beim Abrufen der Infos!");
     }
-}
-if (command === "block") {
+}  
+if command=== "block") {
     // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");
 

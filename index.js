@@ -150,7 +150,7 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
                 delete messageCache[from][oldest];
             }
         }
-
+        const isGroup = from.endsWith("@g.us");
         await handleCommands(sock, msg);
         await handleAutoCorrect(sock, msg, botConfig);
 const isGroupChat = from.endsWith("@g.us");

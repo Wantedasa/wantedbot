@@ -814,6 +814,7 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
   if (command === "del" || command === "delete") {
 
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+
     if (!isAdmin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin darf Nachrichten löschen!");
 
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
@@ -821,23 +822,49 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
         return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die gelöscht werden soll!");
     }
 
-    const quoted = msg.message.extendedTextMessage?.contextInfo;
-    const quotedSender = quoted?.participant || m.sender;
-
-    const quotedMsgKey = {
-        remoteJid: chatId,
-        id: quoted.stanzaId,
-        fromMe: quotedSender === sock.user.id,
-        participant: isGroup ? quotedSender : undefined
-    };
-
-    const commandMsgKey = msg.key;
     try {
-        await samuel1.sendMessage(chatId, { delete: quotedMsgKey });
-        await samuel1.sendMessage(chatId, { delete: commandMsgKey })
+        await sock.sendMessage(from, { 
+            delete: { 
+                remoteJid: from, 
+                id: contextInfo.stanzaId, 
+                participant: contextInfo.participant || sender 
+            } 
+        });
     } catch (e) {
         console.error(e);
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
+    }
+};
+if (command === "join") {
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
+
+
+    let link = args[0];
+
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+    if (!link && contextInfo?.quotedMessage?.conversation) {
+        link = contextInfo.quotedMessage.conversation;
+    }
+
+    if (!link) return reply(sock, msg, "❌ Bitte sende oder antworte auf einen Gruppenlink!\nBeispiel: .join https://chat.whatsapp.com/ABC123");
+
+    const match = link.match(/(?:https:\/\/chat\.whatsapp\.com\/)([0-9A-Za-z]+)/);
+    if (!match) return reply(sock, msg, "❌ Ungültiger Gruppenlink!");
+
+    const inviteCode = match[1];
+
+    try {
+        
+        await sock.groupAcceptInvite(inviteCode);
+        await sock.sendMessage(from, {
+                react: {
+                    text: "✅",
+                    key: msg.key
+                }
+            });
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Beitritt zur Gruppe fehlgeschlagen! Eventuell falscher Link oder du wurdest blockiert.");
     }
 }
 if (command === "add") {

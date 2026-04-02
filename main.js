@@ -391,7 +391,75 @@ if (command === "public") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-    
+
+    if (command === "session") {
+
+    const sub = args[0]?.toLowerCase();
+
+    // 📋 LISTE
+    if (!sub) {
+        const list = [...sessions.keys()];
+
+        if (list.length === 0) {
+            return reply(sock, msg, "❌ Keine aktiven Sessions!");
+        }
+
+        return reply(sock, msg,
+`📱 Aktive Sessions:
+
+${list.map(s => "• " + s).join("\n")}`
+        );
+    }
+
+    // ========================= //
+    // CONNECT
+    // ========================= //
+    if (sub === "connect") {
+        const name = args[1];
+
+        if (!name) {
+            return reply(sock, msg, "❌ Nutzung: .session connect <name>");
+        }
+
+        if (sessions.has(name)) {
+            return reply(sock, msg, "❌ Session existiert bereits!");
+        }
+
+        connectBot(name);
+
+        return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
+    }
+
+    // ========================= //
+    // DISCONNECT
+    // ========================= //
+    if (sub === "disconnect") {
+        const name = args[1];
+
+        if (!name) {
+            return reply(sock, msg, "❌ Nutzung: .session disconnect <name>");
+        }
+
+        const s = sessions.get(name);
+
+        if (!s) {
+            return reply(sock, msg, "❌ Session nicht gefunden!");
+        }
+
+        s.end();
+        sessions.delete(name);
+
+        return reply(sock, msg, `❌ Session "${name}" wurde beendet!`);
+    }
+    return reply(sock, msg,
+`❌ Unbekannter Subcommand!
+
+📌 Nutzung:
+.session
+.session connect <name>
+.session disconnect <name>`
+    );
+}
 if (command === "getpic") {
     try {
         let target;

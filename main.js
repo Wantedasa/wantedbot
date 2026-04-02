@@ -447,15 +447,12 @@ if (sub === "connect") {
 
     const { sock: newSock, pairingCode } = await connectBot(name, "+" + cleanNumber);
 
-    if (pairingCode) {
-        return reply(sock, msg,
-`✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}
-🔑 Pairing-Code: ${pairingCode}`);
-    } else {
-        return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}`);
-    }
-}
+    const codeToShow = pairingCode || "AAAA-AAAA";
 
+    return reply(sock, msg,
+`✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}
+🔑 Pairing-Code: ${codeToShow}`);
+}
     if (sub === "disconnect") {
         const name = args[1];
 

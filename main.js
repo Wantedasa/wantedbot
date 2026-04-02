@@ -592,9 +592,26 @@ if (command === "grouplink" || command === "gc") {
     if (!isAdmin(sock, from, sender)) return reply(sock, msg, "❌ Nur Admins können den Gruppenlink abrufen!");
 
     try {
+        // 🔹 Gruppeninfo holen
+        const metadata = await sock.groupMetadata(from);
+        const groupName = metadata.subject || "Unbekannte Gruppe";
+        const members = metadata.participants.length;
+
+        // 🔹 Invite Code
         const invite = await sock.groupInviteCode(from);
-        return await reply(sock, msg, `🔗 Gruppenlink:\n
-https://chat.whatsapp.com/${invite}`);
+
+        // 🔹 Schickes Design
+        const text = `
+╔═══『 🌐 Gruppenlink 』═══╗
+║ 📛 Name: ${groupName}
+║ 👥 Mitglieder: ${members}
+╠═════════════════════
+║ 🔗 Link:
+║ https://chat.whatsapp.com/${invite}
+╚═════════════════════
+`;
+
+        await reply(sock, msg, text);
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");

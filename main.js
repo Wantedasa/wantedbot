@@ -445,7 +445,7 @@ ${list.map(s => "• " + s).join("\n")}`
 
     connectBot(name, phoneNumber);
 
-    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${phoneNumber}\n🔑 Pairing-Code: AAAA-AAAA`);
+    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: ${phoneNumber}\n🔑 Pairing-Code: AAAA-AAAA`);
 }
     if (sub === "disconnect") {
         const name = args[1];

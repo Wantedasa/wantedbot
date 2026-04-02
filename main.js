@@ -602,15 +602,6 @@ if (command === "grouplink" || command === "gc") {
             const code = await sock.groupRevokeInvite(from);
             return await reply(sock, msg, `✅ Gruppenlink wurde resetet!\nNeuer Link:\nhttps://chat.whatsapp.com/${code}`);
         }
-
-        // 🔹 Gruppenbild holen (optional)
-        let profilePic;
-        try {
-            profilePic = await sock.profilePictureUrl(from);
-        } catch {
-            profilePic = null;
-        }
-
         const text = `╔═══『 🌐 Gruppenlink 』═══╗
 ║ 📛 Name: ${groupName}
 ║ 👥 Mitglieder: ${members}
@@ -620,12 +611,7 @@ if (command === "grouplink" || command === "gc") {
 ╚═════════════════════
 `;
 
-        if (profilePic) {
-            await sock.sendMessage(from, { image: { url: profilePic }, caption: text });
-        } else {
             await reply(sock, msg, text);
-        }
-
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");

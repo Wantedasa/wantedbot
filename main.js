@@ -404,7 +404,7 @@ if (command === "public") {
 ║
 ║ 📂 TOOLS
 ║ ├ ${prefix}calc <Ausdruck>
-║ ├ ${prefix}poll <Frage> / <Option1> / <Option2>
+║ ├ ${prefix}poll
 ║
 ║ 🔒 OWNER
 ║ ├ ${prefix}self

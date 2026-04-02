@@ -207,17 +207,24 @@ if (command === "autoread") {
     if (!sub) {
         return reply(sock, msg,
 `❌ Nutzung:
-.owner add (auf User antworten)
-.owner del (auf User antworten)
+.owner add @user / (auf User antworten)
+.owner del @user / (auf User antworten)
 .owner list`);
     }
 
+    // Target (Mention oder Reply)
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    const quoted = msg.message?.extendedTextMessage?.contextInfo?.participant;
+    const target = mentioned?.[0] || quoted;
+
     // ➕ ADD
     if (sub === "add") {
-        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
-
         if (!target) {
-            return reply(sock, msg, "❌ Antworte auf einen User!");
+            return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
+        }
+
+        if (mentioned?.length > 1) {
+            return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
         }
 
         if (botConfig.owners.includes(target)) {
@@ -232,10 +239,12 @@ if (command === "autoread") {
 
     // ❌ DEL
     if (sub === "del") {
-        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
-
         if (!target) {
-            return reply(sock, msg, "❌ Antworte auf einen User!");
+            return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
+        }
+
+        if (mentioned?.length > 1) {
+            return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
         }
 
         // Haupt-Owner schützen
@@ -289,7 +298,7 @@ if (command === "autoread") {
     return await reply(sock, msg, text);
 }
 if (command === "self") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
     PUBLIC_MODE = false;
     botConfig.publicMode = false;
     saveBotConfig();
@@ -297,7 +306,7 @@ if (command === "self") {
 }
 
 if (command === "public") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
     PUBLIC_MODE = true;
     botConfig.publicMode = true;
     saveBotConfig();
@@ -460,21 +469,15 @@ if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
         if (!target) {
             return reply(sock, msg, "❌ User nicht gefunden!");
         }
-
-        // Device bestimmen (Baileys msg key nutzen)
         let device = "Unbekannt";
 
         const quotedMsg = ctx.quotedMessage;
         const msgType = Object.keys(quotedMsg)[0];
-
-        // einfache Heuristik (stabiler als presence)
         if (msgType === "conversation" || msgType === "extendedTextMessage") {
             device = "Android";
         } else if (msgType === "imageMessage" || msgType === "videoMessage") {
             device = "iOS";
         }
-
-        // Wenn von Web (häufig längere IDs)
         if (target.length > 20) {
             device = "Web";
         }
@@ -513,7 +516,7 @@ https://chat.whatsapp.com/${invite}`);
     }
 }
 if (command === "grpleave" || command === "leavegrp") {
-    if (!isGroup(from)) {
+    if (!isWantedasa(from)) {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     }
 
@@ -698,8 +701,6 @@ if (command === "add") {
             fail++;
             failedUsers.push(`+${number} → Fehler beim Hinzufügen`);
         }
-
-        // ⛔ Kein Delay wenn nur 1 User
         if (numbers.length > 1) {
             await wait(2000);
         }
@@ -744,20 +745,13 @@ if (command === "promote" || command === "demote") {
  
  if (command === "info") {
     try {
-        // Ziel-User sammeln
         let targets = [];
-
-        // 1️⃣ Kontext: Antwort auf Nachricht
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             targets.push(msg.message.extendedTextMessage.contextInfo.participant);
         }
-
-        // 2️⃣ Markierte User
         if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
             targets.push(...msg.message.extendedTextMessage.contextInfo.mentionedJid);
         }
-
-        // 3️⃣ Nummer als Argument
         if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             targets.push(number + "@s.whatsapp.net");
@@ -766,11 +760,7 @@ if (command === "promote" || command === "demote") {
         if (targets.length === 0) {
             return reply(sock, msg, "❌ Bitte markiere jemanden, antworte auf eine Nachricht oder gib eine Nummer an!");
         }
-
-        // Duplikate entfernen
         targets = [...new Set(targets)];
-
-        // Funktion: Infos für einen User abrufen
         async function getUserInfo(target) {
             const jid = target;
             const numberOnly = target.split("@")[0];
@@ -782,23 +772,17 @@ if (command === "promote" || command === "demote") {
                 const contact = sock.contacts[target];
                 if (contact?.notify) name = contact.notify;
             } catch {}
-
-            // Profilbild
             let ppUrl = null;
             let hasProfilePic = "❌ Nein";
             try {
                 ppUrl = await sock.profilePictureUrl(target, "image");
                 hasProfilePic = "✅ Ja";
             } catch {}
-
-            // Business
             let isBusiness = "❌ Nein";
             try {
                 const biz = await sock.getBusinessProfile(target);
                 if (biz) isBusiness = "✅ Ja";
             } catch {}
-
-            // Gemeinsame Gruppen
             let mutualGroups = [];
             try {
                 const groups = await sock.groupFetchAllParticipating();
@@ -811,8 +795,6 @@ if (command === "promote" || command === "demote") {
             const groupList = groupCount > 0
                 ? mutualGroups.slice(0, 25).map(g => `• ${g}`).join("\n")
                 : "Keine gemeinsamen Gruppen";
-
-            // Account-Erstellung
             function getCreationDate(jid) {
                 try {
                     const id = jid.split("@")[0];
@@ -832,8 +814,6 @@ if (command === "promote" || command === "demote") {
                 }
             }
             const createdAt = getCreationDate(target);
-
-            // Ausgabe bauen
             const line = "──────────────────────────";
             const text = `╭───〔 👤 USER INFO 〕───⬣
 │
@@ -852,8 +832,6 @@ ${groupList}
 
             return { text, ppUrl };
         }
-
-        // Infos für alle User abrufen und senden
         for (let target of targets) {
             const { text, ppUrl } = await getUserInfo(target);
             if (ppUrl) {
@@ -869,18 +847,14 @@ ${groupList}
     }
 }  
 if (command === "block") {
-    // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");
-
-    // Ziel-Nummer holen: Entweder durch Reply oder Argument
     let target = msg.message?.extendedTextMessage?.contextInfo?.participant || args[0];
     if (!target) return reply(sock, msg, "⚠️ Bitte Nummer angeben oder auf die Nachricht der Person antworten.");
 
-    // Nummer in JID-Format bringen
     if (!target.includes("@s.whatsapp.net")) target = target.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 
     try {
-        await sock.updateBlockStatus(target, "block"); // Nummer blockieren
+        await sock.updateBlockStatus(target, "block");
         reply(sock, msg, `✅ ${target.split("@")[0]} wurde erfolgreich blockiert.`);
     } catch (err) {
         console.error(err);
@@ -889,10 +863,8 @@ if (command === "block") {
 }
     if (command === "msgraw") {
     try {
-        // Nachricht in JSON-Format umwandeln und formatieren
         const rawMsg = JSON.stringify(msg, null, 2);
 
-        // Prüfen, ob die Nachricht zu groß für WhatsApp ist
         if (rawMsg.length > 4000) {
             reply(sock, msg, "❌ Nachricht zu groß zum Senden. Speichere sie als Datei.");
             // Optional: Speichern als Datei
@@ -902,8 +874,6 @@ if (command === "block") {
             await sock.sendMessage(from, { document: { url: fileName }, fileName: fileName, mimetype: "application/json" }, { quoted: msg });
             return;
         }
-
-        // Nachricht direkt senden
         reply(sock, msg, "📄 Raw Message:\n" + rawMsg);
 
     } catch (err) {
@@ -912,18 +882,15 @@ if (command === "block") {
     }
 }
 if (command === "unblock") {
-    // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden entblocken!");
 
-    // Ziel-Nummer holen: Entweder durch Reply oder Argument
     let target = msg.message?.extendedTextMessage?.contextInfo?.participant || args[0];
     if (!target) return reply(sock, msg, "⚠️ Bitte Nummer angeben oder auf die Nachricht der Person antworten.");
 
-    // Nummer in JID-Format bringen
     if (!target.includes("@s.whatsapp.net")) target = target.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 
     try {
-        await sock.updateBlockStatus(target, "unblock"); // Nummer entblocken
+        await sock.updateBlockStatus(target, "unblock");
         reply(sock, msg, `✅ ${target.split("@")[0]} wurde erfolgreich entblockt.`);
     } catch (err) {
         console.error(err);
@@ -933,7 +900,7 @@ if (command === "unblock") {
 
 
 if (command === "automsg") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
 
     const sub = args[0];
 
@@ -945,10 +912,6 @@ if (command === "automsg") {
 .automsg stop
 .automsg list`);
     }
-
-    // =========================
-    // SET
-    // =========================
     if (sub === "set") {
         const minutes = parseInt(args[1]);
         const text = args.slice(2).join(" ");
@@ -1021,90 +984,6 @@ saveBotConfig();
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
-if (command === "werbelist") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
-
-    const sub = args[0];
-
-    if (!sub) {
-        return reply(sock, msg,
-`📌 Werbelist Befehle:
-
-.werbelist add <Name> <Link>
-.werbelist remove <Nummer>
-.werbelist list
-.werbelist on/off (in dieser Gruppe)
-.werbelist interval <Minuten>
-.werbelist time <HH:MM>`);
-    }
-
-    // ADD
-    if (sub === "add") {
-        const name = args[1];
-        const link = args[2];
-        if (!name || !link) return reply(sock, msg, "❌ Nutzung: .werbelist add <Name> <Link>");
-
-        botConfig.werbelist = botConfig.werbelist || [];
-        botConfig.werbelist.push({ name, link });
-        saveBotConfig();
-
-        return reply(sock, msg, `✅ Link hinzugefügt: ${name} → ${link}`);
-    }
-
-    // REMOVE
-    if (sub === "remove") {
-        const index = parseInt(args[1]) - 1;
-        if (!botConfig.werbelist?.[index]) return reply(sock, msg, "❌ Ungültige Nummer!");
-
-        const removed = botConfig.werbelist.splice(index, 1)[0];
-        saveBotConfig();
-
-        return reply(sock, msg, `🗑️ Link entfernt: ${removed.name}`);
-    }
-
-    // LIST
-    if (sub === "list") {
-        if (!botConfig.werbelist?.length) return reply(sock, msg, "❌ Keine Links in der Werbelist!");
-
-        let text = "📋 Werbelist:\n\n";
-        botConfig.werbelist.forEach((entry, i) => {
-            text += `${i + 1}. ${entry.name}\n${entry.link}\n\n`;
-        });
-
-        return reply(sock, msg, text);
-    }
-
-    // ON/OFF
-    if (sub === "on" || sub === "off") {
-    botConfig.groupSettings = botConfig.groupSettings || {};
-    botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
-    botConfig.groupSettings[from].werbelist = sub === "on";
-    saveBotConfig();
-
-    // Originalnachricht löschen
-    try {
-        await sock.sendMessage(from, { delete: msg.key });
-    } catch (err) {
-        console.error("Fehler beim Löschen der Nachricht:", err);
-    }
-}
-    // TIME
-    if (sub === "time") {
-        if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
-        if (!args[1] || !/^([01]?\d|2[0-3]):([0-5]\d)$/.test(args[1])) 
-            return reply(sock, msg, "❌ Nutzung: .werbelist time <HH:MM> (24h Format)");
-
-        botConfig.groupSettings = botConfig.groupSettings || {};
-        botConfig.groupSettings[from] = botConfig.groupSettings[from] || {};
-        botConfig.groupSettings[from].sendTime = args[1];
-        saveBotConfig();
-
-        return reply(sock, msg, `✅ Werbelist wird jetzt täglich um ${args[1]} gesendet`);
-    }
-
-    return reply(sock, msg, "❌ Unbekannter Subcommand!");
-}
-}
 
 
 
@@ -1172,78 +1051,6 @@ export const loadAutoMessages = async (sock) => {
     console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
 };
 
-export const sendWerbelist = async (sock, chatId) => {
-    try {
-        if (!botConfig.werbelist || !botConfig.werbelist.length) return;
-
-        const listMessage = botConfig.werbelist
-            .map((item) => `• ${item}`)
-            .join("\n");
-
-        const message = `᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Werbeliste\n\n${listMessage}`;
-
-        await sock.sendMessage(chatId, { text: message });
-        console.log(`✅ Werbelist an ${chatId} gesendet.`);
-    } catch (err) {
-        console.error(`❌ Fehler beim Senden der Werbelist an ${chatId}:`, err);
-        throw err;
-    }
-};
-
-function getDelayToNextSend(hour, minute) {
-    const now = new Date();
-    const next = new Date();
-    next.setHours(hour, minute, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1);
-    return next - now;
-}
-
-export const loadWerbelistIntervals = async (sock) => {
-    if (!botConfig.werbelist || !botConfig.werbelist.length) return;
-    if (!botConfig.groupSettings) return;
-
-    for (const chatId in botConfig.groupSettings) {
-        const groupData = botConfig.groupSettings[chatId];
-        if (!groupData.werbelist) continue;
-
-        const intervalMinutes = groupData.interval || 1440;
-        const lastSent = groupData.lastSent || 0;
-
-        let delay = intervalMinutes * 60 * 1000;
-        if (groupData.sendTime) {
-            const [hour, minute] = groupData.sendTime.split(":").map(Number);
-            delay = getDelayToNextSend(hour, minute);
-        } else if (lastSent) {
-            const passed = Date.now() - lastSent;
-            delay = Math.max(delay - passed, 0);
-        }
-
-        if (!lastSent || delay <= 0) {
-            await sendWerbelist(sock, chatId);
-            botConfig.groupSettings[chatId].lastSent = Date.now();
-            saveBotConfig();
-        }
-
-        setTimeout(() => {
-            werbelistIntervals[chatId] = setInterval(async () => {
-                try {
-                    await sendWerbelist(sock, chatId);
-                    botConfig.groupSettings[chatId].lastSent = Date.now();
-                    saveBotConfig();
-                    werbelistFailCount[chatId] = 0;
-                } catch (e) {
-                    console.error("Werbelist AutoMsg Fehler:", e);
-                    werbelistFailCount[chatId] = (werbelistFailCount[chatId] || 0) + 1;
-                    if (werbelistFailCount[chatId] >= 5) {
-                        clearInterval(werbelistIntervals[chatId]);
-                        delete werbelistIntervals[chatId];
-                        console.log(`❌ Werbelist AutoMsg deaktiviert für ${chatId}`);
-                    }
-                }
-            }, intervalMinutes * 60 * 1000);
-        }, delay);
-    }
-};
 
 //=========================//
 // GROUP EVENTS

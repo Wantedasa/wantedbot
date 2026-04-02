@@ -867,15 +867,14 @@ if (command === "join") {
         return reply(sock, msg, "❌ Beitritt zur Gruppe fehlgeschlagen! Eventuell falscher Link oder du wurdest blockiert.");
     }
 }
-if (cmd === 'poll') {
-    const text = args.join(' '); // Alles nach dem Befehl
+if (command === 'poll') {
+    const text = args.join(' ');
     if (!text.includes('/')) {
-        return await sock.sendMessage(from, { text: 'Bitte benutze die Syntax:\n+poll Frage / Antwort1 / Antwort2 / Antwort3' });
+        return await sock.sendMessage(from, { text: 'Bitte benutze die Syntax:\n${prefix}poll Frage / Antwort1 / Antwort2 / Antwort3' });
     }
-
     const parts = text.split('/').map(p => p.trim());
-    const question = parts.shift(); // Erste Angabe ist die Frage
-    const options = parts; // Rest sind die Antworten
+    const question = parts.shift();
+    const options = parts;
 
     if (options.length < 2) {
         return await sock.sendMessage(from, { text: 'Bitte gib mindestens zwei Antwortmöglichkeiten an.' });
@@ -885,7 +884,7 @@ if (cmd === 'poll') {
         poll: {
             name: `📊 ${question}`,
             values: options,
-            selectableCount: 1 // Nur eine Antwort pro Person
+            selectableCount: 1
         }
     });
 }

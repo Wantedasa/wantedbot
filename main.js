@@ -402,6 +402,9 @@ if (command === "public") {
 ║ ├ ${prefix}grouplink
 ║ ├ ${prefix}grppic
 ║
+║ 📂 TOOLS
+║ ├ ${prefix}calc <Ausdruck>
+║
 ║ 🔒 OWNER
 ║ ├ ${prefix}self
 ║ ├ ${prefix}public
@@ -549,8 +552,6 @@ if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
         if (!target) {
             return reply(sock, msg, "❌ User nicht gefunden!");
         }
-
-        // Device bestimmen (Baileys msg key nutzen)
         let device = "Unbekannt";
 
         const quotedMsg = ctx.quotedMessage;
@@ -616,6 +617,47 @@ if (command === "grouplink" || command === "gc") {
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");
+    }
+}
+if (command === "calc") {
+    const input = args.join(" ").toLowerCase();
+
+    if (!input) return reply(sock, msg, "❌ Bitte gib einen Ausdruck zum Berechnen ein!\nBeispiel: ${prefix}calc 5 + sqrt(16)");
+
+    try {
+        const allowed = /^[0-9+\-*/().%^ ,a-z]+$/;
+        if (!allowed.test(input)) {
+            return reply(sock, msg, "❌ Ungültige Zeichen! Nur Zahlen, Operatoren + - * / % ^ ( ), Leerzeichen und Funktionen (sin, cos, tan, sqrt, log, pi, e) erlaubt.");
+        }
+        const math = {
+            sin: Math.sin,
+            cos: Math.cos,
+            tan: Math.tan,
+            sqrt: Math.sqrt,
+            log: Math.log,
+            pi: Math.PI,
+            e: Math.E,
+        };
+
+        let expr = input.replace(/\^/g, "**");
+
+        expr = expr.replace(/\bpi\b/g, "Math.PI").replace(/\be\b/g, "Math.E");
+
+        for (const func of ["sin","cos","tan","sqrt","log"]) {
+            const re = new RegExp(`\\b${func}\\b`, "g");
+            expr = expr.replace(re, `Math.${func}`);
+        }
+
+        const result = eval(expr);
+
+        await reply(sock, msg, `
+🧮 Ausdruck: ${input}
+✅ Ergebnis: ${result}
+        `);
+
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Berechnen! Überprüfe deinen Ausdruck.");
     }
 }
 if (command === "grppic") {

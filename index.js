@@ -3,7 +3,6 @@ import pino from "pino";
 import readline from "readline";
 import chalk from "chalk";
 import gradient from "gradient-string";
-import fs from "fs";
 
 import * as mainModule from "./main.js";
 const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages } = mainModule;
@@ -82,76 +81,65 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     renderDashboard();
 };
 
-export const sessions = new Map();
+const sessions = new Map();
 
-function askNumber() {
-    return new Promise((resolve) => {
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-        });
+async function connectBot(sessionName = "main") {
 
-        rl.question("Bitte gib deine Nummer ein (z.B. +491234567890): ", (number) => {
-            rl.close();
-            resolve(number.trim());
-        });
-    });
-}
-
-export async function connectBot(sessionName = "main", phoneNumberInput) {
     const sessionPath = `./sessions/${sessionName}`;
 
-    if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions", { recursive: true });
+    if (!fs.existsSync("./sessions")) {
+        fs.mkdirSync("./sessions");
+    }
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
     const sock = makeWASocket({
         auth: state,
         printQRInTerminal: false,
-        logger: pino({ level: "silent" }),
+        logger: pino({ level: "silent" })
     });
 
+
     sessions.set(sessionName, sock);
+    
+    if (!sock.authState.creds.registered) {
+        let phoneNumber = await question(
+            gradient("#ff0000", "#C00000")(`📲 Nummer für (${sessionName}): `)
+        );
 
-    if (!sock.authState.creds?.registered) {
-        if (!phoneNumberInput && sessionName === "main") {
-            phoneNumberInput = await askNumber();
-        }
+        phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
 
-        if (!phoneNumberInput) {
-            throw new Error(`Keine Nummer angegeben für Session "${sessionName}"`);
-        }
+        let code = await sock.requestPairingCode(phoneNumber, "AAAAAAAA");
+        code = code?.match(/.{1,4}/g)?.join("-") || code;
 
-        const cleanNumber = phoneNumberInput.replace(/[^0-9]/g, "");
-        try {
-            let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
-            code = code?.match(/.{1,4}/g)?.join("-") || code;
-
-            console.log(
-                gradient("#ff0000", "#C00000")(
-                    `🔑 Pairing Code für Session "${sessionName}": ${code}`
-                )
-            );
-        } catch (err) {
-            console.error(chalk.red(`❌ Fehler beim Anfordern des Pairing-Codes: ${err}`));
-        }
+        console.log(
+            gradient("#ff0000", "#C00000")(`🔑 Pairing Code (${sessionName}): ` + code)
+        );
     }
 
+    // ========================= //
+    // EVENTS
+    // ========================= //
     sock.ev.on("connection.update", (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection } = update;
 
         if (connection === "close") {
-            const reason = lastDisconnect?.error?.output?.statusCode;
-            console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect in 5s... (Reason: ${reason})`));
+            console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect...`));
+
             sessions.delete(sessionName);
-            setTimeout(() => connectBot(sessionName, phoneNumberInput).catch(console.error), 5000);
+
+            setTimeout(() => connectBot(sessionName), 5000);
+
         } else if (connection === "open") {
             console.log(chalk.green(`✅ ${sessionName} verbunden!`));
-            if (typeof loadAutoMessages === "function") loadAutoMessages(sock);
+
+            loadAutoMessages(sock);
         }
     });
 
     sock.ev.on("creds.update", saveCreds);
+
+
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== "notify") return;

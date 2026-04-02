@@ -1070,57 +1070,64 @@ saveBotConfig();
 
 }
 
-export const loadAutoMessages = async (sock) => {
-    if (!botConfig.autoMessages) return;
+export const loadAutoMessages = async (sock, sessionName = "main") => {
+    // Bot Config laden
+    const { botConfig, saveBotConfig } = loadBotConfig(sessionName);
+
+    if (!botConfig.autoMessages || Object.keys(botConfig.autoMessages).length === 0) return;
 
     for (const chatId in botConfig.autoMessages) {
         const data = botConfig.autoMessages[chatId];
 
-        let groupName = chatId;
+        autoFailCount[chatId] = autoFailCount[chatId] || 0;
+
+        // Gruppennamen optional abrufen
         try {
             if (chatId.endsWith("@g.us")) {
                 const metadata = await sock.groupMetadata(chatId);
-                groupName = metadata.subject || chatId;
+                data.name = metadata.subject || chatId;
+            } else {
+                data.name = chatId;
             }
         } catch (err) {
             console.error(`Fehler beim Abrufen des Gruppennamens für ${chatId}:`, err);
+            data.name = chatId;
         }
 
-        autoFailCount[chatId] = 0;
-
         const now = Date.now();
-        const lastSent = data.lastSent || 0;
-        const intervalMs = data.interval * 60 * 1000;
+        const lastSent = Number(data.lastSent) || 0;
+        const intervalMs = Number(data.interval) * 60 * 1000;
         const timeSinceLast = now - lastSent;
 
-        // Wenn Zeit vergangen ist oder lastSent nicht existiert → sofort senden
-        if (!data.lastSent || timeSinceLast >= intervalMs) {
+        // Sofort senden, falls Zeit vergangen
+        if (!lastSent || timeSinceLast >= intervalMs) {
             try {
                 await sock.sendMessage(chatId, { text: data.text });
-                botConfig.autoMessages[chatId].lastSent = Date.now();
+                data.lastSent = Date.now();
                 saveBotConfig();
                 autoFailCount[chatId] = 0;
             } catch (e) {
-                console.error("AutoMsg Fehler beim ersten Senden:", e);
+                console.error(`AutoMsg Fehler beim ersten Senden an ${chatId}:`, e);
                 autoFailCount[chatId]++;
             }
         }
 
-        // Berechne Restzeit bis zur nächsten Nachricht
         const delay = lastSent ? Math.max(intervalMs - timeSinceLast, 0) : intervalMs;
 
-        // Timeout für nächste Nachricht
         setTimeout(() => {
+            if (autoIntervals[chatId]) clearInterval(autoIntervals[chatId]);
+
             autoIntervals[chatId] = setInterval(async () => {
                 try {
                     await sock.sendMessage(chatId, { text: data.text });
-                    botConfig.autoMessages[chatId].lastSent = Date.now();
+                    data.lastSent = Date.now();
                     saveBotConfig();
                     autoFailCount[chatId] = 0;
                 } catch (e) {
-                    console.error("AutoMsg Fehler:", e);
+                    console.error(`AutoMsg Fehler bei ${chatId}:`, e);
                     autoFailCount[chatId]++;
                     if (autoFailCount[chatId] >= 5) {
+                        console.error(`❌ AutoMsg für ${chatId} deaktiviert nach 5 Fehlern.`);
                         clearInterval(autoIntervals[chatId]);
                         delete autoIntervals[chatId];
                         delete botConfig.autoMessages[chatId];

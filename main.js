@@ -433,32 +433,22 @@ ${list.map(s => "• " + s).join("\n")}`
     }
 if (sub === "connect") {
     const name = args[1];
+    const phoneNumber = args[2];
 
-    if (!name) {
-        return reply(sock, msg, "❌ Nutzung: .session connect <name>");
+    if (!name || !phoneNumber) {
+        return reply(sock, msg, "❌ Nutzung: .session connect <name> <nummer>");
     }
 
     if (sessions.has(name)) {
         return reply(sock, msg, "❌ Session existiert bereits!");
     }
 
-    let phoneNumber = args[2];
-    if (!phoneNumber) {
-        const readline = await import("readline");
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        phoneNumber = await new Promise(resolve => rl.question("📲 Nummer des Bots (inkl. Ländervorwahl, z.B. +49123456789): ", resolve));
-        rl.close();
-    }
+    const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
+    connectBot(name, "+" + cleanNumber);
 
-    phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
-
-    connectBot(name, phoneNumber);
-
-    return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
+    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}`);
 }
-    // ========================= //
-    // DISCONNECT
-    // ========================= //
+
     if (sub === "disconnect") {
         const name = args[1];
 

@@ -1002,8 +1002,6 @@ if (command === "unblock") {
         reply(sock, msg, "❌ Entblocken fehlgeschlagen.");
     }
 }
-
-
 if (command === "automsg") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 
@@ -1119,11 +1117,16 @@ if (command === "pn") {
     }
 
     try {
+        await sock.sendMessage(from, {
+            react: {
+                text: "✅",
+                key: msg.key
+            }
+        });
         await sock.sendMessage(user, { 
             text: `${text}` 
         });
 
-        reply(sock, msg, "✅ PN wurde erfolgreich gesendet!");
     } catch (e) {
         console.error(e);
         reply(sock, msg, "❌ Fehler beim Senden der PN!");

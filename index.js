@@ -84,8 +84,7 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
 
 export const sessions = new Map();
 
-export async function connectBot(sessionName = "main") {
-
+export async function connectBot(sessionName = "main", phoneNumberInput) {
     const sessionPath = `./sessions/${sessionName}`;
 
     if (!fs.existsSync("./sessions")) {
@@ -100,17 +99,16 @@ export async function connectBot(sessionName = "main") {
         logger: pino({ level: "silent" })
     });
 
-
     sessions.set(sessionName, sock);
-    
+
     if (!sock.authState.creds.registered) {
-        let phoneNumber = await question(
-            gradient("#ff0000", "#C00000")(`📲 Nummer für (${sessionName}): `)
-        );
+        if (!phoneNumberInput) {
+            throw new Error(`Keine Nummer angegeben für Session "${sessionName}"`);
+        }
 
-        phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
-
-        let code = await sock.requestPairingCode(phoneNumber, "AAAAAAAA");
+        const cleanNumber = phoneNumberInput.replace(/[^0-9]/g, "");
+        // Request Pairing Code direkt
+        let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
         code = code?.match(/.{1,4}/g)?.join("-") || code;
 
         console.log(
@@ -126,20 +124,16 @@ export async function connectBot(sessionName = "main") {
 
         if (connection === "close") {
             console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect...`));
-
             sessions.delete(sessionName);
-
-            setTimeout(() => connectBot(sessionName), 5000);
-
+            setTimeout(() => connectBot(sessionName, phoneNumberInput), 5000);
         } else if (connection === "open") {
             console.log(chalk.green(`✅ ${sessionName} verbunden!`));
-
             loadAutoMessages(sock);
         }
     });
 
     sock.ev.on("creds.update", saveCreds);
-
+}
 
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {

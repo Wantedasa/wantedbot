@@ -103,7 +103,7 @@ export async function connectBot(sessionName = "main", phoneNumber) {
 
     if (!sock.authState.creds.registered && phoneNumber) {
         const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
-        let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
+        const code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
         pairingCode = code?.match(/.{1,4}/g)?.join("-") || code;
 
         console.log(gradient("#ff0000", "#C00000")(`🔑 Pairing Code (${sessionName}): ${pairingCode}`));

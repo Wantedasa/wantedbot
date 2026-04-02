@@ -885,8 +885,6 @@ if (command === 'poll') {
             text: `❌ Falsche Eingabe!\nDu musst eine Frage und mindestens zwei Antworten angeben.\nBeispiel:\n${prefix}poll Kommst du zum Sommerfest? / Ja ✅ / Vielleicht ❓ / Nein ❌`
         });
     }
-
-    // Umfrage senden
     await sock.sendMessage(from, {
         poll: {
             name: `📊 ${question}`,

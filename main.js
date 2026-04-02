@@ -1,8 +1,5 @@
 import fs from "fs";
 import path from "path";
-import { sessions, connectBot } from "./index.js";
-
-
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -15,44 +12,37 @@ export const OWNER_SETTINGS = {
 };
 
 // ========================= BOT CONFIG =========================
-export function loadBotConfig(sessionName = "main") {
-    const sessionDataPath = path.join("./sessions", sessionName);
-    if (!fs.existsSync(sessionDataPath)) fs.mkdirSync(sessionDataPath, { recursive: true });
+const CONFIG_FILE = path.join("./data", "botConfig.json");
+if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
-    const CONFIG_FILE = path.join(sessionDataPath, "botConfig.json");
+let botConfig = { 
+    publicMode: true, 
+    autoRead: false,
+    autoMessages: {},
+    owners: []
+};
 
-    // Default Config
-    let botConfig = { 
-        publicMode: true, 
-        autoRead: false,
-        autoMessages: {},
-        owners: []
-    };
-
-    // Vorhandene Config laden
-    if (fs.existsSync(CONFIG_FILE)) {
-        try {
-            const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
-            botConfig = JSON.parse(raw);
-        } catch (e) {
-            console.error(`Fehler beim Laden von botConfig.json für Session "${sessionName}":`, e);
-        }
+if (fs.existsSync(CONFIG_FILE)) {
+    try {
+        const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
+        botConfig = JSON.parse(raw);
+    } catch (e) {
+        console.error("Fehler beim Laden von botConfig.json:", e);
     }
-
-    // Sicherheitshalber
-    botConfig.autoMessages = botConfig.autoMessages || {};
-    botConfig.owners = botConfig.owners || [];
-
-    const saveBotConfig = () => {
-        try {
-            fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");
-        } catch (e) {
-            console.error(`Fehler beim Speichern von botConfig.json für Session "${sessionName}":`, e);
-        }
-    };
-
-    return { botConfig, saveBotConfig };
 }
+botConfig.autoMessages = botConfig.autoMessages || {};
+botConfig.owners = botConfig.owners || [];
+
+// Speichern Funktion
+export const saveBotConfig = () => {
+    try {
+        fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");
+    } catch (e) {
+        console.error("Fehler beim Speichern von botConfig.json:", e);
+    }
+};
+
+export {botConfig};
 
 const autoIntervals = {};
 const chats = {};
@@ -61,38 +51,38 @@ const werbelistIntervals = {};
 const werbelistFailCount = {};
 
 
+
+
 // ========================= GROUP SETTINGS =========================
-export const groupSettings = new Map();
+export const groupSettings = {};
 
 export const ensureGroupSettings = (jid) => {
-    if (!groupSettings.has(jid)) {
-        groupSettings.set(jid, { welcome: true, leave: true, antidelete: false });
-    }
-    return groupSettings.get(jid);
+    if (!groupSettings[jid]) groupSettings[jid] = { welcome: true, leave: true, antidelete: false };
 };
 
-export let PUBLIC_MODE = false;
+export let PUBLIC_MODE = botConfig.publicMode;
 
 // ========================= HELPERS =========================
 export const getText = (msg) => {
-    return msg.message?.conversation 
-        || msg.message?.extendedTextMessage?.text 
-        || "";
+    if (msg.message?.conversation) return msg.message.conversation;
+    if (msg.message?.extendedTextMessage?.text) return msg.message.extendedTextMessage.text;
+    return "";
 };
 
 export const isGroup = (jid) => jid.endsWith("@g.us");
-
-export const isOwner = (sender, botConfig) => {
+export const isOwner = (sender) => {
     return (
         sender === OWNER_SETTINGS.ownerJid ||
         sender === OWNER_SETTINGS.ownerJidLid ||
-        (botConfig?.owners?.includes(sender))
+        botConfig.owners.includes(sender)
     );
 };
 
 export const isWantedasa = (sender) => {
-    return sender === OWNER_SETTINGS.ownerJid
-        || sender === OWNER_SETTINGS.ownerJidLid;
+    return (
+        sender === OWNER_SETTINGS.ownerJid ||
+        sender === OWNER_SETTINGS.ownerJidLid
+    );
 };
 
 export const isAdmin = async (sock, jid, user) => {
@@ -110,23 +100,25 @@ export const reply = async (sock, msg, text, extra = {}) => {
     return await sock.sendMessage(msg.key.remoteJid, { text, ...extra }, { quoted: msg });
 };
 
-// ========================= COMMAND HANDLER =========================
-export async function handleCommands(sock, msg, botConfig) {
+
+//=========================//
+// COMMAND HANDLER
+//=========================//
+export async function handleCommands(sock, msg) {
     const from = msg.key.remoteJid;
     const sender = msg.key.participant || from;
 
     const text = getText(msg);
-    const prefix = botConfig.prefix || ".";
-    if (!text.startsWith(prefix)) return;
+    if (!text.startsWith(".")) return;
+    if (!PUBLIC_MODE && !isOwner(sender)) return;
 
-    if (!PUBLIC_MODE && !isOwner(sender, botConfig)) return;
-
-    const args = text.slice(prefix.length).trim().split(" ");
+    const args = text.slice(1).trim().split(" ");
     const command = args.shift().toLowerCase();
     const value = args[0]?.toLowerCase();
 
-    const gSettings = ensureGroupSettings(from);
+    ensureGroupSettings(from);
 
+    
 
 if (command === "welcome") {
     // Gruppe initialisieren
@@ -135,7 +127,7 @@ if (command === "welcome") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: ${prefix}welcome on/off");
+        return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
     }
 
     botConfig.groupSettings[from].welcome = value === "on";
@@ -149,7 +141,7 @@ if (command === "leave") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: ${prefix}leave on/off");
+        return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
     }
 
     botConfig.groupSettings[from].leave = value === "on";
@@ -167,7 +159,7 @@ if (command === "antidelete") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: ${prefix}antidelete on/off");
+        return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
     }
 
     botConfig.groupSettings[from].antidelete = value === "on";
@@ -175,7 +167,7 @@ if (command === "antidelete") {
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 if (command === "autoread") {
-    if (!args[0]) return reply(sock, msg, "❌ Nutzung: ${prefix}autoread <on|off> [groups|private]");
+    if (!args[0]) return reply(sock, msg, "❌ Nutzung: .autoread <on|off> [groups|private]");
 
     const state = args[0].toLowerCase() === "on";
     const type = args[1]?.toLowerCase();
@@ -200,23 +192,6 @@ if (command === "autoread") {
     
     return reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
 }
-if (command === "prefix") {
-    // nur Owner dürfen ändern
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
-
-    const newPrefix = args[0];
-    if (!newPrefix) {
-        return reply(sock, msg,
-`📌 Aktueller Prefix: ${botConfig.prefix}
-
-Nutzung: 
-${prefix}prefix <neuerPrefix>`
-        );
-    }
-
-    botConfig.prefix = newPrefix;
-    return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
-}
 
 
     //=========================//
@@ -232,24 +207,17 @@ ${prefix}prefix <neuerPrefix>`
     if (!sub) {
         return reply(sock, msg,
 `❌ Nutzung:
-${prefix}owner add @user / (auf User antworten)
-${prefix}owner del @user / (auf User antworten)
-${prefix}owner list`);
+.owner add (auf User antworten)
+.owner del (auf User antworten)
+.owner list`);
     }
-
-    // Target (Mention oder Reply)
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    const quoted = msg.message?.extendedTextMessage?.contextInfo?.participant;
-    const target = mentioned?.[0] || quoted;
 
     // ➕ ADD
     if (sub === "add") {
-        if (!target) {
-            return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
-        }
+        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
 
-        if (mentioned?.length > 1) {
-            return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
+        if (!target) {
+            return reply(sock, msg, "❌ Antworte auf einen User!");
         }
 
         if (botConfig.owners.includes(target)) {
@@ -264,12 +232,10 @@ ${prefix}owner list`);
 
     // ❌ DEL
     if (sub === "del") {
-        if (!target) {
-            return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
-        }
+        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
 
-        if (mentioned?.length > 1) {
-            return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
+        if (!target) {
+            return reply(sock, msg, "❌ Antworte auf einen User!");
         }
 
         // Haupt-Owner schützen
@@ -303,6 +269,8 @@ ${prefix}owner list`);
 
         return reply(sock, msg, text, botConfig.owners);
     }
+
+    // ❓ Unbekannt
     return reply(sock, msg, "❌ Unbekannter Subcommand! Nutze: add, del, list");
 }
    if (command === "bot") {
@@ -315,14 +283,13 @@ ${prefix}owner list`);
 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ⚡ Version: ${OWNER_SETTINGS.version}
 🟢 Mode: ${mode}
-📰 Prefix: ${botConfig.prefix}
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}`;
 
     return await reply(sock, msg, text);
 }
 if (command === "self") {
-    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
     PUBLIC_MODE = false;
     botConfig.publicMode = false;
     saveBotConfig();
@@ -330,7 +297,7 @@ if (command === "self") {
 }
 
 if (command === "public") {
-    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
     PUBLIC_MODE = true;
     botConfig.publicMode = true;
     saveBotConfig();
@@ -343,31 +310,33 @@ if (command === "public") {
 ║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ║ ⚡ Version: ${OWNER_SETTINGS.version}
 ╠═════════════════════
-║ 📌 ${prefix}menu
-║ 📌 ${prefix}bot
+║ 📌 .menu
+║ 📌 .bot
+║ 📌 .owner
 ║
 ║ 👥 GROUP
-║ ├ ${prefix}hidetag
-║ ├ ${prefix}kick
-║ ├ ${prefix}welcome on/off
-║ ├ ${prefix}leave on/off
-║ ├ ${prefix}grpname
-║ ├ ${prefix}grpdesc
-║ ├ ${prefix}delete
-║ ├ ${prefix}promote/demote
-║ ├ ${prefix}mute/unmute
-║ ├ ${prefix}grouplink
+║ ├ .hidetag
+║ ├ .kick
+║ ├ .welcome on/off
+║ ├ .leave on/off
+║ ├ .grpname
+║ ├ .grpdesc
+║ ├ .delete
+║ ├ .promote/demote
+║ ├ .mute/unmute
+║ ├ .grouplink
 ║
 ║ 🔒 OWNER
-║ ├ ${prefix}self
-║ ├ ${prefix}public
-║ ├ ${prefix}info
-║ ├ ${prefix}autoread
-║ ├ ${prefix}grpleave
-║ ├ ${prefix}device
-║ ├ ${prefix}block/unblock
-║ ├ ${prefix}antidelete on/off
-║ ├ ${prefix}automsg set/stop
+║ ├ .self
+║ ├ .public
+║ ├ .info
+║ ├ .autoread
+║ ├ .grpleave
+║ ├ .device
+║ ├ .werbelist
+║ ├ .block/unblock
+║ ├ .antidelete on/off
+║ ├ .automsg set/stop
 ╚═════════════════════`
         );
     }
@@ -413,68 +382,7 @@ if (command === "public") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-
-    if (command === "session") {
-
-    const sub = args[0]?.toLowerCase();
-
-    // 📋 LISTE
-    if (!sub) {
-        const list = [...sessions.keys()];
-
-        if (list.length === 0) {
-            return reply(sock, msg, "❌ Keine aktiven Sessions!");
-        }
-
-        return reply(sock, msg,
-`📱 Aktive Sessions:
-
-${list.map(s => "• " + s).join("\n")}`
-        );
-    }
-        if (sub === "connect") {
-    const name = args[1];
-    const phoneNumber = args[2];
-
-    if (!name || !phoneNumber) {
-        return reply(sock, msg, "❌ Nutzung: .session connect <name> <nummer>");
-    }
-
-    if (sessions.has(name)) {
-        return reply(sock, msg, "❌ Session existiert bereits!");
-    }
-
-    connectBot(name, phoneNumber);
-
-    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: ${phoneNumber}\n🔑 Pairing-Code: AAAA-AAAA`);
-}
-    if (sub === "disconnect") {
-        const name = args[1];
-
-        if (!name) {
-            return reply(sock, msg, "❌ Nutzung: .session disconnect <name>");
-        }
-
-        const s = sessions.get(name);
-
-        if (!s) {
-            return reply(sock, msg, "❌ Session nicht gefunden!");
-        }
-
-        s.end();
-        sessions.delete(name);
-
-        return reply(sock, msg, `❌ Session "${name}" wurde beendet!`);
-    }
-    return reply(sock, msg,
-`❌ Unbekannter Subcommand!
-
-📌 Nutzung:
-.session
-.session connect <name> [nummer]
-.session disconnect <name>`
-    );
-}
+    
 if (command === "getpic") {
     try {
         let target;
@@ -552,15 +460,21 @@ if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
         if (!target) {
             return reply(sock, msg, "❌ User nicht gefunden!");
         }
+
+        // Device bestimmen (Baileys msg key nutzen)
         let device = "Unbekannt";
 
         const quotedMsg = ctx.quotedMessage;
         const msgType = Object.keys(quotedMsg)[0];
+
+        // einfache Heuristik (stabiler als presence)
         if (msgType === "conversation" || msgType === "extendedTextMessage") {
             device = "Android";
         } else if (msgType === "imageMessage" || msgType === "videoMessage") {
             device = "iOS";
         }
+
+        // Wenn von Web (häufig längere IDs)
         if (target.length > 20) {
             device = "Web";
         }
@@ -599,7 +513,7 @@ https://chat.whatsapp.com/${invite}`);
     }
 }
 if (command === "grpleave" || command === "leavegrp") {
-    if (!isWantedasa(from)) {
+    if (!isGroup(from)) {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     }
 
@@ -784,6 +698,8 @@ if (command === "add") {
             fail++;
             failedUsers.push(`+${number} → Fehler beim Hinzufügen`);
         }
+
+        // ⛔ Kein Delay wenn nur 1 User
         if (numbers.length > 1) {
             await wait(2000);
         }
@@ -828,13 +744,20 @@ if (command === "promote" || command === "demote") {
  
  if (command === "info") {
     try {
+        // Ziel-User sammeln
         let targets = [];
+
+        // 1️⃣ Kontext: Antwort auf Nachricht
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             targets.push(msg.message.extendedTextMessage.contextInfo.participant);
         }
+
+        // 2️⃣ Markierte User
         if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
             targets.push(...msg.message.extendedTextMessage.contextInfo.mentionedJid);
         }
+
+        // 3️⃣ Nummer als Argument
         if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             targets.push(number + "@s.whatsapp.net");
@@ -843,7 +766,11 @@ if (command === "promote" || command === "demote") {
         if (targets.length === 0) {
             return reply(sock, msg, "❌ Bitte markiere jemanden, antworte auf eine Nachricht oder gib eine Nummer an!");
         }
+
+        // Duplikate entfernen
         targets = [...new Set(targets)];
+
+        // Funktion: Infos für einen User abrufen
         async function getUserInfo(target) {
             const jid = target;
             const numberOnly = target.split("@")[0];
@@ -855,17 +782,23 @@ if (command === "promote" || command === "demote") {
                 const contact = sock.contacts[target];
                 if (contact?.notify) name = contact.notify;
             } catch {}
+
+            // Profilbild
             let ppUrl = null;
             let hasProfilePic = "❌ Nein";
             try {
                 ppUrl = await sock.profilePictureUrl(target, "image");
                 hasProfilePic = "✅ Ja";
             } catch {}
+
+            // Business
             let isBusiness = "❌ Nein";
             try {
                 const biz = await sock.getBusinessProfile(target);
                 if (biz) isBusiness = "✅ Ja";
             } catch {}
+
+            // Gemeinsame Gruppen
             let mutualGroups = [];
             try {
                 const groups = await sock.groupFetchAllParticipating();
@@ -878,6 +811,8 @@ if (command === "promote" || command === "demote") {
             const groupList = groupCount > 0
                 ? mutualGroups.slice(0, 25).map(g => `• ${g}`).join("\n")
                 : "Keine gemeinsamen Gruppen";
+
+            // Account-Erstellung
             function getCreationDate(jid) {
                 try {
                     const id = jid.split("@")[0];
@@ -897,6 +832,8 @@ if (command === "promote" || command === "demote") {
                 }
             }
             const createdAt = getCreationDate(target);
+
+            // Ausgabe bauen
             const line = "──────────────────────────";
             const text = `╭───〔 👤 USER INFO 〕───⬣
 │
@@ -915,6 +852,8 @@ ${groupList}
 
             return { text, ppUrl };
         }
+
+        // Infos für alle User abrufen und senden
         for (let target of targets) {
             const { text, ppUrl } = await getUserInfo(target);
             if (ppUrl) {
@@ -930,14 +869,18 @@ ${groupList}
     }
 }  
 if (command === "block") {
+    // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");
+
+    // Ziel-Nummer holen: Entweder durch Reply oder Argument
     let target = msg.message?.extendedTextMessage?.contextInfo?.participant || args[0];
     if (!target) return reply(sock, msg, "⚠️ Bitte Nummer angeben oder auf die Nachricht der Person antworten.");
 
+    // Nummer in JID-Format bringen
     if (!target.includes("@s.whatsapp.net")) target = target.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 
     try {
-        await sock.updateBlockStatus(target, "block");
+        await sock.updateBlockStatus(target, "block"); // Nummer blockieren
         reply(sock, msg, `✅ ${target.split("@")[0]} wurde erfolgreich blockiert.`);
     } catch (err) {
         console.error(err);
@@ -946,8 +889,10 @@ if (command === "block") {
 }
     if (command === "msgraw") {
     try {
+        // Nachricht in JSON-Format umwandeln und formatieren
         const rawMsg = JSON.stringify(msg, null, 2);
 
+        // Prüfen, ob die Nachricht zu groß für WhatsApp ist
         if (rawMsg.length > 4000) {
             reply(sock, msg, "❌ Nachricht zu groß zum Senden. Speichere sie als Datei.");
             // Optional: Speichern als Datei
@@ -957,6 +902,8 @@ if (command === "block") {
             await sock.sendMessage(from, { document: { url: fileName }, fileName: fileName, mimetype: "application/json" }, { quoted: msg });
             return;
         }
+
+        // Nachricht direkt senden
         reply(sock, msg, "📄 Raw Message:\n" + rawMsg);
 
     } catch (err) {
@@ -965,15 +912,18 @@ if (command === "block") {
     }
 }
 if (command === "unblock") {
+    // Prüfen, ob der Befehl vom Owner kommt
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden entblocken!");
 
+    // Ziel-Nummer holen: Entweder durch Reply oder Argument
     let target = msg.message?.extendedTextMessage?.contextInfo?.participant || args[0];
     if (!target) return reply(sock, msg, "⚠️ Bitte Nummer angeben oder auf die Nachricht der Person antworten.");
 
+    // Nummer in JID-Format bringen
     if (!target.includes("@s.whatsapp.net")) target = target.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 
     try {
-        await sock.updateBlockStatus(target, "unblock");
+        await sock.updateBlockStatus(target, "unblock"); // Nummer entblocken
         reply(sock, msg, `✅ ${target.split("@")[0]} wurde erfolgreich entblockt.`);
     } catch (err) {
         console.error(err);
@@ -983,7 +933,7 @@ if (command === "unblock") {
 
 
 if (command === "automsg") {
-    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 
     const sub = args[0];
 
@@ -995,6 +945,10 @@ if (command === "automsg") {
 .automsg stop
 .automsg list`);
     }
+
+    // =========================
+    // SET
+    // =========================
     if (sub === "set") {
         const minutes = parseInt(args[1]);
         const text = args.slice(2).join(" ");
@@ -1068,66 +1022,62 @@ saveBotConfig();
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
 
+    
 }
 
-export const loadAutoMessages = async (sock, sessionName = "main") => {
-    // Bot Config laden
-    const { botConfig, saveBotConfig } = loadBotConfig(sessionName);
 
-    if (!botConfig.autoMessages || Object.keys(botConfig.autoMessages).length === 0) return;
+
+export const loadAutoMessages = async (sock) => {
+    if (!botConfig.autoMessages) return;
 
     for (const chatId in botConfig.autoMessages) {
         const data = botConfig.autoMessages[chatId];
 
-        autoFailCount[chatId] = autoFailCount[chatId] || 0;
-
-        // Gruppennamen optional abrufen
+        let groupName = chatId;
         try {
             if (chatId.endsWith("@g.us")) {
                 const metadata = await sock.groupMetadata(chatId);
-                data.name = metadata.subject || chatId;
-            } else {
-                data.name = chatId;
+                groupName = metadata.subject || chatId;
             }
         } catch (err) {
             console.error(`Fehler beim Abrufen des Gruppennamens für ${chatId}:`, err);
-            data.name = chatId;
         }
 
+        autoFailCount[chatId] = 0;
+
         const now = Date.now();
-        const lastSent = Number(data.lastSent) || 0;
-        const intervalMs = Number(data.interval) * 60 * 1000;
+        const lastSent = data.lastSent || 0;
+        const intervalMs = data.interval * 60 * 1000;
         const timeSinceLast = now - lastSent;
 
-        // Sofort senden, falls Zeit vergangen
-        if (!lastSent || timeSinceLast >= intervalMs) {
+        // Wenn Zeit vergangen ist oder lastSent nicht existiert → sofort senden
+        if (!data.lastSent || timeSinceLast >= intervalMs) {
             try {
                 await sock.sendMessage(chatId, { text: data.text });
-                data.lastSent = Date.now();
+                botConfig.autoMessages[chatId].lastSent = Date.now();
                 saveBotConfig();
                 autoFailCount[chatId] = 0;
             } catch (e) {
-                console.error(`AutoMsg Fehler beim ersten Senden an ${chatId}:`, e);
+                console.error("AutoMsg Fehler beim ersten Senden:", e);
                 autoFailCount[chatId]++;
             }
         }
 
+        // Berechne Restzeit bis zur nächsten Nachricht
         const delay = lastSent ? Math.max(intervalMs - timeSinceLast, 0) : intervalMs;
 
+        // Timeout für nächste Nachricht
         setTimeout(() => {
-            if (autoIntervals[chatId]) clearInterval(autoIntervals[chatId]);
-
             autoIntervals[chatId] = setInterval(async () => {
                 try {
                     await sock.sendMessage(chatId, { text: data.text });
-                    data.lastSent = Date.now();
+                    botConfig.autoMessages[chatId].lastSent = Date.now();
                     saveBotConfig();
                     autoFailCount[chatId] = 0;
                 } catch (e) {
-                    console.error(`AutoMsg Fehler bei ${chatId}:`, e);
+                    console.error("AutoMsg Fehler:", e);
                     autoFailCount[chatId]++;
                     if (autoFailCount[chatId] >= 5) {
-                        console.error(`❌ AutoMsg für ${chatId} deaktiviert nach 5 Fehlern.`);
                         clearInterval(autoIntervals[chatId]);
                         delete autoIntervals[chatId];
                         delete botConfig.autoMessages[chatId];
@@ -1140,7 +1090,6 @@ export const loadAutoMessages = async (sock, sessionName = "main") => {
 
     console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
 };
-
 
 //=========================//
 // GROUP EVENTS

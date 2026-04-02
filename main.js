@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { sessions, connectBot } from "./index.js";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {

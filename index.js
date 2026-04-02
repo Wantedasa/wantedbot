@@ -3,6 +3,7 @@ import pino from "pino";
 import readline from "readline";
 import chalk from "chalk";
 import gradient from "gradient-string";
+import fs from "fs";
 
 import * as mainModule from "./main.js";
 const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages } = mainModule;

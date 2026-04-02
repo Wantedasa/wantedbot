@@ -869,17 +869,24 @@ if (command === "join") {
 }
 if (command === 'poll') {
     const text = args.join(' ');
+
     if (!text.includes('/')) {
-        return await sock.sendMessage(from, { text: 'Bitte benutze die Syntax:\n${prefix}poll Frage / Antwort1 / Antwort2 / Antwort3' });
+        return await sock.sendMessage(from, { 
+            text: `❌ Falsche Eingabe!\nBitte benutze die Syntax:\n${prefix}poll Frage / Antwort1 / Antwort2 / Antwort3`
+        });
     }
+
     const parts = text.split('/').map(p => p.trim());
     const question = parts.shift();
     const options = parts;
 
-    if (options.length < 2) {
-        return await sock.sendMessage(from, { text: 'Bitte gib mindestens zwei Antwortmöglichkeiten an.' });
+    if (!question || options.length < 2) {
+        return await sock.sendMessage(from, { 
+            text: `❌ Falsche Eingabe!\nDu musst eine Frage und mindestens zwei Antworten angeben.\nBeispiel:\n${prefix}poll Kommst du zum Sommerfest? / Ja ✅ / Vielleicht ❓ / Nein ❌`
+        });
     }
 
+    // Umfrage senden
     await sock.sendMessage(from, {
         poll: {
             name: `📊 ${question}`,

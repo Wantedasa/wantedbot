@@ -127,8 +127,6 @@ export async function connectBot(sessionName = "main", phoneNumber) {
     });
 
     sock.ev.on("creds.update", saveCreds);
-}
-
     
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {

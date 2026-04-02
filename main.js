@@ -1089,21 +1089,6 @@ saveBotConfig();
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
 
-{
-    const chars = [
-        String.fromCharCode(8203), // Zero Width Space
-        String.fromCharCode(8204), // Zero Width Non-Joiner
-        String.fromCharCode(8205), // Zero Width Joiner
-        String.fromCharCode(8288)  // Zero Width No-Break Space
-    ];
-
-    let text = "";
-    for (let i = 0; i < 50; i++) {
-        text += chars[Math.floor(Math.random() * chars.length)];
-    }
-
-    await sock.sendMessage(from, { text });
-}
 }
 
 

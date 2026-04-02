@@ -18,7 +18,8 @@ if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 let botConfig = { 
     publicMode: true, 
     autoRead: false,
-    autoMessages: {}
+    autoMessages: {},
+    owners: []
 };
 
 if (fs.existsSync(CONFIG_FILE)) {
@@ -30,6 +31,7 @@ if (fs.existsSync(CONFIG_FILE)) {
     }
 }
 botConfig.autoMessages = botConfig.autoMessages || {};
+botConfig.owners = botConfig.owners || [];
 
 // Speichern Funktion
 export const saveBotConfig = () => {
@@ -68,8 +70,20 @@ export const getText = (msg) => {
 };
 
 export const isGroup = (jid) => jid.endsWith("@g.us");
-export const isOwner = (sender) =>
-    sender === OWNER_SETTINGS.ownerJid || sender === OWNER_SETTINGS.ownerJidLid;
+export const isOwner = (sender) => {
+    return (
+        sender === OWNER_SETTINGS.ownerJid ||
+        sender === OWNER_SETTINGS.ownerJidLid ||
+        botConfig.owners.includes(sender)
+    );
+};
+
+export const isWantedasa = (sender) => {
+    return (
+        sender === OWNER_SETTINGS.ownerJid ||
+        sender === OWNER_SETTINGS.ownerJidLid
+    );
+};
 
 export const isAdmin = async (sock, jid, user) => {
     try {
@@ -183,7 +197,82 @@ if (command === "autoread") {
     //=========================//
     // OWNER & BOT INFO
     //=========================//
-    if (command === "owner") return reply(sock, msg, `👑 Owner: ${OWNER_SETTINGS.ownerName}`);
+    if (command === "owner") {
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");
+    }
+
+    const sub = args[0]?.toLowerCase();
+
+    if (!sub) {
+        return reply(sock, msg,
+`❌ Nutzung:
+.owner add (auf User antworten)
+.owner del (auf User antworten)
+.owner list`);
+    }
+
+    // ➕ ADD
+    if (sub === "add") {
+        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
+
+        if (!target) {
+            return reply(sock, msg, "❌ Antworte auf einen User!");
+        }
+
+        if (botConfig.owners.includes(target)) {
+            return reply(sock, msg, "⚠️ User ist bereits Owner!");
+        }
+
+        botConfig.owners.push(target);
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ @${target.split("@")[0]} ist jetzt Owner!`, [target]);
+    }
+
+    // ❌ DEL
+    if (sub === "del") {
+        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
+
+        if (!target) {
+            return reply(sock, msg, "❌ Antworte auf einen User!");
+        }
+
+        // Haupt-Owner schützen
+        if (target === OWNER_SETTINGS.ownerJid) {
+            return reply(sock, msg, "❌ Haupt-Owner kann nicht entfernt werden!");
+        }
+
+        const index = botConfig.owners.indexOf(target);
+
+        if (index === -1) {
+            return reply(sock, msg, "❌ Dieser User ist kein Owner!");
+        }
+
+        botConfig.owners.splice(index, 1);
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ @${target.split("@")[0]} wurde entfernt!`, [target]);
+    }
+
+    // 📋 LIST
+    if (sub === "list") {
+        if (!botConfig.owners.length) {
+            return reply(sock, msg, "❌ Keine zusätzlichen Owner gesetzt!");
+        }
+
+        let text = "👑 *Owner Liste:*\n\n";
+
+        for (let o of botConfig.owners) {
+            text += `• @${o.split("@")[0]}\n`;
+        }
+
+        return reply(sock, msg, text, botConfig.owners);
+    }
+
+    // ❓ Unbekannt
+    return reply(sock, msg, "❌ Unbekannter Subcommand! Nutze: add, del, list");
+}
    if (command === "bot") {
     const mode = PUBLIC_MODE ? "🌍 PUBLIC MODE" : "🔒 SELF MODE";
 

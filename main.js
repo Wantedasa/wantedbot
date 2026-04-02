@@ -469,6 +469,7 @@ ${list.map(s => "• " + s).join("\n")}`
 
     sock.ev.on("messages.upsert", listener);
 }
+    }
 
     // ========================= //
     // DISCONNECT

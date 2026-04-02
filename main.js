@@ -431,46 +431,31 @@ if (command === "public") {
 ${list.map(s => "• " + s).join("\n")}`
         );
     }
-    if (sub === "connect") {
+if (sub === "connect") {
     const name = args[1];
 
-    if (!name) return reply(sock, msg, "❌ Nutzung: .session connect <name>");
-    if (sessions.has(name)) return reply(sock, msg, "❌ Session existiert bereits!");
+    if (!name) {
+        return reply(sock, msg, "❌ Nutzung: .session connect <name>");
+    }
+
+    if (sessions.has(name)) {
+        return reply(sock, msg, "❌ Session existiert bereits!");
+    }
 
     let phoneNumber = args[2];
-    if (phoneNumber) {
-        phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
-        connectBot(name, phoneNumber);
-        return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
+    if (!phoneNumber) {
+        const readline = await import("readline");
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        phoneNumber = await new Promise(resolve => rl.question("📲 Nummer des Bots (inkl. Ländervorwahl, z.B. +49123456789): ", resolve));
+        rl.close();
     }
 
-    reply(sock, msg, "📲 Bitte sende jetzt die Telefonnummer für die neue Session (inkl. Ländervorwahl, z.B. +49123456789).");
+    phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
 
-    const handler = async (nextMsg) => {
-        if (nextMsg.key.fromMe) return;
-        if (!nextMsg.message?.conversation) return;
+    connectBot(name, phoneNumber);
 
-        let num = nextMsg.message.conversation.replace(/[^0-9]/g, "");
-        if (!num) {
-            reply(sock, nextMsg, "❌ Ungültige Nummer, bitte erneut senden!");
-            return;
-        }
-        connectBot(name, "+" + num);
-        reply(sock, nextMsg, `✅ Session "${name}" wird gestartet...`);
-
-        sock.ev.off("messages.upsert", listener);
-    };
-
-    // Listener für die nächste Nachricht
-    const listener = async ({ messages, type }) => {
-        if (type !== "notify") return;
-        handler(messages[0]);
-    };
-
-    sock.ev.on("messages.upsert", listener);
+    return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
 }
-    }
-
     // ========================= //
     // DISCONNECT
     // ========================= //

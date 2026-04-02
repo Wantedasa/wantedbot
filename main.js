@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { sessions, connectBot } from "./index.js";
 
+
+
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
@@ -429,34 +431,31 @@ if (command === "public") {
 ${list.map(s => "• " + s).join("\n")}`
         );
     }
-
-    // ========================= //
-    // CONNECT
-    // ========================= //
     if (sub === "connect") {
-        const name = args[1];
+    const name = args[1];
 
-        if (!name) {
-            return reply(sock, msg, "❌ Nutzung: .session connect <name>");
-        }
-
-        if (sessions.has(name)) {
-            return reply(sock, msg, "❌ Session existiert bereits!");
-        }
-
-        // Telefonnummer abfragen, falls nicht als Argument übergeben
-        let phoneNumber = args[2];
-        if (!phoneNumber) {
-            phoneNumber = await question("📲 Nummer des Bots (inkl. Ländervorwahl, z.B. +49123456789): ");
-        }
-
-        phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
-
-        // Neue Session starten
-        connectBot(name, phoneNumber);
-
-        return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
+    if (!name) {
+        return reply(sock, msg, "❌ Nutzung: .session connect <name>");
     }
+
+    if (sessions.has(name)) {
+        return reply(sock, msg, "❌ Session existiert bereits!");
+    }
+
+    let phoneNumber = args[2];
+    if (!phoneNumber) {
+        const readline = await import("readline");
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        phoneNumber = await new Promise(resolve => rl.question("📲 Nummer des Bots (inkl. Ländervorwahl, z.B. +49123456789): ", resolve));
+        rl.close();
+    }
+
+    phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
+
+    connectBot(name, phoneNumber);
+
+    return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
+}
 
     // ========================= //
     // DISCONNECT

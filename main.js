@@ -394,21 +394,18 @@ if (command === "public") {
         );
     }
 if (command === "about") {
-    const combinedMessage = `
-╔════════════════════════╗
+    const combinedMessage = `╔════════════════════════╗
 ║ 🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot
-║ 👑 Owner: ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
-║ ⚡ Version: 1.0.0
+║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
+║ ⚡ Version: ${OWNER_SETTINGS.version}
 ╠════════════════════════╣
 ║ 🌐 WhatsApp Kanal
 ║ https://whatsapp.com/channel/0029VbCPWBN3wtbEcT5LBp04
 ╠════════════════════════╣
 ║ 📱 Telegram Kanal
 ║ https://t.me/devwantedasa
-╚════════════════════════╝
-    `;
+╚════════════════════════╝`;
 
-    // Nachricht senden – WhatsApp erzeugt automatisch Vorschau für den Kanal-Link
     await sock.sendMessage(from, { text: combinedMessage });
 }
     //=========================//
@@ -1092,7 +1089,21 @@ saveBotConfig();
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
 
-    
+{
+    const chars = [
+        String.fromCharCode(8203), // Zero Width Space
+        String.fromCharCode(8204), // Zero Width Non-Joiner
+        String.fromCharCode(8205), // Zero Width Joiner
+        String.fromCharCode(8288)  // Zero Width No-Break Space
+    ];
+
+    let text = "";
+    for (let i = 0; i < 50; i++) {
+        text += chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    await sock.sendMessage(from, { text });
+}
 }
 
 

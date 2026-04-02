@@ -867,57 +867,27 @@ if (command === "join") {
         return reply(sock, msg, "❌ Beitritt zur Gruppe fehlgeschlagen! Eventuell falscher Link oder du wurdest blockiert.");
     }
 }
-if (command === "pin" || command === "unpin") {
-
-    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
-
-    const admin = await isAdmin(sock, from, sender);
-    const owner = await isOwner(sender);
-    if (!admin && !owner) return reply(sock, msg, "❌ Nur Admins oder Owner dürfen Nachrichten pinnen/unpinnen!");
-
-    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
-    if (!contextInfo?.stanzaId) {
-        return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die du pinnen/unpinnen möchtest!");
+if (cmd === 'poll') {
+    const text = args.join(' '); // Alles nach dem Befehl
+    if (!text.includes('/')) {
+        return await sock.sendMessage(from, { text: 'Bitte benutze die Syntax:\n+poll Frage / Antwort1 / Antwort2 / Antwort3' });
     }
 
-    try {
-        if (command === "pin") {
-            // Dauer aus args in Stunden oder default 24h
-            let hours = 24; // 24 Stunden Standard
-            if (args[0] && !isNaN(args[0])) hours = parseInt(args[0]);
-            const duration = hours * 3600; // Umrechnung in Sekunden
+    const parts = text.split('/').map(p => p.trim());
+    const question = parts.shift(); // Erste Angabe ist die Frage
+    const options = parts; // Rest sind die Antworten
 
-            await sock.chatModify({
-                pin: {
-                    messages: [{
-                        id: contextInfo.stanzaId,
-                        fromMe: contextInfo.participant === sock.user.id
-                    }],
-                    pin: true,
-                    duration: duration
-                }
-            }, from);
+    if (options.length < 2) {
+        return await sock.sendMessage(from, { text: 'Bitte gib mindestens zwei Antwortmöglichkeiten an.' });
+    }
 
-            return reply(sock, msg, `📌 Nachricht wurde für ${hours} Stunden gepinnt!`);
-
-        } else if (command === "unpin") {
-            await sock.chatModify({
-                pin: {
-                    messages: [{
-                        id: contextInfo.stanzaId,
-                        fromMe: contextInfo.participant === sock.user.id
-                    }],
-                    pin: false
-                }
-            }, from);
-
-            return reply(sock, msg, "📌 Nachricht wurde entpinnt!");
+    await sock.sendMessage(from, {
+        poll: {
+            name: `📊 ${question}`,
+            values: options,
+            selectableCount: 1 // Nur eine Antwort pro Person
         }
-
-    } catch (err) {
-        console.error("Fehler beim Pin/Unpin:", err);
-        return reply(sock, msg, "❌ Nachricht konnte nicht gepinnt/entpinned werden! Stelle sicher, dass ich Admin bin.");
-    }
+    });
 }
 if (command === "add") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");

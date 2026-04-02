@@ -127,8 +127,6 @@ export async function connectBot(sessionName = "main", phoneNumber) {
     });
 
     sock.ev.on("creds.update", saveCreds);
-
-    return pairingCode;
 }
 
     
@@ -252,6 +250,6 @@ const deletedId = deletedMsg.key.id;
     }
 });
 
-return sock;
+return sock, paringCode;
 }
 connectBot();

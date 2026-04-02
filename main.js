@@ -444,7 +444,16 @@ ${list.map(s => "• " + s).join("\n")}`
             return reply(sock, msg, "❌ Session existiert bereits!");
         }
 
-        connectBot(name);
+        // Telefonnummer abfragen, falls nicht als Argument übergeben
+        let phoneNumber = args[2];
+        if (!phoneNumber) {
+            phoneNumber = await question("📲 Nummer des Bots (inkl. Ländervorwahl, z.B. +49123456789): ");
+        }
+
+        phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
+
+        // Neue Session starten
+        connectBot(name, phoneNumber);
 
         return reply(sock, msg, `✅ Session "${name}" wird gestartet...`);
     }
@@ -475,7 +484,7 @@ ${list.map(s => "• " + s).join("\n")}`
 
 📌 Nutzung:
 .session
-.session connect <name>
+.session connect <name> [nummer]
 .session disconnect <name>`
     );
 }

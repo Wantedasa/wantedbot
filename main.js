@@ -622,7 +622,8 @@ if (command === "grouplink" || command === "gc") {
 if (command === "calc") {
     const input = args.join(" ").toLowerCase();
 
-    if (!input) return reply(sock, msg, "❌ Bitte gib einen Ausdruck zum Berechnen ein!\nBeispiel: ${prefix}calc 5 + sqrt(16)");
+    if (!input) 
+    return reply(sock, msg, `❌ Bitte gib einen Ausdruck zum Berechnen ein!\nBeispiel: ${prefix}calc 5 + sqrt(16)`);
 
     try {
         const allowed = /^[0-9+\-*/().%^ ,a-z]+$/;

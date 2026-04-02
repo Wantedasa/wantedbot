@@ -400,6 +400,7 @@ if (command === "public") {
 ║ ├ ${prefix}promote/demote
 ║ ├ ${prefix}mute/unmute
 ║ ├ ${prefix}grouplink
+║ ├ ${prefix}grppic
 ║
 ║ 🔒 OWNER
 ║ ├ ${prefix}self
@@ -619,12 +620,12 @@ if (command === "grouplink" || command === "gc") {
 }
 if (command === "grppic") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
-    if (!isAdmin(sock, from, sender)) return reply(sock, msg, "❌ Nur Admins können das Gruppenbild ändern!");
+if (!isAdmin(sock, from, sender) && !isOwner(sender)) 
+    return reply(sock, msg, "❌ Nur Admins können das Gruppenbild ändern!");
 
     const sub = args[0]?.toLowerCase();
 
     if (sub === "set") {
-        // 🔹 Check ob auf ein Bild geantwortet wurde
         const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         const imageMessage = quoted?.imageMessage;
 
@@ -645,8 +646,6 @@ if (command === "grppic") {
             return reply(sock, msg, "❌ Fehler beim Setzen des Gruppenbilds!");
         }
     }
-
-    // 🔹 Default: Gruppenbild anzeigen
     try {
         const profilePic = await sock.profilePictureUrl(from);
         const metadata = await sock.groupMetadata(from);

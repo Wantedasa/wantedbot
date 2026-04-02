@@ -110,7 +110,9 @@ export async function handleCommands(sock, msg) {
     const sender = msg.key.participant || from;
 
     const text = getText(msg);
-    const prefix = botConfig.prefix || ".";
+
+  const prefix = botConfig.prefix && botConfig.prefix.length > 0 ? botConfig.prefix : ".";
+
     if (!text.startsWith(prefix)) return;
     
     if (!PUBLIC_MODE && !isOwner(sender, botConfig)) return;
@@ -130,7 +132,7 @@ if (command === "welcome") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
+        return reply(sock, msg, "⚙️ Nutzung: ${prefix}welcome on/off");
     }
 
     botConfig.groupSettings[from].welcome = value === "on";
@@ -144,7 +146,7 @@ if (command === "leave") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
+        return reply(sock, msg, "⚙️ Nutzung: ${prefix}leave on/off");
     }
 
     botConfig.groupSettings[from].leave = value === "on";
@@ -162,7 +164,7 @@ if (command === "antidelete") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
+        return reply(sock, msg, "⚙️ Nutzung: ${prefix}antidelete on/off");
     }
 
     botConfig.groupSettings[from].antidelete = value === "on";
@@ -170,7 +172,7 @@ if (command === "antidelete") {
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 if (command === "autoread") {
-    if (!args[0]) return reply(sock, msg, "❌ Nutzung: .autoread <on|off> [groups|private]");
+    if (!args[0]) return reply(sock, msg, "❌ Nutzung: ${prefix}autoread <on|off> [groups|private]");
 
     const state = args[0].toLowerCase() === "on";
     const type = args[1]?.toLowerCase();
@@ -202,7 +204,7 @@ if (command === "autoread") {
     const newPrefix = args[0];
     if (!newPrefix) {
         return reply(sock, msg,
-`📌 Aktueller Prefix: ${botConfig.prefix}
+`📌 Aktueller Prefix: ${prefix}
 
 Nutzung: 
 ${prefix}prefix <neuerPrefix>`

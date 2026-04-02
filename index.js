@@ -82,6 +82,7 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     renderDashboard();
 };
 
+export const sessions = new Map();
 export async function connectBot(sessionName = "main", phoneNumberInput) {
     const sessionPath = `./sessions/${sessionName}`;
 

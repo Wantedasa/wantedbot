@@ -1111,7 +1111,9 @@ if (command === "pn") {
         return reply(sock, msg, "❌ Bitte markiere jemanden oder antworte auf eine Nachricht!");
     }
 
-    const text = args.join(" ");
+
+    let text = args.join(" ");
+    text = text.replace(/@\d+/g, "").trim();
     if (!text) {
         return reply(sock, msg, "❌ Bitte gib einen Text an!");
     }

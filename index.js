@@ -82,7 +82,7 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     renderDashboard();
 };
 
-const sessions = new Map();
+export const sessions = new Map();
 
 async function connectBot(sessionName = "main") {
 

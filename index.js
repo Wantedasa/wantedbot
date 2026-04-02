@@ -84,13 +84,10 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
 
 export const sessions = new Map();
 
-export async function connectBot(sessionName = "main") {
-
+export async function connectBot(sessionName = "main", phoneNumber) {
     const sessionPath = `./sessions/${sessionName}`;
 
-    if (!fs.existsSync("./sessions")) {
-        fs.mkdirSync("./sessions");
-    }
+    if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
@@ -100,27 +97,18 @@ export async function connectBot(sessionName = "main") {
         logger: pino({ level: "silent" })
     });
 
-
     sessions.set(sessionName, sock);
-    
-    if (!sock.authState.creds.registered) {
-        let phoneNumber = await question(
-            gradient("#ff0000", "#C00000")(`📲 Nummer für (${sessionName}): `)
-        );
 
-        phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
+    let pairingCode = null;
 
-        let code = await sock.requestPairingCode(phoneNumber, "AAAAAAAA");
-        code = code?.match(/.{1,4}/g)?.join("-") || code;
+    if (!sock.authState.creds.registered && phoneNumber) {
+        const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
+        let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
+        pairingCode = code?.match(/.{1,4}/g)?.join("-") || code;
 
-        console.log(
-            gradient("#ff0000", "#C00000")(`🔑 Pairing Code (${sessionName}): ` + code)
-        );
+        console.log(gradient("#ff0000", "#C00000")(`🔑 Pairing Code (${sessionName}): ${pairingCode}`));
     }
 
-    // ========================= //
-    // EVENTS
-    // ========================= //
     sock.ev.on("connection.update", (update) => {
         const { connection } = update;
 
@@ -140,7 +128,10 @@ export async function connectBot(sessionName = "main") {
 
     sock.ev.on("creds.update", saveCreds);
 
+    return pairingCode;
+}
 
+    
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== "notify") return;

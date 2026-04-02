@@ -871,16 +871,13 @@ if (command === "pin" || command === "unpin") {
 
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
 
-    const admin = await isAdmin(sock, from, sender);
-    const owner = isWantedasa(sender);
-    if (!admin && !owner) return reply(sock, msg, "❌ Nur Admins oder Owner dürfen Nachrichten pinnen/unpinnen!");
+    if (!isAdmin && !isOwner) return reply(sock, msg, "❌ Nur Admins oder Owner dürfen Nachrichten pinnen/unpinnen!");
 
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
     if (!contextInfo?.stanzaId) {
         return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die du pinnen/unpinnen möchtest!");
     }
-
-    try {
+        try {
         if (command === "pin") {
             await sock.groupUpdate(from, { pinned: [contextInfo.stanzaId] });
             await reply(sock, msg, "📌 Nachricht wurde gepinnt!");
@@ -890,7 +887,7 @@ if (command === "pin" || command === "unpin") {
         }
     } catch (err) {
         console.error(err);
-        return reply(sock, msg, "❌ Nachricht konnte nicht gepinnt/ungepinned werden! Eventuell fehlt dem Bot Admin-Recht.");
+        return reply(sock, msg, "❌ Nachricht konnte nicht gepinnt/ungepinned werden!");
     }
 }
 if (command === "add") {

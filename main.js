@@ -591,27 +591,41 @@ if (command === "grouplink" || command === "gc") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     if (!isAdmin(sock, from, sender)) return reply(sock, msg, "❌ Nur Admins können den Gruppenlink abrufen!");
 
+    const sub = args[0]?.toLowerCase();
+
     try {
-        // 🔹 Gruppeninfo holen
         const metadata = await sock.groupMetadata(from);
         const groupName = metadata.subject || "Unbekannte Gruppe";
         const members = metadata.participants.length;
 
-        // 🔹 Invite Code
-        const invite = await sock.groupInviteCode(from);
+        if (sub === "revoke") {
+            const code = await sock.groupRevokeInvite(from);
+            return await reply(sock, msg, `✅ Gruppenlink wurde resetet!\nNeuer Link:\nhttps://chat.whatsapp.com/${code}`);
+        }
 
-        // 🔹 Schickes Design
-        const text = `
-╔═══『 🌐 Gruppenlink 』═══╗
+        // 🔹 Gruppenbild holen (optional)
+        let profilePic;
+        try {
+            profilePic = await sock.profilePictureUrl(from);
+        } catch {
+            profilePic = null;
+        }
+
+        const text = `╔═══『 🌐 Gruppenlink 』═══╗
 ║ 📛 Name: ${groupName}
 ║ 👥 Mitglieder: ${members}
 ╠═════════════════════
 ║ 🔗 Link:
-║ https://chat.whatsapp.com/${invite}
+║ https://chat.whatsapp.com/${await sock.groupInviteCode(from)}
 ╚═════════════════════
 `;
 
-        await reply(sock, msg, text);
+        if (profilePic) {
+            await sock.sendMessage(from, { image: { url: profilePic }, caption: text });
+        } else {
+            await reply(sock, msg, text);
+        }
+
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { exec } from "child_process";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -109,8 +110,10 @@ export async function handleCommands(sock, msg) {
     const sender = msg.key.participant || from;
 
     const text = getText(msg);
-    if (!text.startsWith(".")) return;
-    if (!PUBLIC_MODE && !isOwner(sender)) return;
+    const prefix = botConfig.prefix || ".";
+    if (!text.startsWith(prefix)) return;
+    
+    if (!PUBLIC_MODE && !isOwner(sender, botConfig)) return;
 
     const args = text.slice(1).trim().split(" ");
     const command = args.shift().toLowerCase();
@@ -192,6 +195,46 @@ if (command === "autoread") {
     
     return reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
 }
+    if (command === "prefix") {
+    // nur Owner dürfen ändern
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
+
+    const newPrefix = args[0];
+    if (!newPrefix) {
+        return reply(sock, msg,
+`📌 Aktueller Prefix: ${botConfig.prefix}
+
+Nutzung: 
+${prefix}prefix <neuerPrefix>`
+        );
+    }
+
+    botConfig.prefix = newPrefix;
+    return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
+}
+if (command === "update") {
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Bot updaten!");
+
+    reply(sock, msg, "⏳ Update wird gestartet...");
+
+    // git pull ausführen
+    exec("git pull", (error, stdout, stderr) => {
+        if (error) {
+            return reply(sock, msg, `❌ Fehler beim Update:\n${error.message}`);
+        }
+        if (stderr) {
+            return reply(sock, msg, `⚠️ Git-Fehler:\n${stderr}`);
+        }
+
+        reply(sock, msg, `✅ Update erfolgreich:\n${stdout}\n🔄 Bot wird neu gestartet...`);
+
+        // Bot neu starten
+        exec(" npm start", (err) => {
+            if (err) console.error("Fehler beim Neustart:", err);
+        });
+    });
+}
+
 
 
     //=========================//
@@ -207,17 +250,24 @@ if (command === "autoread") {
     if (!sub) {
         return reply(sock, msg,
 `❌ Nutzung:
-.owner add (auf User antworten)
-.owner del (auf User antworten)
-.owner list`);
+${prefix}owner add @user / (auf User antworten)
+${prefix}owner del @user / (auf User antworten)
+${prefix}owner list`);
     }
+
+    // Target (Mention oder Reply)
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
+    const quoted = msg.message?.extendedTextMessage?.contextInfo?.participant;
+    const target = mentioned?.[0] || quoted;
 
     // ➕ ADD
     if (sub === "add") {
-        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
-
         if (!target) {
-            return reply(sock, msg, "❌ Antworte auf einen User!");
+            return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
+        }
+
+        if (mentioned?.length > 1) {
+            return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
         }
 
         if (botConfig.owners.includes(target)) {
@@ -232,10 +282,12 @@ if (command === "autoread") {
 
     // ❌ DEL
     if (sub === "del") {
-        const target = msg.message?.extendedTextMessage?.contextInfo?.participant;
-
         if (!target) {
-            return reply(sock, msg, "❌ Antworte auf einen User!");
+            return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
+        }
+
+        if (mentioned?.length > 1) {
+            return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
         }
 
         // Haupt-Owner schützen
@@ -269,8 +321,6 @@ if (command === "autoread") {
 
         return reply(sock, msg, text, botConfig.owners);
     }
-
-    // ❓ Unbekannt
     return reply(sock, msg, "❌ Unbekannter Subcommand! Nutze: add, del, list");
 }
    if (command === "bot") {
@@ -283,6 +333,7 @@ if (command === "autoread") {
 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ⚡ Version: ${OWNER_SETTINGS.version}
 🟢 Mode: ${mode}
+📰 Prefix: ${prefix} 
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}`;
 

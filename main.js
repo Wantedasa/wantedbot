@@ -110,10 +110,12 @@ export async function handleCommands(sock, msg) {
     const sender = msg.key.participant || from;
 
     const text = getText(msg);
-    if (!text.startsWith(".")) return;
+    const prefix = botConfig.prefix || ".";
+    if (!text.startsWith(prefix)) return;
+
     if (!PUBLIC_MODE && !isOwner(sender)) return;
 
-    const args = text.slice(1).trim().split(" ");
+    const args = text.slice(prefix.length).trim().split(" ");
     const command = args.shift().toLowerCase();
     const value = args[0]?.toLowerCase();
 
@@ -192,6 +194,23 @@ if (command === "autoread") {
     } 
     
     return reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
+}
+if (command === "prefix") {
+    // nur Owner dürfen ändern
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
+
+    const newPrefix = args[0];
+    if (!newPrefix) {
+        return reply(sock, msg,
+`📌 Aktueller Prefix: ${botConfig.prefix}
+
+Nutzung: 
+.prefix <neuerPrefix>`
+        );
+    }
+
+    botConfig.prefix = newPrefix;
+    return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
 }
 
 
@@ -279,8 +298,6 @@ if (command === "autoread") {
 
         return reply(sock, msg, text, botConfig.owners);
     }
-
-    // ❓ Unbekannt
     return reply(sock, msg, "❌ Unbekannter Subcommand! Nutze: add, del, list");
 }
    if (command === "bot") {
@@ -293,6 +310,7 @@ if (command === "autoread") {
 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ⚡ Version: ${OWNER_SETTINGS.version}
 🟢 Mode: ${mode}
+📰 Prefix: ${botConfig.prefix}
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}`;
 

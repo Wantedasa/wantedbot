@@ -5,7 +5,7 @@ import chalk from "chalk";
 import gradient from "gradient-string";
 
 import * as mainModule from "./main.js";
-const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages } = mainModule;
+const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages, isOwner } = mainModule;
 
 
 let isGroup = (jid) => jid.endsWith("@g.us");
@@ -161,13 +161,25 @@ if (isGroupChat && botConfig.autoReadGroups) {
     }
 }
 
-if (isPrivateChat && botConfig.autoReadPrivate) {
-    try {
-        await sock.readMessages([msg.key]);
-    } catch (err) {
-        console.error("Fehler beim Lesen (Privat):", err);
+    if (isPrivateChat && botConfig.autoReadPrivate) {
+        try {
+            await sock.readMessages([msg.key]);
+        } catch (err) {
+            console.error("Fehler beim Lesen (Privat):", err);
+        }
     }
-}
+
+    if (isPrivate && botConfig.autoBlock) {
+        const senderId = msg.key.remoteJid;
+
+        if (isOwner(senderId)) return;
+        if (msg.key.fromMe) return;
+        try {
+            await sock.updateBlockStatus(senderId, "block");
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
         // Nachrichtentext für Logging
         let text = "";

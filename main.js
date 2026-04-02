@@ -126,7 +126,6 @@ export async function handleCommands(sock, msg) {
     
 
 if (command === "welcome") {
-    // Gruppe initialisieren
     if (!botConfig.groupSettings) botConfig.groupSettings = {};
     if (!botConfig.groupSettings[from]) botConfig.groupSettings[from] = { welcome: true, leave: true, antidelete: false };
 
@@ -197,6 +196,29 @@ if (command === "autoread") {
     
     return reply(sock, msg, "❌ Ungültiger Typ! Nutze groups oder private");
 }
+if (command === "autoblock") {
+
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen das nutzen!");
+    }
+
+    const state = args[0]?.toLowerCase();
+
+    if (state === "an") {
+        botConfig.autoBlock = true;
+    } 
+    else if (state === "aus") {
+        botConfig.autoBlock = false;
+    } 
+    else {
+        return reply(sock, msg, "❌ Nutzung: ${prefix}autoblock an / aus");
+    }
+
+    saveBotConfig();
+
+    reply(sock, msg, `⚙️ AutoBlock ist jetzt ${botConfig.autoBlock ? "aktiviert" : "deaktiviert"}`);
+}
+
     if (command === "prefix") {
     // nur Owner dürfen ändern
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
@@ -330,6 +352,7 @@ ${prefix}owner list`);
 
     const autoReadGroups = botConfig?.autoReadGroups ? "✅ AN" : "❌ AUS";
     const autoReadPrivate = botConfig?.autoReadPrivate ? "✅ AN" : "❌ AUS";
+    const autoBlock = botConfig?.autoBlock ? "✅ AN" : "❌ AUS";
 
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
@@ -337,7 +360,8 @@ ${prefix}owner list`);
 🟢 Mode: ${mode}
 📰 Prefix: ${prefix} 
 📖 Auto-Read Gruppen: ${autoReadGroups}
-📖 Auto-Read Private: ${autoReadPrivate}`;
+📖 Auto-Read Private: ${autoReadPrivate}
+⛔ Auto-Block: ${autoBlock}`;
 
     return await reply(sock, msg, text);
 }
@@ -818,18 +842,14 @@ if (command === "promote" || command === "demote") {
     try {
         // Ziel-User sammeln
         let targets = [];
-
-        // 1️⃣ Kontext: Antwort auf Nachricht
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             targets.push(msg.message.extendedTextMessage.contextInfo.participant);
         }
 
-        // 2️⃣ Markierte User
         if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length > 0) {
             targets.push(...msg.message.extendedTextMessage.contextInfo.mentionedJid);
         }
 
-        // 3️⃣ Nummer als Argument
         if (args[0]) {
             let number = args[0].replace(/[^0-9]/g, "");
             targets.push(number + "@s.whatsapp.net");
@@ -839,7 +859,6 @@ if (command === "promote" || command === "demote") {
             return reply(sock, msg, "❌ Bitte markiere jemanden, antworte auf eine Nachricht oder gib eine Nummer an!");
         }
 
-        // Duplikate entfernen
         targets = [...new Set(targets)];
 
         // Funktion: Infos für einen User abrufen
@@ -1110,8 +1129,6 @@ if (command === "pn") {
     if (!user) {
         return reply(sock, msg, "❌ Bitte markiere jemanden oder antworte auf eine Nachricht!");
     }
-
-
     let text = args.join(" ");
     text = text.replace(/@\d+/g, "").trim();
     if (!text) {

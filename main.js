@@ -825,22 +825,27 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
     }
 
     try {
+    if (contextInfo?.stanzaId) {
         await sock.sendMessage(from, { 
             delete: { 
                 remoteJid: from, 
                 id: contextInfo.stanzaId, 
                 participant: contextInfo.participant || sender 
             }
-            
         });
-
-    } catch (e) {
-        console.error(e);
-        return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
     }
-    await sock.sendMessage(from, {
-            delete: msg.key
-            });
+    setTimeout(async () => {
+        try {
+            await sock.sendMessage(from, { delete: msg.key });
+        } catch (err) {
+            console.error("Fehler beim Löschen der Bot-Nachricht:", err);
+        }
+    }, 1500);
+
+} catch (e) {
+    console.error(e);
+    return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
+}
 }; 
 if (command === "add") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");

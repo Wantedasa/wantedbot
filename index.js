@@ -169,7 +169,7 @@ if (isGroupChat && botConfig.autoReadGroups) {
         }
     }
 
-    if (isPrivate && botConfig.autoBlock) {
+    if (isPrivateChat && botConfig.autoBlock) {
         const senderId = msg.key.remoteJid;
 
         if (isOwner(senderId)) return;

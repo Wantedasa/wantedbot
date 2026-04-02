@@ -48,8 +48,6 @@ export {botConfig};
 const autoIntervals = {};
 const chats = {};
 const autoFailCount = {};
-const werbelistIntervals = {};
-const werbelistFailCount = {};
 
 
 
@@ -410,7 +408,6 @@ if (command === "public") {
 ║ ├ ${prefix}autoread
 ║ ├ ${prefix}grpleave
 ║ ├ ${prefix}device
-║ ├ ${prefix}werbelist
 ║ ├ ${prefix}block/unblock
 ║ ├ ${prefix}antidelete on/off
 ║ ├ ${prefix}automsg set/stop

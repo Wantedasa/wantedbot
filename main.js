@@ -363,33 +363,32 @@ if (command === "public") {
 ║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ║ ⚡ Version: ${OWNER_SETTINGS.version}
 ╠═════════════════════
-║ 📌 .menu
-║ 📌 .bot
-║ 📌 .owner
+║ 📌 ${prefix}menu
+║ 📌 ${prefix}bot
 ║
 ║ 👥 GROUP
-║ ├ .hidetag
-║ ├ .kick
-║ ├ .welcome on/off
-║ ├ .leave on/off
-║ ├ .grpname
-║ ├ .grpdesc
-║ ├ .delete
-║ ├ .promote/demote
-║ ├ .mute/unmute
-║ ├ .grouplink
+║ ├ ${prefix}hidetag
+║ ├ ${prefix}kick
+║ ├ ${prefix}welcome on/off
+║ ├ ${prefix}leave on/off
+║ ├ ${prefix}grpname
+║ ├ ${prefix}grpdesc
+║ ├ ${prefix}delete
+║ ├ ${prefix}promote/demote
+║ ├ ${prefix}mute/unmute
+║ ├ ${prefix}grouplink
 ║
 ║ 🔒 OWNER
-║ ├ .self
-║ ├ .public
-║ ├ .info
-║ ├ .autoread
-║ ├ .grpleave
-║ ├ .device
-║ ├ .werbelist
-║ ├ .block/unblock
-║ ├ .antidelete on/off
-║ ├ .automsg set/stop
+║ ├ ${prefix}self
+║ ├ ${prefix}public
+║ ├ ${prefix}info
+║ ├ ${prefix}autoread
+║ ├ ${prefix}grpleave
+║ ├ ${prefix}device
+║ ├ ${prefix}werbelist
+║ ├ ${prefix}block/unblock
+║ ├ ${prefix}antidelete on/off
+║ ├ ${prefix}automsg set/stop
 ╚═════════════════════`
         );
     }
@@ -448,7 +447,7 @@ if (command === "getpic") {
             target = number + "@s.whatsapp.net";
         } 
         else {
-            return reply(sock, msg, "❌ Nutzung: .getpic <nummer> oder auf Nachricht antworten");
+            return reply(sock, msg, "❌ Nutzung: ${prefix}getpic <nummer> oder auf Nachricht antworten");
         }
 
         let ppUrl;
@@ -667,7 +666,7 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
         const admin = await isAdmin(sock, from, sender);
         if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
         const newText = args.join(" ");
-        if (!newText) return reply(sock, msg, `⚙️ Nutzung: .${command} <neuer Text>`);
+        if (!newText) return reply(sock, msg, `⚙️ Nutzung: ${prefix}${command} <neuer Text>`);
 
         try {
             if (command === "grpname") await sock.groupUpdateSubject(from, newText);
@@ -709,7 +708,7 @@ if (command === "add") {
     const admin = await isAdmin(sock, from, sender);
     if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner!");
 
-    if (!args[0]) return reply(sock, msg, "❌ Nutzung: .add 49123,49222");
+    if (!args[0]) return reply(sock, msg, "❌ Nutzung: ${prefix}add 49123,49222");
 
     let numbers = args[0]
         .split(/[, ]+/)
@@ -782,7 +781,7 @@ if (command === "promote" || command === "demote") {
         if (repliedUser) targets.push(repliedUser);
     }
 
-    if (!targets || targets.length === 0) return reply(sock, msg, `❌ Nutzung: .${command} @user oder auf Nachricht antworten`);
+    if (!targets || targets.length === 0) return reply(sock, msg, `❌ Nutzung: ${prefix}${command} @user oder auf Nachricht antworten`);
 
     try {
         await sock.groupParticipantsUpdate(from, targets, command === "promote" ? "promote" : "demote");
@@ -994,9 +993,9 @@ if (command === "automsg") {
         return reply(sock, msg,
 `📌 AutoMsg Befehle:
 
-.automsg set <Minuten> <Text>
-.automsg stop
-.automsg list`);
+${prefix}automsg set <Minuten> <Text>
+${prefix}automsg stop
+${prefix}automsg list`);
     }
 
     // =========================

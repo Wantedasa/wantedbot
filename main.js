@@ -365,6 +365,7 @@ if (command === "public") {
 ╠═════════════════════
 ║ 📌 ${prefix}menu
 ║ 📌 ${prefix}bot
+║ 📌 ${prefix}about
 ║
 ║ 👥 GROUP
 ║ ├ ${prefix}hidetag
@@ -392,6 +393,22 @@ if (command === "public") {
 ╚═════════════════════`
         );
     }
+    if (command === "about") {
+    // 1️⃣ WhatsApp-Link separat, damit Vorschau generiert wird
+    const waLink = "https://whatsapp.com/channel/0029VbCPWBN3wtbEcT5LBp04";
+    sock.sendMessage(from, { text: waLink }); // WhatsApp zeigt automatisch Vorschau
+
+    // 2️⃣ Restliche Bot-Infos im Menü-Look
+    const aboutInfo = `
+╔═══『 🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot 』═══╗
+║ 👑 Owner: ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
+║ ⚡ Version: 1.0.0
+║
+║ 📱 Telegram: https://t.me/devwantedasa
+╚═════════════════════╝
+    `;
+    reply(sock, msg, aboutInfo);
+}
 
     //=========================//
     // PING

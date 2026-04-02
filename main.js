@@ -893,6 +893,27 @@ if (command === 'poll') {
         }
     });
 }
+if (command === 'msgautodelete') {
+    const arg = args[0]?.toLowerCase();
+
+    if (!arg) {
+        return await sock.sendMessage(from, { text: `❌ Bitte gib eine Zeit in Stunden an oder 'off' zum Deaktivieren.\nBeispiel:\n${prefix}ephemeral 24\n${prefix}ephemeral off` });
+    }
+
+    if (arg === 'off') {
+        await sock.chatModify({ ephemeral: 0 }, from); // Ephemeral deaktivieren
+        return await sock.sendMessage(from, { text: `✅ Selbstlöschende Nachrichten wurden deaktiviert.` });
+    }
+
+    const hours = parseFloat(arg);
+    if (isNaN(hours) || hours <= 0) {
+        return await sock.sendMessage(from, { text: `❌ Ungültige Zeitangabe. Bitte eine positive Zahl in Stunden eingeben.` });
+    }
+
+    const seconds = hours * 3600; // Stunden in Sekunden umrechnen
+    await sock.chatModify({ ephemeral: seconds }, from);
+    await sock.sendMessage(from, { text: `✅ Selbstlöschende Nachrichten wurden auf ${hours} Stunden gesetzt.` });
+}
 if (command === "add") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
 

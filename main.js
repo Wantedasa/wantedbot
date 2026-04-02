@@ -431,7 +431,7 @@ if (command === "public") {
 ${list.map(s => "• " + s).join("\n")}`
         );
     }
-if (sub === "connect") {
+        if (sub === "connect") {
     const name = args[1];
     const phoneNumber = args[2];
 
@@ -443,11 +443,9 @@ if (sub === "connect") {
         return reply(sock, msg, "❌ Session existiert bereits!");
     }
 
-    const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
-    connectBot(name, "+" + cleanNumber);
+    connectBot(name, phoneNumber);
 
-    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}
-🔑 Pairing-Code: AAAA-AAAA`);
+    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${phoneNumber}\n🔑 Pairing-Code: AAAA-AAAA`);
 }
     if (sub === "disconnect") {
         const name = args[1];

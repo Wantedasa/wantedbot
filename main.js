@@ -821,6 +821,7 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
         return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die gelöscht werden soll!");
     }
 
+    const quoted = msg.message.extendedTextMessage?.contextInfo;
     const quotedSender = quoted?.participant || m.sender;
 
     const quotedMsgKey = {

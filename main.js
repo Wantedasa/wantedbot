@@ -651,9 +651,7 @@ if (command === "calc") {
 
         const result = eval(expr);
 
-        await reply(sock, msg, `
-🧮 Ausdruck: ${input}
-✅ Ergebnis: ${result}
+        await reply(sock, msg, `🧮 Ausdruck: ${input}\n✅ Ergebnis: ${result}
         `);
 
     } catch (err) {

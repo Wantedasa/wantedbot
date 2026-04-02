@@ -84,7 +84,7 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
 
 export const sessions = new Map();
 
-async function connectBot(sessionName = "main") {
+export async function connectBot(sessionName = "main") {
 
     const sessionPath = `./sessions/${sessionName}`;
 

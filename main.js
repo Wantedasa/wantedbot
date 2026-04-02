@@ -871,24 +871,52 @@ if (command === "pin" || command === "unpin") {
 
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
 
-    if (!isAdmin && !isOwner) return reply(sock, msg, "❌ Nur Admins oder Owner dürfen Nachrichten pinnen/unpinnen!");
+    const admin = await isAdmin(sock, from, sender);
+    const owner = await isOwner(sender);
+    if (!admin && !owner) return reply(sock, msg, "❌ Nur Admins oder Owner dürfen Nachrichten pinnen/unpinnen!");
 
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
     if (!contextInfo?.stanzaId) {
         return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die du pinnen/unpinnen möchtest!");
     }
-        try {
+
+    try {
         if (command === "pin") {
-            // 🔹 Pin über groupTogglePin
-            await sock.groupTogglePin(from, contextInfo.stanzaId, true); // true = pin
-            await reply(sock, msg, "📌 Nachricht wurde gepinnt!");
-        } else {
-            await sock.groupTogglePin(from, contextInfo.stanzaId, false); // false = unpin
-            await reply(sock, msg, "📌 Nachricht wurde entpinnt!");
+            // Dauer aus args in Stunden oder default 24h
+            let hours = 24; // 24 Stunden Standard
+            if (args[0] && !isNaN(args[0])) hours = parseInt(args[0]);
+            const duration = hours * 3600; // Umrechnung in Sekunden
+
+            await sock.chatModify({
+                pin: {
+                    messages: [{
+                        id: contextInfo.stanzaId,
+                        fromMe: contextInfo.participant === sock.user.id
+                    }],
+                    pin: true,
+                    duration: duration
+                }
+            }, from);
+
+            return reply(sock, msg, `📌 Nachricht wurde für ${hours} Stunden gepinnt!`);
+
+        } else if (command === "unpin") {
+            await sock.chatModify({
+                pin: {
+                    messages: [{
+                        id: contextInfo.stanzaId,
+                        fromMe: contextInfo.participant === sock.user.id
+                    }],
+                    pin: false
+                }
+            }, from);
+
+            return reply(sock, msg, "📌 Nachricht wurde entpinnt!");
         }
+
     } catch (err) {
-        console.error(err);
-        return reply(sock, msg, "❌ Nachricht konnte nicht gepinnt/ungepinned werden!");
+        console.error("Fehler beim Pin/Unpin:", err);
+        return reply(sock, msg, "❌ Nachricht konnte nicht gepinnt/entpinned werden! Stelle sicher, dass ich Admin bin.");
     }
 }
 if (command === "add") {

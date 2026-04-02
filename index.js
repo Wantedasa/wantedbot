@@ -87,9 +87,7 @@ export const sessions = new Map();
 export async function connectBot(sessionName = "main", phoneNumberInput) {
     const sessionPath = `./sessions/${sessionName}`;
 
-    if (!fs.existsSync("./sessions")) {
-        fs.mkdirSync("./sessions");
-    }
+    if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
@@ -101,34 +99,36 @@ export async function connectBot(sessionName = "main", phoneNumberInput) {
 
     sessions.set(sessionName, sock);
 
-    if (!sock.authState.creds.registered) {
+    if (!sock.authState.creds?.registered) {
         if (!phoneNumberInput) {
             throw new Error(`Keine Nummer angegeben für Session "${sessionName}"`);
         }
 
         const cleanNumber = phoneNumberInput.replace(/[^0-9]/g, "");
-        // Request Pairing Code direkt
-        let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
-        code = code?.match(/.{1,4}/g)?.join("-") || code;
+        try {
+            let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
+            code = code?.match(/.{1,4}/g)?.join("-") || code;
 
-        console.log(
-            gradient("#ff0000", "#C00000")(`🔑 Pairing Code (${sessionName}): ` + code)
-        );
+            console.log(
+                gradient("#ff0000", "#C00000")(
+                    `🔑 Pairing Code für Session "${sessionName}": ${code}`
+                )
+            );
+        } catch (err) {
+            console.error(chalk.red(`❌ Fehler beim Anfordern des Pairing-Codes: ${err}`));
+        }
     }
 
-    // ========================= //
-    // EVENTS
-    // ========================= //
     sock.ev.on("connection.update", (update) => {
-        const { connection } = update;
+        const { connection, lastDisconnect } = update;
 
         if (connection === "close") {
             console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect...`));
             sessions.delete(sessionName);
-            setTimeout(() => connectBot(sessionName, phoneNumberInput), 5000);
+            setTimeout(() => connectBot(sessionName, phoneNumberInput).catch(console.error), 5000);
         } else if (connection === "open") {
             console.log(chalk.green(`✅ ${sessionName} verbunden!`));
-            loadAutoMessages(sock);
+            if (typeof loadAutoMessages === "function") loadAutoMessages(sock);
         }
     });
 

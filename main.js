@@ -617,6 +617,47 @@ if (command === "grouplink" || command === "gc") {
         return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");
     }
 }
+if (command === "grppic") {
+    if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
+    if (!isAdmin(sock, from, sender)) return reply(sock, msg, "❌ Nur Admins können das Gruppenbild ändern!");
+
+    const sub = args[0]?.toLowerCase();
+
+    if (sub === "set") {
+        // 🔹 Check ob auf ein Bild geantwortet wurde
+        const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+        const imageMessage = quoted?.imageMessage;
+
+        if (!imageMessage && !msg.message?.imageMessage) {
+            return reply(sock, msg, "❌ Bitte sende ein Bild oder antworte auf ein Bild, um es als Gruppenbild zu setzen!");
+        }
+
+        try {
+            const buffer = imageMessage
+                ? await sock.downloadMediaMessage({ message: imageMessage })
+                : await sock.downloadMediaMessage(msg);
+
+            await sock.updateProfilePicture(from, buffer);
+
+            return reply(sock, msg, "✅ Gruppenbild erfolgreich aktualisiert!");
+        } catch (err) {
+            console.error(err);
+            return reply(sock, msg, "❌ Fehler beim Setzen des Gruppenbilds!");
+        }
+    }
+
+    // 🔹 Default: Gruppenbild anzeigen
+    try {
+        const profilePic = await sock.profilePictureUrl(from);
+        const metadata = await sock.groupMetadata(from);
+        const text = `🌐 Gruppenbild von *${metadata.subject}*\n👥 Mitglieder: ${metadata.participants.length}`;
+
+        await sock.sendMessage(from, { image: { url: profilePic }, caption: text });
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Kein Gruppenbild gefunden!");
+    }
+}
 if (command === "grpleave" || command === "leavegrp") {
     if (!isGroup(from)) {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");

@@ -985,7 +985,7 @@ saveBotConfig();
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
 }
 
-
+}
 
 export const loadAutoMessages = async (sock) => {
     if (!botConfig.autoMessages) return;

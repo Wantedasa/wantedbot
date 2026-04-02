@@ -444,9 +444,17 @@ if (sub === "connect") {
     }
 
     const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
-    connectBot(name, "+" + cleanNumber);
 
-    return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}`);
+    // Session starten und Pairing-Code zurückbekommen
+    const pairingCode = await connectBot(name, "+" + cleanNumber);
+
+    if (pairingCode) {
+        return reply(sock, msg,
+`✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}
+🔑 Pairing-Code: ${pairingCode}`);
+    } else {
+        return reply(sock, msg, `✅ Session "${name}" wird gestartet mit Nummer: +${cleanNumber}`);
+    }
 }
 
     if (sub === "disconnect") {

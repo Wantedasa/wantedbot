@@ -5,7 +5,7 @@ import chalk from "chalk";
 import gradient from "gradient-string";
 
 import * as mainModule from "./main.js";
-const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages, loadWerbelistIntervals } = mainModule;
+const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages } = mainModule;
 
 
 let isGroup = (jid) => jid.endsWith("@g.us");
@@ -116,8 +116,6 @@ async function connectBot() {
             console.log(chalk.green("✅ Verbunden mit WhatsApp!"));
 
             loadAutoMessages(sock);
-      loadWerbelistIntervals(sock);
-
         }
     });
 

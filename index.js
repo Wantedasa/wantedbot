@@ -82,49 +82,10 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     renderDashboard();
 };
 
-import readline from "readline";
-import { connectBot } from "./bot.js"; // dein connectBot Modul
-
-// Funktion, um eine Nummer vom Nutzer abzufragen
-function askNumber() {
-  return new Promise((resolve) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    rl.question("Bitte gib deine Nummer ein (z.B. +4915732218608): ", (number) => {
-      rl.close();
-      resolve(number.trim());
-    });
-  });
-}
-
-async function startBot() {
-  console.log("Willkommen beim WantedBot!");
-  const number = await askNumber();
-
-  if (!number) {
-    console.error("❌ Keine Nummer eingegeben. Beende den Bot.");
-    process.exit(1);
-  }
-
-  try {
-    const sock = await connectBot("main", number);
-    console.log(`✅ Bot verbunden mit Nummer ${number}`);
-  } catch (e) {
-    console.error("Fehler beim Verbinden des Bots:", e);
-  }
-}
-
-startBot();
-
-export const sessions = new Map();
-
 export async function connectBot(sessionName = "main", phoneNumberInput) {
     const sessionPath = `./sessions/${sessionName}`;
 
-    if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions");
+    if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions", { recursive: true });
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
 
@@ -136,6 +97,7 @@ export async function connectBot(sessionName = "main", phoneNumberInput) {
 
     sessions.set(sessionName, sock);
 
+    // Nur bei erstmaliger Registrierung
     if (!sock.authState.creds?.registered) {
         if (!phoneNumberInput) {
             throw new Error(`Keine Nummer angegeben für Session "${sessionName}"`);
@@ -160,7 +122,8 @@ export async function connectBot(sessionName = "main", phoneNumberInput) {
         const { connection, lastDisconnect } = update;
 
         if (connection === "close") {
-            console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect...`));
+            const reason = lastDisconnect?.error?.output?.statusCode;
+            console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect in 5s... (Reason: ${reason})`));
             sessions.delete(sessionName);
             setTimeout(() => connectBot(sessionName, phoneNumberInput).catch(console.error), 5000);
         } else if (connection === "open") {

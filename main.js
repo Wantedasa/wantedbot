@@ -445,8 +445,7 @@ if (sub === "connect") {
 
     const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
 
-    // Session starten und Pairing-Code zurückbekommen
-    const pairingCode = await connectBot(name, "+" + cleanNumber);
+    const { sock: newSock, pairingCode } = await connectBot(name, "+" + cleanNumber);
 
     if (pairingCode) {
         return reply(sock, msg,

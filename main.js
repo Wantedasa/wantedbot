@@ -404,6 +404,7 @@ if (command === "public") {
 ║
 ║ 📂 TOOLS
 ║ ├ ${prefix}calc <Ausdruck>
+║ ├ ${prefix}poll <Frage> / <Option1> / <Option2>
 ║
 ║ 🔒 OWNER
 ║ ├ ${prefix}self
@@ -557,7 +558,6 @@ if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
         const quotedMsg = ctx.quotedMessage;
         const msgType = Object.keys(quotedMsg)[0];
 
-        // einfache Heuristik (stabiler als presence)
         if (msgType === "conversation" || msgType === "extendedTextMessage") {
             device = "Android";
         } else if (msgType === "imageMessage" || msgType === "videoMessage") {

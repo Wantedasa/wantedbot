@@ -136,7 +136,7 @@ if (command === "welcome") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: .welcome on/off");
+        return reply(sock, msg, "⚙️ Nutzung: ${prefix}welcome on/off");
     }
 
     botConfig.groupSettings[from].welcome = value === "on";
@@ -150,7 +150,7 @@ if (command === "leave") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: .leave on/off");
+        return reply(sock, msg, "⚙️ Nutzung: ${prefix}leave on/off");
     }
 
     botConfig.groupSettings[from].leave = value === "on";
@@ -168,7 +168,7 @@ if (command === "antidelete") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: .antidelete on/off");
+        return reply(sock, msg, "⚙️ Nutzung: ${prefix}antidelete on/off");
     }
 
     botConfig.groupSettings[from].antidelete = value === "on";
@@ -176,7 +176,7 @@ if (command === "antidelete") {
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 if (command === "autoread") {
-    if (!args[0]) return reply(sock, msg, "❌ Nutzung: .autoread <on|off> [groups|private]");
+    if (!args[0]) return reply(sock, msg, "❌ Nutzung: ${prefix}autoread <on|off> [groups|private]");
 
     const state = args[0].toLowerCase() === "on";
     const type = args[1]?.toLowerCase();
@@ -211,7 +211,7 @@ if (command === "prefix") {
 `📌 Aktueller Prefix: ${botConfig.prefix}
 
 Nutzung: 
-.prefix <neuerPrefix>`
+${prefix}prefix <neuerPrefix>`
         );
     }
 
@@ -233,9 +233,9 @@ Nutzung:
     if (!sub) {
         return reply(sock, msg,
 `❌ Nutzung:
-.owner add @user / (auf User antworten)
-.owner del @user / (auf User antworten)
-.owner list`);
+${prefix}owner add @user / (auf User antworten)
+${prefix}owner del @user / (auf User antworten)
+${prefix}owner list`);
     }
 
     // Target (Mention oder Reply)
@@ -344,33 +344,31 @@ if (command === "public") {
 ║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ║ ⚡ Version: ${OWNER_SETTINGS.version}
 ╠═════════════════════
-║ 📌 .menu
-║ 📌 .bot
-║ 📌 .owner
+║ 📌 ${prefix}menu
+║ 📌 ${prefix}bot
 ║
 ║ 👥 GROUP
-║ ├ .hidetag
-║ ├ .kick
-║ ├ .welcome on/off
-║ ├ .leave on/off
-║ ├ .grpname
-║ ├ .grpdesc
-║ ├ .delete
-║ ├ .promote/demote
-║ ├ .mute/unmute
-║ ├ .grouplink
+║ ├ ${prefix}hidetag
+║ ├ ${prefix}kick
+║ ├ ${prefix}welcome on/off
+║ ├ ${prefix}leave on/off
+║ ├ ${prefix}grpname
+║ ├ ${prefix}grpdesc
+║ ├ ${prefix}delete
+║ ├ ${prefix}promote/demote
+║ ├ ${prefix}mute/unmute
+║ ├ ${prefix}grouplink
 ║
 ║ 🔒 OWNER
-║ ├ .self
-║ ├ .public
-║ ├ .info
-║ ├ .autoread
-║ ├ .grpleave
-║ ├ .device
-║ ├ .werbelist
-║ ├ .block/unblock
-║ ├ .antidelete on/off
-║ ├ .automsg set/stop
+║ ├ ${prefix}self
+║ ├ ${prefix}public
+║ ├ ${prefix}info
+║ ├ ${prefix}autoread
+║ ├ ${prefix}grpleave
+║ ├ ${prefix}device
+║ ├ ${prefix}block/unblock
+║ ├ ${prefix}antidelete on/off
+║ ├ ${prefix}automsg set/stop
 ╚═════════════════════`
         );
     }

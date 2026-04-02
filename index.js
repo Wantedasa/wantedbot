@@ -82,56 +82,44 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     renderDashboard();
 };
 
-export const sessions = new Map();
-export async function connectBot(sessionName = "main", phoneNumberInput) {
-    const sessionPath = `./sessions/${sessionName}`;
 
-    if (!fs.existsSync("./sessions")) fs.mkdirSync("./sessions", { recursive: true });
 
-    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+export async function connectBot() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
-    const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: false,
-        logger: pino({ level: "silent" })
+  const number = await new Promise(resolve => {
+    rl.question("📱 Bitte gib deine Nummer ein (z.B. +4915129559931): ", answer => {
+      rl.close();
+      resolve(answer.trim());
     });
+  });
 
-    sessions.set(sessionName, sock);
+  if (!number) throw new Error("❌ Keine Nummer angegeben!");
 
-    // Nur bei erstmaliger Registrierung
-    if (!sock.authState.creds?.registered) {
-        if (!phoneNumberInput) {
-            throw new Error(`Keine Nummer angegeben für Session "${sessionName}"`);
-        }
+  console.log(`✅ Nummer: ${number} erhalten, starte Bot...`);
 
-        const cleanNumber = phoneNumberInput.replace(/[^0-9]/g, "");
-        try {
-            let code = await sock.requestPairingCode("+" + cleanNumber, "AAAAAAAA");
-            code = code?.match(/.{1,4}/g)?.join("-") || code;
+  const { state, saveState } = useSingleFileAuthState(`./auth_info_${number}.json`);
 
-            console.log(
-                gradient("#ff0000", "#C00000")(
-                    `🔑 Pairing Code für Session "${sessionName}": ${code}`
-                )
-            );
-        } catch (err) {
-            console.error(chalk.red(`❌ Fehler beim Anfordern des Pairing-Codes: ${err}`));
-        }
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: true
+  });
+
+  sock.ev.on("creds.update", saveState);
+
+  sock.ev.on("connection.update", (update) => {
+    if (update.connection === "open") {
+      console.log("🎉 Bot verbunden! Willkommen bei WantedBot!");
+    } else if (update.connection === "close") {
+      const reason = update.lastDisconnect?.error?.output?.statusCode;
+      console.log("❌ Verbindung getrennt:", reason);
     }
-
-    sock.ev.on("connection.update", (update) => {
-        const { connection, lastDisconnect } = update;
-
-        if (connection === "close") {
-            const reason = lastDisconnect?.error?.output?.statusCode;
-            console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect in 5s... (Reason: ${reason})`));
-            sessions.delete(sessionName);
-            setTimeout(() => connectBot(sessionName, phoneNumberInput).catch(console.error), 5000);
-        } else if (connection === "open") {
-            console.log(chalk.green(`✅ ${sessionName} verbunden!`));
-            if (typeof loadAutoMessages === "function") loadAutoMessages(sock);
-        }
-    });
+  });
+}
+connectBot().catch(err => console.error(err));
 
     sock.ev.on("creds.update", saveCreds);
 

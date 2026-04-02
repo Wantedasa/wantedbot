@@ -3,10 +3,9 @@ import pino from "pino";
 import readline from "readline";
 import chalk from "chalk";
 import gradient from "gradient-string";
-import fs from "fs";
 
 import * as mainModule from "./main.js";
-const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages } = mainModule;
+const { handleCommands, handleGroupParticipants, botConfig, loadAutoMessages, loadWerbelistIntervals } = mainModule;
 
 
 let isGroup = (jid) => jid.endsWith("@g.us");
@@ -82,17 +81,11 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     renderDashboard();
 };
 
-const sessions = new Map();
-
-async function connectBot(sessionName = "main") {
-
-    const sessionPath = `./sessions/${sessionName}`;
-
-    if (!fs.existsSync("./sessions")) {
-        fs.mkdirSync("./sessions");
-    }
-
-    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+//=========================//
+// Connect Bot + Pairing-Code
+//=========================//
+async function connectBot() {
+    const { state, saveCreds } = await useMultiFileAuthState("./auth");
 
     const sock = makeWASocket({
         auth: state,
@@ -100,46 +93,35 @@ async function connectBot(sessionName = "main") {
         logger: pino({ level: "silent" })
     });
 
-
-    sessions.set(sessionName, sock);
-    
+    // Wenn Bot noch nicht registriert, Pairing-Code
     if (!sock.authState.creds.registered) {
-        let phoneNumber = await question(
-            gradient("#ff0000", "#C00000")(`📲 Nummer für (${sessionName}): `)
-        );
-
+        let phoneNumber = await question(gradient("#ff0000", "#C00000")("📲 Deine Nummer (inkl. Ländervorwahl, z.B. +49123456789): "));
         phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
 
+        // Device-ID beliebig
         let code = await sock.requestPairingCode(phoneNumber, "AAAAAAAA");
         code = code?.match(/.{1,4}/g)?.join("-") || code;
-
-        console.log(
-            gradient("#ff0000", "#C00000")(`🔑 Pairing Code (${sessionName}): ` + code)
-        );
+        console.log(gradient("#ff0000", "#C00000")("🔑 Pairing Code: " + code));
     }
 
-    // ========================= //
+    //=========================//
     // EVENTS
-    // ========================= //
+    //=========================//
     sock.ev.on("connection.update", (update) => {
         const { connection } = update;
-
         if (connection === "close") {
-            console.log(chalk.red(`❌ ${sessionName} disconnected → reconnect...`));
-
-            sessions.delete(sessionName);
-
-            setTimeout(() => connectBot(sessionName), 5000);
-
+            console.log(chalk.red("❌ Verbindung geschlossen, reconnect..."));
+            setTimeout(connectBot, 5000);
         } else if (connection === "open") {
-            console.log(chalk.green(`✅ ${sessionName} verbunden!`));
+            console.log(chalk.green("✅ Verbunden mit WhatsApp!"));
 
             loadAutoMessages(sock);
+      loadWerbelistIntervals(sock);
+
         }
     });
 
     sock.ev.on("creds.update", saveCreds);
-
 
 
 sock.ev.on('messages.upsert', async ({ messages, type }) => {

@@ -111,7 +111,7 @@ export async function handleCommands(sock, msg) {
 
     const text = getText(msg);
 
-  const prefix = botConfig.prefix && botConfig.prefix.length > 0 ? botConfig.prefix : ".";
+    const prefix = botConfig.prefix && botConfig.prefix.length > 0 ? botConfig.prefix : ".";
 
     if (!text.startsWith(prefix)) return;
     

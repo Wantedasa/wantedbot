@@ -126,8 +126,7 @@ export async function handleCommands(sock, msg, botConfig) {
     const value = args[0]?.toLowerCase();
 
     const gSettings = ensureGroupSettings(from);
-}
-    
+
 
 if (command === "welcome") {
     // Gruppe initialisieren

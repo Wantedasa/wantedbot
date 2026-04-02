@@ -885,14 +885,21 @@ if (command === 'poll') {
             text: `❌ Falsche Eingabe!\nDu musst eine Frage und mindestens zwei Antworten angeben.\nBeispiel:\n${prefix}poll Kommst du zum Sommerfest? / Ja ✅ / Vielleicht ❓ / Nein ❌`
         });
     }
+    const uniqueOptions = new Set(options.map(o => o.toLowerCase()));
+    if (uniqueOptions.size !== options.length) {
+        return await sock.sendMessage(from, { 
+            text: `❌ Ungültige Umfrage!\nAlle Antwortmöglichkeiten müssen unterschiedlich sein.`
+        });
+    }
     await sock.sendMessage(from, {
         poll: {
             name: `📊 ${question}`,
             values: options,
             selectableCount: 1
         }
-        
     });
+
+    // Ursprüngliche Nachricht löschen
     await sock.sendMessage(from, { delete: msg.key });
 }
 if (command === "add") {

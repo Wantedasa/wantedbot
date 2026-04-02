@@ -710,12 +710,17 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
                 remoteJid: from, 
                 id: contextInfo.stanzaId, 
                 participant: contextInfo.participant || sender 
-            } 
+            }
+            
         });
+
     } catch (e) {
         console.error(e);
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");
     }
+    await sock.sendMessage(from, {
+            delete: msg.key
+            });
 }; 
 if (command === "add") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Nur in Gruppen!");
@@ -1087,6 +1092,42 @@ saveBotConfig();
     }
 
     return reply(sock, msg, "❌ Unbekannter Subcommand!");
+}
+if (command === "pn") {
+
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");
+    }
+
+    let user;
+
+    if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
+        user = msg.message.extendedTextMessage.contextInfo.participant;
+    }
+
+    else if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length) {
+        user = msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
+    }
+
+    if (!user) {
+        return reply(sock, msg, "❌ Bitte markiere jemanden oder antworte auf eine Nachricht!");
+    }
+
+    const text = args.join(" ");
+    if (!text) {
+        return reply(sock, msg, "❌ Bitte gib einen Text an!");
+    }
+
+    try {
+        await sock.sendMessage(user, { 
+            text: `${text}` 
+        });
+
+        reply(sock, msg, "✅ PN wurde erfolgreich gesendet!");
+    } catch (e) {
+        console.error(e);
+        reply(sock, msg, "❌ Fehler beim Senden der PN!");
+    }
 }
 
 }

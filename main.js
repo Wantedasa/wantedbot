@@ -393,21 +393,20 @@ if (command === "public") {
 ╚═════════════════════`
         );
     }
-    if (command === "about") {
-    // 1️⃣ WhatsApp-Link separat, damit Vorschau generiert wird
-    const waLink = "https://whatsapp.com/channel/0029VbCPWBN3wtbEcT5LBp04";
-    sock.sendMessage(from, { text: waLink }); // WhatsApp zeigt automatisch Vorschau
+if (command === "about") {
+    const channelId = "120363424225344842@newsletter"; // dein Kanal
 
-    // 2️⃣ Restliche Bot-Infos im Menü-Look
-    const aboutInfo = `
-╔═══『 🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot 』═══╗
-║ 👑 Owner: ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
-║ ⚡ Version: 1.0.0
-║
-║ 📱 Telegram: https://t.me/devwantedasa
-╚═════════════════════╝
-    `;
-    reply(sock, msg, aboutInfo);
+    // 1️⃣ Nachricht aus dem Kanal weiterleiten
+    sock.sendMessage(from, { 
+        forward: { 
+            key: { remoteJid: channelId, fromMe: false }, 
+            message: { conversation: "Folge dem Kanal ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ auf WhatsApp" } 
+        } 
+    });
+
+    // 2️⃣ Telegram-Link sauber darunter
+    const tgLink = "https://t.me/devwantedasa";
+    reply(sock, msg, `📱 Telegram Kanal:\n${tgLink}`);
 }
 
     //=========================//

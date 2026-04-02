@@ -879,10 +879,11 @@ if (command === "pin" || command === "unpin") {
     }
         try {
         if (command === "pin") {
-            await sock.groupUpdate(from, { pinned: [contextInfo.stanzaId] });
+            // 🔹 Pin über groupTogglePin
+            await sock.groupTogglePin(from, contextInfo.stanzaId, true); // true = pin
             await reply(sock, msg, "📌 Nachricht wurde gepinnt!");
         } else {
-            await sock.groupUpdate(from, { unpin: [contextInfo.stanzaId] });
+            await sock.groupTogglePin(from, contextInfo.stanzaId, false); // false = unpin
             await reply(sock, msg, "📌 Nachricht wurde entpinnt!");
         }
     } catch (err) {

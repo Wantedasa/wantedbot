@@ -394,21 +394,23 @@ if (command === "public") {
         );
     }
 if (command === "about") {
-    const channelId = "120363424225344842@newsletter"; // Kanal-ID
-    const messageId = "101"; // ID der Nachricht im Kanal
+    const combinedMessage = `
+╔════════════════════════╗
+║ 🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot
+║ 👑 Owner: ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
+║ ⚡ Version: 1.0.0
+╠════════════════════════╣
+║ 🌐 WhatsApp Kanal
+║ https://whatsapp.com/channel/0029VbCPWBN3wtbEcT5LBp04
+╠════════════════════════╣
+║ 📱 Telegram Kanal
+║ https://t.me/devwantedasa
+╚════════════════════════╝
+    `;
 
-    // 1️⃣ Nachricht aus dem Kanal abrufen
-    const messages = await sock.loadMessages(channelId, 50); // Hol die letzten 50 Nachrichten
-    const channelMessage = messages.messages.find(m => m.key.id === messageId);
-
-    if (!channelMessage) return reply(sock, msg, "❌ Nachricht im Kanal nicht gefunden!");
-
-    // 2️⃣ Nachricht weiterleiten
-    await sock.sendMessage(from, {
-        forward: channelMessage.key
-    });
+    // Nachricht senden – WhatsApp erzeugt automatisch Vorschau für den Kanal-Link
+    await sock.sendMessage(from, { text: combinedMessage });
 }
-
     //=========================//
     // PING
     //=========================//

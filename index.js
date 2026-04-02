@@ -248,6 +248,6 @@ const deletedId = deletedMsg.key.id;
     }
 });
 
-return { sock, paringCode };
+return { sock, pairingCode };
 }
 connectBot();

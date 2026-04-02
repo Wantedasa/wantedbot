@@ -814,33 +814,26 @@ by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ
   if (command === "del" || command === "delete") {
 
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
-
-    const admin = await isAdmin(sock, from, sender);
-    if (!admin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin oder Owner darf Nachrichten löschen!");
+    if (!isAdmin && !isOwner(sender)) return reply(sock, msg, "❌ Nur Admin darf Nachrichten löschen!");
 
     const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
     if (!contextInfo?.stanzaId) {
         return reply(sock, msg, "❌ Bitte antworte auf die Nachricht, die gelöscht werden soll!");
     }
 
-    try {
-        await sock.sendMessage(from, { 
-            delete: { 
-                remoteJid: from, 
-                id: contextInfo.stanzaId, 
-                participant: contextInfo.participant || sender 
-            }
-        });
-        if (msg.key && msg.key.id) {
-            setTimeout(async () => {
-                try {
-                    await sock.sendMessage(from, { delete: msg.key });
-                } catch (err) {
-                    console.error("Fehler beim Löschen der Bot-Nachricht:", err);
-                }
-            }, 1500); // 1,5 Sekunden warten
-        }
+    const quotedSender = quoted?.participant || m.sender;
 
+    const quotedMsgKey = {
+        remoteJid: chatId,
+        id: quoted.stanzaId,
+        fromMe: quotedSender === sock.user.id,
+        participant: isGroup ? quotedSender : undefined
+    };
+
+    const commandMsgKey = msg.key;
+    try {
+        await samuel1.sendMessage(chatId, { delete: quotedMsgKey });
+        await samuel1.sendMessage(chatId, { delete: commandMsgKey })
     } catch (e) {
         console.error(e);
         return reply(sock, msg, "❌ Nachricht konnte nicht gelöscht werden!");

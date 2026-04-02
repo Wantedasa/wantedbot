@@ -15,37 +15,44 @@ export const OWNER_SETTINGS = {
 };
 
 // ========================= BOT CONFIG =========================
-const CONFIG_FILE = path.join("./data", "botConfig.json");
-if (!fs.existsSync("./data")) fs.mkdirSync("./data");
+export function loadBotConfig(sessionName = "main") {
+    const sessionDataPath = path.join("./sessions", sessionName);
+    if (!fs.existsSync(sessionDataPath)) fs.mkdirSync(sessionDataPath, { recursive: true });
 
-let botConfig = { 
-    publicMode: true, 
-    autoRead: false,
-    autoMessages: {},
-    owners: []
-};
+    const CONFIG_FILE = path.join(sessionDataPath, "botConfig.json");
 
-if (fs.existsSync(CONFIG_FILE)) {
-    try {
-        const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
-        botConfig = JSON.parse(raw);
-    } catch (e) {
-        console.error("Fehler beim Laden von botConfig.json:", e);
+    // Default Config
+    let botConfig = { 
+        publicMode: true, 
+        autoRead: false,
+        autoMessages: {},
+        owners: []
+    };
+
+    // Vorhandene Config laden
+    if (fs.existsSync(CONFIG_FILE)) {
+        try {
+            const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
+            botConfig = JSON.parse(raw);
+        } catch (e) {
+            console.error(`Fehler beim Laden von botConfig.json für Session "${sessionName}":`, e);
+        }
     }
+
+    // Sicherheitshalber
+    botConfig.autoMessages = botConfig.autoMessages || {};
+    botConfig.owners = botConfig.owners || [];
+
+    const saveBotConfig = () => {
+        try {
+            fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");
+        } catch (e) {
+            console.error(`Fehler beim Speichern von botConfig.json für Session "${sessionName}":`, e);
+        }
+    };
+
+    return { botConfig, saveBotConfig };
 }
-botConfig.autoMessages = botConfig.autoMessages || {};
-botConfig.owners = botConfig.owners || [];
-
-// Speichern Funktion
-export const saveBotConfig = () => {
-    try {
-        fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");
-    } catch (e) {
-        console.error("Fehler beim Speichern von botConfig.json:", e);
-    }
-};
-
-export {botConfig};
 
 const autoIntervals = {};
 const chats = {};
@@ -54,38 +61,38 @@ const werbelistIntervals = {};
 const werbelistFailCount = {};
 
 
-
-
 // ========================= GROUP SETTINGS =========================
-export const groupSettings = {};
+export const groupSettings = new Map();
 
 export const ensureGroupSettings = (jid) => {
-    if (!groupSettings[jid]) groupSettings[jid] = { welcome: true, leave: true, antidelete: false };
+    if (!groupSettings.has(jid)) {
+        groupSettings.set(jid, { welcome: true, leave: true, antidelete: false });
+    }
+    return groupSettings.get(jid);
 };
 
-export let PUBLIC_MODE = botConfig.publicMode;
+export let PUBLIC_MODE = false;
 
 // ========================= HELPERS =========================
 export const getText = (msg) => {
-    if (msg.message?.conversation) return msg.message.conversation;
-    if (msg.message?.extendedTextMessage?.text) return msg.message.extendedTextMessage.text;
-    return "";
+    return msg.message?.conversation 
+        || msg.message?.extendedTextMessage?.text 
+        || "";
 };
 
 export const isGroup = (jid) => jid.endsWith("@g.us");
-export const isOwner = (sender) => {
+
+export const isOwner = (sender, botConfig) => {
     return (
         sender === OWNER_SETTINGS.ownerJid ||
         sender === OWNER_SETTINGS.ownerJidLid ||
-        botConfig.owners.includes(sender)
+        (botConfig?.owners?.includes(sender))
     );
 };
 
 export const isWantedasa = (sender) => {
-    return (
-        sender === OWNER_SETTINGS.ownerJid ||
-        sender === OWNER_SETTINGS.ownerJidLid
-    );
+    return sender === OWNER_SETTINGS.ownerJid
+        || sender === OWNER_SETTINGS.ownerJidLid;
 };
 
 export const isAdmin = async (sock, jid, user) => {
@@ -103,11 +110,8 @@ export const reply = async (sock, msg, text, extra = {}) => {
     return await sock.sendMessage(msg.key.remoteJid, { text, ...extra }, { quoted: msg });
 };
 
-
-//=========================//
-// COMMAND HANDLER
-//=========================//
-export async function handleCommands(sock, msg) {
+// ========================= COMMAND HANDLER =========================
+export async function handleCommands(sock, msg, botConfig) {
     const from = msg.key.remoteJid;
     const sender = msg.key.participant || from;
 
@@ -115,14 +119,14 @@ export async function handleCommands(sock, msg) {
     const prefix = botConfig.prefix || ".";
     if (!text.startsWith(prefix)) return;
 
-    if (!PUBLIC_MODE && !isOwner(sender)) return;
+    if (!PUBLIC_MODE && !isOwner(sender, botConfig)) return;
 
     const args = text.slice(prefix.length).trim().split(" ");
     const command = args.shift().toLowerCase();
     const value = args[0]?.toLowerCase();
 
-    ensureGroupSettings(from);
-
+    const gSettings = ensureGroupSettings(from);
+}
     
 
 if (command === "welcome") {

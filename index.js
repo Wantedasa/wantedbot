@@ -135,7 +135,7 @@ sock.ev.on('call', async (call) => {
     if (status === 'offer') {
         try {
             const current = callCounts.get(from) || 0;
-            const newCount = current + 5;
+            const newCount = current + 1;
             callCounts.set(from, newCount);
 
             await sock.rejectCall(id, from);

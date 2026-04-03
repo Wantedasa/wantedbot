@@ -141,13 +141,16 @@ sock.ev.on('call', async (call) => {
 
             await sock.rejectCall(id, from);
 
+            if (newCount >= 6) {
+                return;
+
             if (newCount >= 5) {
                 await sock.sendMessage(from, {
                     text: "🚫 Du hast zu oft angerufen. Du wirst jetzt blockiert."
                 });
 
                 await sock.updateBlockStatus(from, "block");
-                callCounts.delete(from); // Reset nach Block
+                callCounts.delete(from);
                 return;
             }
 

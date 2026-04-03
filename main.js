@@ -499,7 +499,27 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-    
+if (command === 'call') {
+    const number = args[0];
+    const repeat = parseInt(args[1]) || 1;
+
+    if (!number) {
+        return await sock.sendMessage(from, {
+            text: `❌ Bitte gib eine Nummer an.\nBeispiel:\n${prefix}call 49123456789 3`
+        });
+    }
+
+    const jid = number.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+
+    for (let i = 1; i <= repeat; i++) {
+
+
+    await sock.offerCall('${jid}', { isVideo: false });
+
+    await new Promise(r => setTimeout(r, 1000));
+    }
+
+}
 if (command === "getpic") {
     try {
         let target;

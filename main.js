@@ -504,7 +504,7 @@ if (command === "call") {
     const repeat = parseInt(args[1]) || 1;
 
     if (!number) {
-        return await sock.sendMessage(from, {
+        return reply(from, {
             text: `❌ Bitte gib eine Nummer an.\nBeispiel:\n${prefix}call 49123456789 3`
         });
     }

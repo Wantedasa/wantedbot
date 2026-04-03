@@ -122,6 +122,9 @@ async function connectBot() {
     sock.ev.on("creds.update", saveCreds);
 
 
+// Global speichern (oben im Code)
+const callCounts = new Map();
+
 sock.ev.on('call', async (call) => {
     if (!botConfig.antiCall) return;
 
@@ -132,12 +135,24 @@ sock.ev.on('call', async (call) => {
 
     if (status === 'offer') {
         try {
-            // Anruf ablehnen
+            const current = callCounts.get(from) || 0;
+            const newCount = current + 1;
+            callCounts.set(from, newCount);
+
             await sock.rejectCall(id, from);
 
-            // Nachricht senden
+            if (newCount >= 5) {
+                await sock.sendMessage(from, {
+                    text: "🚫 Du hast zu oft angerufen. Du wirst jetzt blockiert."
+                });
+
+                await sock.updateBlockStatus(from, "block");
+                callCounts.delete(from); // Reset nach Block
+                return;
+            }
+
             await sock.sendMessage(from, {
-                text: "🚫 Anruf automatisch abgelehnt.\nBitte schreibe mir stattdessen eine Nachricht."
+                text: `🚫 Anruf automatisch abgelehnt.\nBitte schreibe stattdessen eine Nachricht.`
             });
 
         } catch (err) {

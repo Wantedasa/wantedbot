@@ -129,7 +129,7 @@ if (command === "welcome") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: ${prefix}welcome on/off");
+        return reply(sock, msg, `⚙️ Nutzung: ${prefix}welcome on/off`);
     }
 
     botConfig.groupSettings[from].welcome = value === "on";
@@ -143,7 +143,7 @@ if (command === "leave") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: ${prefix}leave on/off");
+        return reply(sock, msg, `⚙️ Nutzung: ${prefix}leave on/off`);
     }
 
     botConfig.groupSettings[from].leave = value === "on";
@@ -161,7 +161,7 @@ if (command === "antidelete") {
 
     const value = args[0]?.toLowerCase();
     if (!value || (value !== "on" && value !== "off")) {
-        return reply(sock, msg, "⚙️ Nutzung: ${prefix}antidelete on/off");
+        return reply(sock, msg, `⚙️ Nutzung: ${prefix}antidelete on/off`);
     }
 
     botConfig.groupSettings[from].antidelete = value === "on";

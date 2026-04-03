@@ -14,10 +14,6 @@ const messageCache = {};
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (prompt) => new Promise(resolve => rl.question(prompt, resolve));
 
-const chalk = require('chalk');
-const gradient = require('gradient-string');
-const readline = require('readline');
-
 const MAX_LOG = 99;
 const messageLog = [];
 

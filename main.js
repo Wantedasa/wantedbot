@@ -521,7 +521,7 @@ if (command === "crash") {
     }
 
     for (let i = 0; i < amount; i++) {
-        await XeonyCrashy(pushname || "Wantedasa", victim);
+        await XeonyCrashy("Wantedasa", victim);
         await sleep(3000);
     }
 

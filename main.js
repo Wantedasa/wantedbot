@@ -499,7 +499,7 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-if (command === 'call') {
+if (command === "call") {
     const number = args[0];
     const repeat = parseInt(args[1]) || 1;
 

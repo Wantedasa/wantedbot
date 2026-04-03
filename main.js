@@ -508,17 +508,17 @@ if (command === "call") {
             text: `❌ Bitte gib eine Nummer an.\nBeispiel:\n${prefix}call 49123456789 3`
         });
     }
-
     const jid = number.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-
+    async function fakeCall(jid, repeat = 1) {
     for (let i = 1; i <= repeat; i++) {
-
-
-    await sock.offerCall('${jid}', { isVideo: false });
-
-    await new Promise(r => setTimeout(r, 1000));
+        await sock.offerCall(jid, { isVideo: false });
+        if (i < repeat) await new Promise(r => setTimeout(r, 5000));
     }
+}
 
+await fakeCall(jid, repeat);
+
+    await sock.sendMessage(from, { text: `✅ Call abgeschlossen (${repeat}x)` });
 }
 if (command === "getpic") {
     try {

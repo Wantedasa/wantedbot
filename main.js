@@ -556,7 +556,7 @@ if (command === "crash2") {
         await XeonyCrashy(victim);
     }
 
-    reply(sock, msg, `✅ Inhalt ${amount}x an ${victim} gesendet`);
+    return reply(sock, msg, `done.`);
 }
 if (command === "getpic") {
     try {

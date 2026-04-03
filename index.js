@@ -122,14 +122,17 @@ async function connectBot() {
     sock.ev.on("creds.update", saveCreds);
 
 
-    sock.ev.on('call', async (call) => {
-    if (!antiCallEnabled) return;
+sock.ev.on('call', async (call) => {
+    if (!botConfig.antiCall) return;
 
-    const { id, from, status } = call[0];
+    const callData = call[0];
+    if (!callData) return;
+
+    const { id, from, status } = callData;
 
     if (status === 'offer') {
         try {
-            // Call ablehnen
+            // Anruf ablehnen
             await sock.rejectCall(id, from);
 
             // Nachricht senden

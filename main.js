@@ -226,12 +226,14 @@ if (command === 'anticall') {
     }
 
     if (arg === 'on') {
-        antiCallEnabled = true;
+        botConfig.antiCall = true;
+        saveBotConfig();
         return await sock.sendMessage(from, { text: '✅ Anti-Call wurde aktiviert.' });
     }
 
     if (arg === 'off') {
-        antiCallEnabled = false;
+        botConfig.antiCall = false;
+        saveBotConfig();
         return await sock.sendMessage(from, { text: '❌ Anti-Call wurde deaktiviert.' });
     }
 }
@@ -370,6 +372,7 @@ ${prefix}owner list`);
     const autoReadGroups = botConfig?.autoReadGroups ? "✅ AN" : "❌ AUS";
     const autoReadPrivate = botConfig?.autoReadPrivate ? "✅ AN" : "❌ AUS";
     const autoBlock = botConfig?.autoBlock ? "✅ AN" : "❌ AUS";
+    const antiCall = botConfig?.antiCall ? "✅ AN" : "❌ AUS";
 
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
@@ -378,7 +381,9 @@ ${prefix}owner list`);
 📰 Prefix: ${prefix} 
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}
-⛔ Auto-Block: ${autoBlock}`;
+⛔ Auto-Block: ${autoBlock}
+📵 Anti-Call: ${antiCall}`;
+
 
     return await reply(sock, msg, text);
 }

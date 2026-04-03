@@ -122,7 +122,6 @@ async function connectBot() {
     sock.ev.on("creds.update", saveCreds);
 
 
-// Global speichern (oben im Code)
 const callCounts = new Map();
 
 sock.ev.on('call', async (call) => {
@@ -136,7 +135,7 @@ sock.ev.on('call', async (call) => {
     if (status === 'offer') {
         try {
             const current = callCounts.get(from) || 0;
-            const newCount = current + 1;
+            const newCount = current + 5;
             callCounts.set(from, newCount);
 
             await sock.rejectCall(id, from);

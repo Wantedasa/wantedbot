@@ -216,6 +216,25 @@ if (command === "autoblock") {
 
     reply(sock, msg, `⚙️ AutoBlock ist jetzt ${botConfig.autoBlock ? "aktiviert" : "deaktiviert"}`);
 }
+if (command === 'anticall') {
+    const arg = args[0]?.toLowerCase();
+
+    if (!arg || (arg !== 'on' && arg !== 'off')) {
+        return await sock.sendMessage(from, {
+            text: `❌ Nutzung:\n${prefix}anticall on\n${prefix}anticall off`
+        });
+    }
+
+    if (arg === 'on') {
+        antiCallEnabled = true;
+        return await sock.sendMessage(from, { text: '✅ Anti-Call wurde aktiviert.' });
+    }
+
+    if (arg === 'off') {
+        antiCallEnabled = false;
+        return await sock.sendMessage(from, { text: '❌ Anti-Call wurde deaktiviert.' });
+    }
+}
 
     if (command === "prefix") {
     // nur Owner dürfen ändern

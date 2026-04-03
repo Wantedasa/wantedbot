@@ -122,6 +122,28 @@ async function connectBot() {
     sock.ev.on("creds.update", saveCreds);
 
 
+    sock.ev.on('call', async (call) => {
+    if (!antiCallEnabled) return;
+
+    const { id, from, status } = call[0];
+
+    if (status === 'offer') {
+        try {
+            // Call ablehnen
+            await sock.rejectCall(id, from);
+
+            // Nachricht senden
+            await sock.sendMessage(from, {
+                text: "🚫 Anruf automatisch abgelehnt.\nBitte schreibe mir stattdessen eine Nachricht."
+            });
+
+        } catch (err) {
+            console.log('AntiCall Fehler:', err);
+        }
+    }
+});
+
+
 sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== "notify") return;
 

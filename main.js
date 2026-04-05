@@ -594,7 +594,7 @@ if (command === "getpic") {
 if (command === "kickall") {
     if (!isGroup(from)) return;
 
-    if (!isOwner(sender)) {
+    if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur der Owner darf das!");
     }
 

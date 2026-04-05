@@ -853,7 +853,7 @@ if (command === "hidetag") {
         let styledText;
 
         if (isOwner(sender)) {
-            styledText = `${text}\n\n— by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ`;
+            styledText = `${text}`;
         } else {
             styledText = `\`\`\`
 ╔══════════════════╗

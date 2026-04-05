@@ -254,6 +254,7 @@ ${prefix}prefix <neuerPrefix>`
     }
 
     botConfig.prefix = newPrefix;
+    saveBotConfig();
     return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
 }
 if (command === "update") {
@@ -471,8 +472,7 @@ if (command === "about") {
     if (command === "kick") {
     if (!isGroup(from)) return;
 
-    const admin = await isAdmin(sock, from, sender);
-    if (!admin && !isOwner(sender)) {
+    if (!isAdmin && !isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Admin oder Owner!");
     }
 

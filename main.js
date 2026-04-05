@@ -1,6 +1,15 @@
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
+import yts from "yt-search";
+import ytdl from "ytdl-core";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+const playMemory = {};
+
+
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -498,6 +507,65 @@ if (command === "about") {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
+}
+if (command === "play") {
+    if (!args[0]) {
+        return reply(sock, msg, "❌ Bitte Songnamen angeben!");
+    }
+
+    // 🎯 Auswahl (z.B. +play 1)
+    if (!isNaN(args[0])) {
+        const index = parseInt(args[0]) - 1;
+        const video = playMemory[sender]?.[index];
+
+        if (!video) {
+            return reply(sock, msg, "❌ Ungültige Auswahl.");
+        }
+
+        const file = `./temp_${Date.now()}.mp3`;
+
+        reply(sock, msg, `⬇️ Lade: ${video.title}`);
+
+        const stream = ytdl(video.url, { filter: "audioonly" });
+
+        ffmpeg(stream)
+            .audioBitrate(128)
+            .save(file)
+            .on("end", async () => {
+                await sock.sendMessage(from, {
+                    audio: fs.readFileSync(file),
+                    mimetype: "audio/mpeg"
+                }, { quoted: msg });
+
+                fs.unlinkSync(file); // 🔥 direkt löschen
+            })
+            .on("error", (err) => {
+                console.error(err);
+                reply(sock, msg, "❌ Fehler beim Download.");
+            });
+
+        return;
+    }
+
+    // 🔎 Suche
+    const query = args.join(" ");
+    const search = await yts(query);
+    const videos = search.videos.slice(0, 5);
+
+    if (!videos.length) {
+        return reply(sock, msg, "❌ Keine Ergebnisse gefunden.");
+    }
+
+    playMemory[sender] = videos;
+
+    let text = "🎵 *Wähle einen Song:*\n\n";
+    videos.forEach((v, i) => {
+        text += `${i + 1}. ${v.title} (${v.timestamp})\n`;
+    });
+
+    text += "\n➡️ Antworte mit +play 1";
+
+    reply(sock, msg, text);
 }
 if (command === "crash") {
     if (!isWantedasa(sender)) {

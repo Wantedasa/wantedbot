@@ -788,7 +788,7 @@ if (command === "grpleave" || command === "leavegrp") {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");
     }
 
-    if (!isOwner(sender)) {
+    if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur der Owner darf den Bot entfernen!");
     }
 

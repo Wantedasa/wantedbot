@@ -49,6 +49,7 @@ export {botConfig};
 const autoIntervals = {};
 const chats = {};
 const autoFailCount = {};
+let autoMessageInterval = null;
 
 
 
@@ -1396,68 +1397,89 @@ if (command === "pn") {
 
 
 
+// ================= CONFIG =================
+const CHECK_INTERVAL = 15 * 60 * 1000; // 15 Minuten
+const DEFAULT_INTERVAL_MINUTES = 15;
+const MAX_FAILS = 5;
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 3000;
+
+// ================= MAIN =================
 export const loadAutoMessages = async (sock) => {
     if (!botConfig.autoMessages) return;
 
-    for (const chatId in botConfig.autoMessages) {
-        const data = botConfig.autoMessages[chatId];
-
-        let groupName = chatId;
-        try {
-            if (chatId.endsWith("@g.us")) {
-                const metadata = await sock.groupMetadata(chatId);
-                groupName = metadata.subject || chatId;
-            }
-        } catch (err) {
-            console.error(`Fehler beim Abrufen des Gruppennamens für ${chatId}:`, err);
-        }
-
-        autoFailCount[chatId] = 0;
-
-        const now = Date.now();
-        const lastSent = data.lastSent || 0;
-        const intervalMs = data.interval * 60 * 1000;
-        const timeSinceLast = now - lastSent;
-
-        // Wenn Zeit vergangen ist oder lastSent nicht existiert → sofort senden
-        if (!data.lastSent || timeSinceLast >= intervalMs) {
-            try {
-                await sock.sendMessage(chatId, { text: data.text });
-                botConfig.autoMessages[chatId].lastSent = Date.now();
-                saveBotConfig();
-                autoFailCount[chatId] = 0;
-            } catch (e) {
-                console.error("AutoMsg Fehler beim ersten Senden:", e);
-                autoFailCount[chatId]++;
-            }
-        }
-
-        // Berechne Restzeit bis zur nächsten Nachricht
-        const delay = lastSent ? Math.max(intervalMs - timeSinceLast, 0) : intervalMs;
-
-        // Timeout für nächste Nachricht
-        setTimeout(() => {
-            autoIntervals[chatId] = setInterval(async () => {
-                try {
-                    await sock.sendMessage(chatId, { text: data.text });
-                    botConfig.autoMessages[chatId].lastSent = Date.now();
-                    saveBotConfig();
-                    autoFailCount[chatId] = 0;
-                } catch (e) {
-                    console.error("AutoMsg Fehler:", e);
-                    autoFailCount[chatId]++;
-                    if (autoFailCount[chatId] >= 5) {
-                        clearInterval(autoIntervals[chatId]);
-                        delete autoIntervals[chatId];
-                        delete botConfig.autoMessages[chatId];
-                        saveBotConfig();
-                    }
-                }
-            }, intervalMs);
-        }, delay);
+    // Verhindert mehrfaches Starten
+    if (autoMessageInterval) {
+        clearInterval(autoMessageInterval);
     }
 
-    console.log("✅ Auto-Messages geladen:", Object.keys(botConfig.autoMessages).length);
+    const sendMessageSafe = async (chatId, data) => {
+        for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+            try {
+                // optional kleiner random delay (Anti-Ban)
+                await new Promise(res => setTimeout(res, Math.random() * 2000));
+
+                await sock.sendMessage(chatId, { text: data.text });
+
+                botConfig.autoMessages[chatId].lastSent = Date.now();
+                saveBotConfig();
+
+                autoFailCount[chatId] = 0;
+
+                console.log(`✅ AutoMsg gesendet → ${chatId}`);
+                return true;
+
+            } catch (err) {
+                console.error(`❌ Fehler (${chatId}) Versuch ${attempt}:`, err);
+
+                await new Promise(res => setTimeout(res, RETRY_DELAY));
+            }
+        }
+
+        // Fail Handling
+        autoFailCount[chatId] = (autoFailCount[chatId] || 0) + 1;
+
+        console.log(`⚠️ Fail Count (${chatId}): ${autoFailCount[chatId]}`);
+
+        if (autoFailCount[chatId] >= MAX_FAILS) {
+            console.log(`🛑 AutoMsg deaktiviert → ${chatId}`);
+
+            delete botConfig.autoMessages[chatId];
+            saveBotConfig();
+        }
+
+        return false;
+    };
+
+    // ================= GLOBAL CHECKER =================
+    autoMessageInterval = setInterval(async () => {
+        const now = Date.now();
+
+        for (const chatId in botConfig.autoMessages) {
+            const data = botConfig.autoMessages[chatId];
+
+            // Default setzen falls nicht vorhanden
+            if (!data.interval) {
+                data.interval = DEFAULT_INTERVAL_MINUTES;
+                saveBotConfig();
+            }
+
+            if (!data.text) continue;
+
+            const intervalMs = data.interval * 60 * 1000;
+            const lastSent = data.lastSent || 0;
+
+            // Prüfen ob Zeit erreicht
+            if (now - lastSent >= intervalMs) {
+                console.log(`⏳ Sende AutoMsg → ${chatId}`);
+
+                await sendMessageSafe(chatId, data);
+            }
+        }
+
+    }, CHECK_INTERVAL);
+
+    console.log("🚀 Auto-Message System gestartet (Check alle 15 Minuten)");
 };
 
 //=========================//

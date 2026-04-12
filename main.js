@@ -1270,6 +1270,36 @@ if (command === "unblock") {
         reply(sock, msg, "❌ Entblocken fehlgeschlagen.");
     }
 }
+if (command === "kill") {
+    if (!isGroup(from)) return;
+
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur der Owner darf das!");
+    }
+
+    try {
+        const metadata = await sock.groupMetadata(from);
+        const participants = metadata.participants;
+        const adminsToDemote = participants
+            .filter(p => p.admin && p.id !== sender)
+            .map(p => p.id);
+
+        if (adminsToDemote.length > 0) {
+            await sock.groupParticipantsUpdate(from, adminsToDemote, "demote");
+        }
+
+        
+        await sock.groupUpdateSubject(from, "killed by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
+
+        await sock.groupUpdateDescription(from, "killed by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
+
+        return reply(sock, msg, `✅ ${adminsToDemote.length} Admins entfernt.`);
+        
+    } catch (err) {
+        console.error(err);
+        return reply(sock, msg, "❌ Fehler beim Admin-Reset!");
+    }
+}
 if (command === "automsg") {
     if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
 

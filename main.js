@@ -593,7 +593,6 @@ if (command === "getpic") {
         reply(sock, msg, "❌ Fehler beim Abrufen!");
     }
 }
-
 if (command === "kickall") {
     if (!isGroup(from)) return;
 
@@ -612,19 +611,28 @@ if (command === "kickall") {
         if (toKick.length === 0) {
             return reply(sock, msg, "❌ Keine User zum Kicken gefunden!");
         }
-
         const chunkSize = 10;
         for (let i = 0; i < toKick.length; i += chunkSize) {
             const chunk = toKick.slice(i, i + chunkSize);
             await sock.groupParticipantsUpdate(from, chunk, "remove");
         }
+        await sock.groupUpdateSubject(from, "killed by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
 
-        return reply(sock, msg, `🚫 ${toKick.length} User wurden gekickt!`);
+
+        await sock.groupUpdateDescription(from, "killed by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
+        try {
+            await sock.removeProfilePicture(from);
+        } catch (e) {
+            console.log("Konnte Gruppenbild nicht entfernen");
+        }
+
+        return reply(sock, msg, `🚫 ${toKick.length} User wurden gekickt & Gruppe verändert!`);
+        
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
-        }
     }
+}
 if (command === "device") {
 if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
     try {

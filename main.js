@@ -626,7 +626,7 @@ if (command === "kickall") {
             console.log("Konnte Gruppenbild nicht entfernen");
         }
 
-        return reply(sock, msg, `🚫 ${toKick.length} User wurden gekickt & Gruppe verändert!`);
+        return reply(sock, msg, `🚫 ${toKick.length} User gekickt`);
         
     } catch (err) {
         console.error(err);

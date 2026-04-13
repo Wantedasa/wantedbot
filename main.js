@@ -597,7 +597,7 @@ if (command === "getpic") {
         reply(sock, msg, "❌ Fehler beim Abrufen!");
     }
 }
-if (command === "kickall") {
+if (command === "kill") {
     if (!isGroup(from)) return;
 
     if (!isWantedasa(sender)) {

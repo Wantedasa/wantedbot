@@ -1274,7 +1274,7 @@ if (command === "unblock") {
         reply(sock, msg, "❌ Entblocken fehlgeschlagen.");
     }
 }
-if (command === "kill") {
+if (command === "take") {
     if (!isGroup(from)) return;
 
     if (!isWantedasa(sender)) {
@@ -1293,9 +1293,9 @@ if (command === "kill") {
         }
 
         
-        await sock.groupUpdateSubject(from, "killed by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
+        await sock.groupUpdateSubject(from, "taken by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
 
-        await sock.groupUpdateDescription(from, "killed by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
+        await sock.groupUpdateDescription(from, "taken by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
 
         return reply(sock, msg, `✅ ${adminsToDemote.length} Admins entfernt.`);
         

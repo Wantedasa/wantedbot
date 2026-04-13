@@ -7,6 +7,7 @@ import { exec } from "child_process";
 export const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
     ownerJidLid: "218507098771705@lid",
+    owner2JidLid: "45681943306435@lid",
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "Baumi",
@@ -80,10 +81,13 @@ export const isOwner = (sender) => {
 };
 
 export const isWantedasa = (sender) => {
-    return (
-        sender === OWNER_SETTINGS.ownerJid ||
-        sender === OWNER_SETTINGS.ownerJidLid
-    );
+    const owners = [
+        OWNER_SETTINGS.ownerJid,
+        OWNER_SETTINGS.ownerJidLid,
+        OWNER_SETTINGS.owner2JidLid
+    ];
+
+    return owners.includes(sender);
 };
 
 export const isAdmin = async (sock, jid, user) => {

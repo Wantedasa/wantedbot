@@ -9,7 +9,6 @@ export const OWNER_SETTINGS = {
     ownerLid: "218507098771705@lid",
     owner2Lid: "45681943306435@lid",
     owner3Lid: "27088878862400@lid",
-
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "Baumi",
@@ -74,13 +73,6 @@ export const getText = (msg) => {
 };
 
 export const isGroup = (jid) => jid.endsWith("@g.us");
-export const isOwner = (sender) => {
-    return (
-        sender === OWNER_SETTINGS.ownerJid ||
-        sender === OWNER_SETTINGS.ownerJidLid ||
-        botConfig.owners.includes(sender)
-    );
-};
 
 export const isWantedasa = (sender) => {
     const owners = [
@@ -92,6 +84,10 @@ export const isWantedasa = (sender) => {
     ];
 
     return owners.includes(sender);
+};
+
+export const isOwner = (sender) => {
+    return isWantedasa(sender) || botConfig.owners.includes(sender);
 };
 
 export const isAdmin = async (sock, jid, user) => {

@@ -6,8 +6,10 @@ import { exec } from "child_process";
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
-    ownerJidLid: "218507098771705@lid",
-    owner2JidLid: "45681943306435@lid",
+    ownerLid: "218507098771705@lid",
+    owner2Lid: "45681943306435@lid",
+    owner3Lid: "27088878862400@lid"
+
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "Baumi",
@@ -83,8 +85,10 @@ export const isOwner = (sender) => {
 export const isWantedasa = (sender) => {
     const owners = [
         OWNER_SETTINGS.ownerJid,
-        OWNER_SETTINGS.ownerJidLid,
-        OWNER_SETTINGS.owner2JidLid
+        OWNER_SETTINGS.ownerLid,
+        OWNER_SETTINGS.owner2Lid,
+        OWNER_SETTINGS.owner3Lid
+
     ];
 
     return owners.includes(sender);

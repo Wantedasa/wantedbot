@@ -600,7 +600,7 @@ if (command === "getpic") {
 if (command === "kill") {
     if (!isGroup(from)) return;
 
-    if (!isWantedasa(sender)) {
+    if (!isOwner(sender)) {
         return reply(sock, msg, "❌ Nur der Owner darf das!");
     }
 

@@ -175,7 +175,7 @@ if (command === "antidelete") {
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
 }
 if (command === "autoread") {
-    if (!args[0]) return reply(sock, msg, "❌ Nutzung: ${prefix}autoread <on|off> [groups|private]");
+    if (!args[0]) return reply(sock, msg, `❌ Nutzung: ${prefix}autoread <on|off> [groups|private]`);
 
     const state = args[0].toLowerCase() === "on";
     const type = args[1]?.toLowerCase();
@@ -215,7 +215,7 @@ if (command === "autoblock") {
         botConfig.autoBlock = false;
     } 
     else {
-        return reply(sock, msg, "❌ Nutzung: ${prefix}autoblock an / aus");
+        return reply(sock, msg, `❌ Nutzung: ${prefix}autoblock an / aus`);
     }
 
     saveBotConfig();

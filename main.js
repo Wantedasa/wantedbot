@@ -245,8 +245,7 @@ if (command === 'anticall') {
 }
 
     if (command === "prefix") {
-    // nur Owner dürfen ändern
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
 
     const newPrefix = args[0];
     if (!newPrefix) {

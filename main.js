@@ -484,7 +484,7 @@ if (command === "test") {
 
     await sock.sendMessage(from, {
         text,
-        footer: "Test",
+        footer: "Wer das liest kann Lesen",
         templateButtons: [
             {
                 index: 1,

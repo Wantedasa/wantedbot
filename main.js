@@ -269,27 +269,40 @@ if (command === "update") {
         return reply(sock, msg, "❌ Nur Owner können den Bot updaten!");
     }
 
-    reply(sock, msg, "⏳ Suche nach Updates...");
+    reply(sock, msg, "🔍 Suche nach Updates...");
 
-    exec("git pull", (error, stdout, stderr) => {
+    exec("git pull origin main", (error, stdout, stderr) => {
         if (error) {
-            return reply(sock, msg, `❌ Fehler:\n${error.message}`);
-        }
-
-        if (stderr) {
-            return reply(sock, msg, `⚠️ Git-Fehler:\n${stderr}`);
+            return reply(sock, msg, `❌ Update fehlgeschlagen:\n${error.message}`);
         }
 
         if (stdout.includes("Already up to date")) {
-            return reply(sock, msg, "✅ Bot ist aktuell.");
+            return reply(sock, msg, "✅ Bot ist bereits auf dem neuesten Stand.");
         }
 
-        reply(sock, msg, `✅ Update installiert:\n${stdout}\n♻️ Starte neu...`);
+        // ✨ Git Output schön formatieren
+        let changes = stdout
+            .split("\n")
+            .filter(line => 
+                line.includes("|") || 
+                line.includes("changed") || 
+                line.includes("insertions") || 
+                line.includes("deletions")
+            )
+            .join("\n");
 
-        exec("pkill -f node");
+        reply(sock, msg,
+`✅ *Update erfolgreich installiert!*
 
+📦 Änderungen:
+${changes || "• Mehrere Dateien wurden aktualisiert"}
+
+♻️ Bot wird neu gestartet...`
+        );
+
+        // Restart
         setTimeout(() => {
-            exec("node index.js");
+            process.exit(0);
         }, 2000);
     });
 }

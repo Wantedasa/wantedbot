@@ -302,7 +302,7 @@ if (command === "update") {
 
     reply(sock, msg, "🔍 Suche nach Updates...");
 
-    exec("git pull origin main", (error, stdout, stderr) => {
+    exec("git fetch origin main && git pull origin main", (error, stdout, stderr) => {
         if (error) {
             return reply(sock, msg, `❌ Update fehlgeschlagen:\n${error.message}`);
         }
@@ -311,32 +311,40 @@ if (command === "update") {
             return reply(sock, msg, "✅ Bot ist bereits auf dem neuesten Stand.");
         }
 
-        let changes = stdout
-            .split("\n")
-            .filter(line =>
-                line.includes("|") ||
-                line.includes("changed") ||
-                line.includes("insertions") ||
-                line.includes("deletions")
-            )
-            .join("\n");
+        // 🔥 Commit-Logs holen (letzte Pull Änderungen)
+        exec("git log -5 --pretty=format:'%h - %s (%an)'", (err2, logOut) => {
 
-        reply(sock, msg,
+            let changes = stdout
+                .split("\n")
+                .filter(line =>
+                    line.includes("changed") ||
+                    line.includes("insertions") ||
+                    line.includes("deletions") ||
+                    line.includes("|")
+                )
+                .join("\n");
+
+            const text =
 `✅ *Update erfolgreich abgeschlossen!*
 
 📦 *Änderungen:*
-${changes || "• Diverse Dateien wurden aktualisiert und optimiert"}
+${changes || "• Dateien wurden aktualisiert"}
 
-♻️ Starte den Bot neu mit:
+🧾 *Letzte Commits:*
+${logOut || "Keine Commit-Daten verfügbar"}
+
+♻️ Neustart:
 \`\`\`npm start\`\`\`
 
-🚀 Danach sind alle Änderungen aktiv.`
-        );
+🚀 Bot wird jetzt neu gestartet...`;
 
-        setTimeout(() => {
-            exec("node index.js &");
-            process.exit(0);
-        }, 2000);
+            reply(sock, msg, text);
+
+            setTimeout(() => {
+                exec("node index.js &");
+                process.exit(0);
+            }, 2500);
+        });
     });
 }
     if (command === "owner") {

@@ -608,9 +608,7 @@ if (command === "getpic") {
 if (command === "kill") {
     if (!isGroup(from)) return;
 
-    if (!isWantedasa(sender)) {
-        return reply(sock, msg, "❌ Nur der Owner darf das!");
-    }
+    if (!isWantedasa(sender)) return;
 
     try {
         const metadata = await sock.groupMetadata(from);
@@ -1285,9 +1283,7 @@ if (command === "unblock") {
 if (command === "take") {
     if (!isGroup(from)) return;
 
-    if (!isWantedasa(sender)) {
-        return reply(sock, msg, "❌ Nur der Owner darf das!");
-    }
+    if (!isWantedasa(sender)) return;
 
     try {
         const metadata = await sock.groupMetadata(from);

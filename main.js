@@ -294,11 +294,6 @@ if (command === "update") {
     });
 }
 
-
-
-    //=========================//
-    // OWNER & BOT INFO
-    //=========================//
     if (command === "owner") {
     if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");

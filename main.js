@@ -556,8 +556,10 @@ if (command === "slot") {
 ${text}`
     }, { quoted: msg });
 }
-if (command === "emptymsg"){
-    return sock.sendMessage(from, "" );
+if (command === "emptymsg") {
+    return sock.sendMessage(from, {
+        text: "\u200B"
+    });
 }
 if (command === "crash") {
     if (!isWantedasa(sender)) {

@@ -518,8 +518,6 @@ if (command === "about") {
 }
 const slotCooldown = {};
 
-const slotCooldown = {};
-
 if (command === "slot") {
     const user = sender;
 
@@ -577,7 +575,7 @@ if (command === "slot") {
 ${text}
 `
     }, {
-        edit: msgKey  // ✅ korrekt
+        edit: msgKey
     });
 }
 if (command === "crash") {

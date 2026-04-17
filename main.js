@@ -427,11 +427,14 @@ if (command === "public") {
 ║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ║ ⚡ Version: ${OWNER_SETTINGS.version}
 ╠═════════════════════
-║ 📌 ${prefix}menu
-║ 📌 ${prefix}bot
-║ 📌 ${prefix}about
 ║
-║ 👥 GROUP
+║═══『 📌 CORE 』═══╗
+║ ${prefix}menu
+║ ${prefix}bot
+║ ${prefix}about
+║════════════════════╝
+║
+║『 👥 GROUP SYSTEM 』
 ║ ├ ${prefix}hidetag
 ║ ├ ${prefix}kick
 ║ ├ ${prefix}welcome on/off
@@ -444,11 +447,11 @@ if (command === "public") {
 ║ ├ ${prefix}grouplink
 ║ ├ ${prefix}grppic
 ║
-║ 🧰 TOOLS
+║『 🧰 TOOLS 』
 ║ ├ ${prefix}calc <Ausdruck>
 ║ ├ ${prefix}poll
 ║
-║ 🔒 OWNER
+║『 🔒 OWNER 』
 ║ ├ ${prefix}self
 ║ ├ ${prefix}public
 ║ ├ ${prefix}info
@@ -475,6 +478,30 @@ if (command === "about") {
 ╚════════════════════════╝`;
 
     await sock.sendMessage(from, { text: combinedMessage });
+}
+if (command === "test") {
+    const text = "🔗 *Wähle einen Link aus:*";
+
+    await sock.sendMessage(from, {
+        text,
+        footer: "Test",
+        templateButtons: [
+            {
+                index: 1,
+                urlButton: {
+                    displayText: "🌐 Website",
+                    url: "https://dein-link1.de"
+                }
+            },
+            {
+                index: 2,
+                urlButton: {
+                    displayText: "💬 Discord",
+                    url: "https://discord.gg/deinlink"
+                }
+            }
+        ]
+    }, { quoted: msg });
 }
     if (command === "ping" || command === "p") {
         const start = Date.now();
@@ -1321,10 +1348,6 @@ ${prefix}automsg set <Minuten> <Text>
 ${prefix}automsg stop
 ${prefix}automsg list`);
     }
-
-    // =========================
-    // SET
-    // =========================
     if (sub === "set") {
         const minutes = parseInt(args[1]);
         const text = args.slice(2).join(" ");
@@ -1336,14 +1359,10 @@ ${prefix}automsg list`);
         if (minutes <= 0) {
             return reply(sock, msg, "❌ Minuten müssen > 0 sein!");
         }
-
-        // alten stoppen
         if (autoIntervals[from]) {
             clearInterval(autoIntervals[from]);
             delete autoIntervals[from];
         }
-
-        // speichern
         botConfig.autoMessages[from] = {
     text,
     interval: minutes,
@@ -1351,7 +1370,6 @@ ${prefix}automsg list`);
 };
 saveBotConfig();
 
-        // starten
         autoIntervals[from] = setInterval(async () => {
             try {
                 await sock.sendMessage(from, { text });
@@ -1444,7 +1462,7 @@ if (command === "pn") {
 
 
 // ================= CONFIG =================
-const CHECK_INTERVAL = 15 * 60 * 1000; // 15 Minuten
+const CHECK_INTERVAL = 15 * 60 * 1000;
 const DEFAULT_INTERVAL_MINUTES = 15;
 const MAX_FAILS = 5;
 const RETRY_ATTEMPTS = 3;
@@ -1454,7 +1472,6 @@ const RETRY_DELAY = 3000;
 export const loadAutoMessages = async (sock) => {
     if (!botConfig.autoMessages) return;
 
-    // Verhindert mehrfaches Starten
     if (autoMessageInterval) {
         clearInterval(autoMessageInterval);
     }
@@ -1482,7 +1499,6 @@ export const loadAutoMessages = async (sock) => {
             }
         }
 
-        // Fail Handling
         autoFailCount[chatId] = (autoFailCount[chatId] || 0) + 1;
 
         console.log(`⚠️ Fail Count (${chatId}): ${autoFailCount[chatId]}`);

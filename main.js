@@ -517,13 +517,10 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-
-
 if (command === "slot") {
     const user = sender;
     const slotCooldown = {};
 
-    // ⏱ Cooldown 10s
     if (slotCooldown[user] && Date.now() - slotCooldown[user] < 10000) {
         const timeLeft = Math.ceil((10000 - (Date.now() - slotCooldown[user])) / 1000);
         return reply(sock, msg, `⏳ Warte ${timeLeft}s bevor du nochmal spielst!`);
@@ -560,7 +557,7 @@ ${text}`
     }, { quoted: msg });
 }
 if (command === "emptymsg"){
-    return (sock, msg, "" );
+    return sock.sendMessage(from, "" );
 }
 if (command === "crash") {
     if (!isWantedasa(sender)) {

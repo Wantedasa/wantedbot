@@ -428,7 +428,7 @@ if (command === "public") {
 ║ ⚡ Version: ${OWNER_SETTINGS.version}
 ╠═════════════════════
 ║
-║═══『 📌 CORE 』═══╗
+║════『 📌 CORE 』═══╗
 ║ ${prefix}menu
 ║ ${prefix}bot
 ║ ${prefix}about

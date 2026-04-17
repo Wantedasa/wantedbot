@@ -127,8 +127,6 @@ export async function handleCommands(sock, msg) {
 
     ensureGroupSettings(from);
 
-    
-
 if (command === "welcome") {
     if (!botConfig.groupSettings) botConfig.groupSettings = {};
     if (!botConfig.groupSettings[from]) botConfig.groupSettings[from] = { welcome: true, leave: true, antidelete: false };
@@ -497,6 +495,7 @@ if (command === "public") {
 ║ ├ ${prefix}kick
 ║ ├ ${prefix}welcome on/off
 ║ ├ ${prefix}leave on/off
+║ ├ ${prefix}antilink on/off
 ║ ├ ${prefix}grpname
 ║ ├ ${prefix}grpdesc
 ║ ├ ${prefix}delete

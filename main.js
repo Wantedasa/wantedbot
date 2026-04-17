@@ -425,6 +425,8 @@ ${prefix}owner list`);
     const autoBlock = botConfig?.autoBlock ? "✅ AN" : "❌ AUS";
     const antiCall = botConfig?.antiCall ? "✅ AN" : "❌ AUS";
 
+    const settings = botConfig.groupSettings[from];
+
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ⚡ Version: ${OWNER_SETTINGS.version}

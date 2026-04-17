@@ -262,8 +262,6 @@ ${prefix}prefix <neuerPrefix>`
     saveBotConfig();
     return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
 }
-
-
 if (command === "update") {
     if (!isOwner(sender)) {
         return reply(sock, msg, "❌ Nur Owner können den Bot updaten!");
@@ -302,7 +300,6 @@ ${changes || "• Mehrere Dateien wurden aktualisiert"}
         }, 2000);
     });
 }
-
     if (command === "owner") {
     if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");

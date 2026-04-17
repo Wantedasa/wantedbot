@@ -1,5 +1,5 @@
 import fs from "fs";
-const file = "./botConfig.json";
+const file = "./data/botConfig.json";
 const defaultPrefix = ".";
 let config = JSON.parse(fs.readFileSync(file, "utf8"));
 config.prefix = defaultPrefix;

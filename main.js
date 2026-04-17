@@ -450,6 +450,7 @@ if (command === "public") {
 ║『 🧰 TOOLS 』
 ║ ├ ${prefix}calc <Ausdruck>
 ║ ├ ${prefix}poll
+║ ├ ${prefix}emptymsg
 ║
 ║『 🔒 OWNER 』
 ║ ├ ${prefix}self

@@ -435,7 +435,15 @@ ${prefix}owner list`);
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}
 ⛔ Auto-Block: ${autoBlock}
-📵 Anti-Call: ${antiCall}`;
+📵 Anti-Call: ${antiCall}
+
+⬣───〔 ⚙️ GROUP STATUS 〕───⬣
+
+👋 Welcome: ${settings.welcome ? "✅ ON" : "❌ OFF"}
+🚪 Leave: ${settings.leave ? "✅ ON" : "❌ OFF"}
+🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
+🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
+⬣──────────────────⬣`;
 
 
     return await reply(sock, msg, text);

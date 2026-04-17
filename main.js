@@ -262,26 +262,35 @@ ${prefix}prefix <neuerPrefix>`
     saveBotConfig();
     return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
 }
+
+
 if (command === "update") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können den Bot updaten!");
+    if (!isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Owner können den Bot updaten!");
+    }
 
-    reply(sock, msg, "⏳ Update wird gestartet...");
+    reply(sock, msg, "⏳ Suche nach Updates...");
 
-    // git pull ausführen
     exec("git pull", (error, stdout, stderr) => {
         if (error) {
-            return reply(sock, msg, `❌ Fehler beim Update:\n${error.message}`);
+            return reply(sock, msg, `❌ Fehler:\n${error.message}`);
         }
+
         if (stderr) {
             return reply(sock, msg, `⚠️ Git-Fehler:\n${stderr}`);
         }
 
-        reply(sock, msg, `✅ Update erfolgreich:\n${stdout}\n🔄 Bot wird neu gestartet...`);
+        if (stdout.includes("Already up to date")) {
+            return reply(sock, msg, "✅ Bot ist aktuell.");
+        }
 
-        // Bot neu starten
-        exec(" npm start", (err) => {
-            if (err) console.error("Fehler beim Neustart:", err);
-        });
+        reply(sock, msg, `✅ Update installiert:\n${stdout}\n♻️ Starte neu...`);
+
+        exec("pkill -f node");
+
+        setTimeout(() => {
+            exec("node index.js");
+        }, 2000);
     });
 }
 

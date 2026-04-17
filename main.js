@@ -439,8 +439,6 @@ ${prefix}owner list`);
 
 ⬣───〔 ⚙️ GROUP STATUS 〕───⬣
 
-👋 Welcome: ${settings.welcome ? "✅ ON" : "❌ OFF"}
-🚪 Leave: ${settings.leave ? "✅ ON" : "❌ OFF"}
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
 ⬣──────────────────⬣`;

@@ -711,7 +711,8 @@ if (command === "kill") {
     }
 }
 if (command === "device") {
-if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+
     try {
         const ctx = msg.message?.extendedTextMessage?.contextInfo;
 
@@ -723,29 +724,24 @@ if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
         if (!target) {
             return reply(sock, msg, "❌ User nicht gefunden!");
         }
-        let device = "Unbekannt";
 
-        const quotedMsg = ctx.quotedMessage;
-        const msgType = Object.keys(quotedMsg)[0];
+        // 🔥 Besserer Device-Check (Baileys standard)
+        let device = ctx.deviceType || ctx.messageType || "Unbekannt";
 
-        if (msgType === "conversation" || msgType === "extendedTextMessage") {
-            device = "Android";
-        } else if (msgType === "imageMessage" || msgType === "videoMessage") {
-            device = "iOS";
-        }
-
-        // Wenn von Web (häufig längere IDs)
-        if (target.length > 20) {
-            device = "Web";
-        }
+        // Normalisieren für bessere Anzeige
+        if (device?.toLowerCase().includes("android")) device = "Android 📱";
+        else if (device?.toLowerCase().includes("ios")) device = "iOS 🍎";
+        else if (device?.toLowerCase().includes("web")) device = "Web 💻";
+        else if (device?.toLowerCase().includes("desktop")) device = "Desktop 🖥️";
+        else device = "Unbekannt ❓";
 
         const messageId = ctx.stanzaId || "Unbekannt";
 
-        const text = `╭───〔 📱 DEVICE 〕───⬣
+        const text = `╭───〔 📱 DEVICE INFO 〕───⬣
 │
-│ User: @${target.split("@")[0]}
-│ Gerät: ${device}
-│ Msg-ID: ${messageId}
+│ 👤 User: @${target.split("@")[0]}
+│ 📱 Gerät: ${device}
+│ 🆔 Msg-ID: ${messageId}
 ╰────────────────⬣`;
 
         await sock.sendMessage(

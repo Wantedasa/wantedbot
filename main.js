@@ -156,7 +156,6 @@ if (command === "leave") {
     saveBotConfig();
     return reply(sock, msg, botConfig.groupSettings[from].leave ? "✅ Leave aktiviert" : "❌ Leave deaktiviert");
 }
-
 if (command === "antidelete") {
     if (!botConfig.groupSettings) botConfig.groupSettings = {};
     if (!botConfig.groupSettings[from]) botConfig.groupSettings[from] = { welcome: true, leave: true, antidelete: false };
@@ -173,6 +172,37 @@ if (command === "antidelete") {
     botConfig.groupSettings[from].antidelete = value === "on";
     saveBotConfig();
     return reply(sock, msg, botConfig.groupSettings[from].antidelete ? "✅ Antidelete aktiviert!" : "❌ Antidelete deaktiviert!");
+}
+if (command === "antilink") {
+    if (!botConfig.groupSettings) botConfig.groupSettings = {};
+    if (!botConfig.groupSettings[from]) {
+        botConfig.groupSettings[from] = {
+            welcome: true,
+            leave: true,
+            antidelete: false,
+            antilink: false
+        };
+    }
+
+    if (!isOwner(sender) && !isAdmin(sock, from, sender)) {
+    return reply(sock, msg, "❌ Nur Admins können Antilink setzen!");
+}
+
+    const value = args[0]?.toLowerCase();
+    if (!value || (value !== "on" && value !== "off")) {
+        return reply(sock, msg, `⚙️ Nutzung: ${prefix}antilink on/off`);
+    }
+
+    botConfig.groupSettings[from].antilink = value === "on";
+    saveBotConfig();
+
+    return reply(
+        sock,
+        msg,
+        botConfig.groupSettings[from].antilink
+            ? "🔗 Antilink aktiviert!"
+            : "❌ Antilink deaktiviert!"
+    );
 }
 if (command === "autoread") {
     if (!args[0]) return reply(sock, msg, `❌ Nutzung: ${prefix}autoread <on|off> [groups|private]`);
@@ -1327,8 +1357,6 @@ if (command === "msgraw") {
             await sock.sendMessage(from, { document: { url: fileName }, fileName: fileName, mimetype: "application/json" }, { quoted: msg });
             return;
         }
-
-        // Nachricht direkt senden
         reply(sock, msg, "📄 Raw Message:\n" + rawMsg);
 
     } catch (err) {

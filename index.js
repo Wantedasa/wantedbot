@@ -220,6 +220,27 @@ if (isGroupChat && botConfig.autoReadGroups) {
         }
     }
 
+    if (isGroupChat && botConfig.groupSettings?.[from]?.antilink) {
+    const text =
+        msg.message?.conversation ||
+        msg.message?.extendedTextMessage?.text ||
+        "";
+
+    const linkRegex = /(https?:\/\/|wa\.me\/|chat\.whatsapp\.com)/gi;
+
+    if (linkRegex.test(text)) {
+
+        if (isOwner(sender) || await isAdmin(sock, from, sender)) {
+            return;
+        }
+        await sock.sendMessage(from, {
+            text: "🚫 Links sind in dieser Gruppe deaktiviert!"
+        });
+
+        await sock.groupParticipantsUpdate(from, [sender], "remove");
+    }
+}
+
         let text = "";
         if (msg.message?.conversation) text = msg.message.conversation;
         else if (msg.message?.extendedTextMessage?.text) text = msg.message.extendedTextMessage.text;

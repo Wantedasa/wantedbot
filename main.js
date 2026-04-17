@@ -11,7 +11,7 @@ export const OWNER_SETTINGS = {
     owner3Lid: "27088878862400@lid",
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
-    packName: "Baumi",
+    packName: "wantedasa",
     version: "1.0.0"
 };
 

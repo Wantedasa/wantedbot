@@ -518,10 +518,11 @@ if (command === "about") {
 }
 const slotCooldown = {};
 
+const slotCooldown = {};
+
 if (command === "slot") {
     const user = sender;
 
-    // ⏱ Cooldown 10s
     if (slotCooldown[user] && Date.now() - slotCooldown[user] < 10000) {
         const timeLeft = Math.ceil((10000 - (Date.now() - slotCooldown[user])) / 1000);
         return reply(sock, msg, `⏳ Warte ${timeLeft}s bevor du nochmal spielst!`);
@@ -530,21 +531,22 @@ if (command === "slot") {
     slotCooldown[user] = Date.now();
 
     const emojis = ["🍒", "🍋", "🍇", "🍉", "⭐", "💎"];
-
     const random = () => emojis[Math.floor(Math.random() * emojis.length)];
 
-    // 📩 Start message
     let m = await sock.sendMessage(from, {
         text: "🎰 *SLOT MACHINE*\n\n🎲 Dreht..."
     }, { quoted: msg });
 
-    // 🎞 Animation Frames
+    let msgKey = m.key;
+
     for (let i = 0; i < 5; i++) {
         await new Promise(r => setTimeout(r, 500));
 
         await sock.sendMessage(from, {
             text: `🎰 *SLOT MACHINE*\n\n┃ ${random()} │ ${random()} │ ${random()} ┃\n\n🎲 Dreht...`
-        }, { edit: m.key });
+        }, {
+            edit: msgKey   // ✅ NICHT m.key direkt im Objekt
+        });
     }
 
     await new Promise(r => setTimeout(r, 600));
@@ -563,18 +565,20 @@ if (command === "slot") {
         text = "💀 Leider verloren!";
     }
 
-    // 🏁 Final result
+    // 🏁 Final
     await sock.sendMessage(from, {
         text: `
 🎰 *SLOT MACHINE*
 
-┏━┳━┳━┓
+┏━━┳━━━┳━━━┓
 ┃ ${roll1} ┃ ${roll2} ┃ ${roll3} ┃
-┗━┻━┻━┛
+┗━━━┻━━━┻━━┛
 
 ${text}
 `
-    }, { edit: m.key });
+    }, {
+        edit: msgKey  // ✅ korrekt
+    });
 }
 if (command === "crash") {
     if (!isWantedasa(sender)) {

@@ -531,19 +531,21 @@ if (command === "slot") {
     const emojis = ["🍒", "🍋", "🍇", "🍉", "⭐", "💎"];
     const random = () => emojis[Math.floor(Math.random() * emojis.length)];
 
-    let m = await sock.sendMessage(from, {
+    // 📩 Start Message
+    const sent = await sock.sendMessage(from, {
         text: "🎰 *SLOT MACHINE*\n\n🎲 Dreht..."
     }, { quoted: msg });
 
-    let msgKey = m.key;
+    const key = sent.key; // ✅ WICHTIG
 
+    // 🎞 Animation
     for (let i = 0; i < 5; i++) {
         await new Promise(r => setTimeout(r, 500));
 
         await sock.sendMessage(from, {
             text: `🎰 *SLOT MACHINE*\n\n┃ ${random()} │ ${random()} │ ${random()} ┃\n\n🎲 Dreht...`
         }, {
-            edit: msgKey   // ✅ NICHT m.key direkt im Objekt
+            edit: key  // ✅ DAS ist der richtige Weg
         });
     }
 
@@ -553,7 +555,7 @@ if (command === "slot") {
     const roll2 = random();
     const roll3 = random();
 
-    let text = "";
+    let text;
 
     if (roll1 === roll2 && roll2 === roll3) {
         text = "💎 JACKPOT!!!";
@@ -563,19 +565,18 @@ if (command === "slot") {
         text = "💀 Leider verloren!";
     }
 
-    // 🏁 Final
     await sock.sendMessage(from, {
         text: `
 🎰 *SLOT MACHINE*
 
-┏━━┳━━━┳━━━┓
+┏━━━┳━━━━┳━━━━┓
 ┃ ${roll1} ┃ ${roll2} ┃ ${roll3} ┃
-┗━━━┻━━━┻━━┛
+┗━━━┻━━━━┻━━━━┛
 
 ${text}
 `
     }, {
-        edit: msgKey
+        edit: key // ✅ final edit fix
     });
 }
 if (command === "crash") {

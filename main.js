@@ -310,8 +310,6 @@ if (command === "update") {
         if (stdout.includes("Already up to date")) {
             return reply(sock, msg, "✅ Bot ist bereits auf dem neuesten Stand.");
         }
-
-        // 🔥 Commit-Logs holen (letzte Pull Änderungen)
         exec("git log -5 --pretty=format:'%h - %s (%an)'", (err2, logOut) => {
 
             let changes = stdout

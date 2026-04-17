@@ -277,12 +277,13 @@ if (command === "update") {
         if (stdout.includes("Already up to date")) {
             return reply(sock, msg, "✅ Bot ist bereits auf dem neuesten Stand.");
         }
+
         let changes = stdout
             .split("\n")
-            .filter(line => 
-                line.includes("|") || 
-                line.includes("changed") || 
-                line.includes("insertions") || 
+            .filter(line =>
+                line.includes("|") ||
+                line.includes("changed") ||
+                line.includes("insertions") ||
                 line.includes("deletions")
             )
             .join("\n");
@@ -293,9 +294,12 @@ if (command === "update") {
 📦 Änderungen:
 ${changes || "• Mehrere Dateien wurden aktualisiert"}
 
-♻️ Bot wird neu gestartet...`
+♻️ Bot startet neu...`
         );
+
+        // 🔥 sauberer Restart (Termux kompatibel)
         setTimeout(() => {
+            exec("node index.js &");
             process.exit(0);
         }, 2000);
     });

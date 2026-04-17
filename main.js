@@ -289,12 +289,15 @@ if (command === "update") {
             .join("\n");
 
         reply(sock, msg,
-`✅ *Update erfolgreich installiert!*
+`✅ *Update erfolgreich abgeschlossen!*
 
-📦 Änderungen:
-${changes || "• Mehrere Dateien wurden aktualisiert"}
+📦 *Änderungen:*
+${changes || "• Diverse Dateien wurden aktualisiert und optimiert"}
 
-♻️ Führe ``npm start`` aus, um den Bot neu zu starten.`
+♻️ Starte den Bot neu mit:
+\`\`\`npm start\`\`\`
+
+🚀 Danach sind alle Änderungen aktiv.`
         );
 
         setTimeout(() => {
@@ -420,53 +423,42 @@ if (command === "public") {
 
     if (command === "menu") {
         return reply(sock, msg,
-`╔════════════════════════════════════╗
-║        🤖  ${OWNER_SETTINGS.botName}  🤖        ║
-╠════════════════════════════════════╣
-║ 👑 Owner   ➜ ${OWNER_SETTINGS.ownerName}
-║ ⚡ Version  ➜ ${OWNER_SETTINGS.version}
-╚════════════════════════════════════╝
-
-╔══════════『 📌 MAIN 』══════════╗
-║ ${prefix}menu
-║ ${prefix}bot
-║ ${prefix}about
-╚══════════════════════════════════╝
-
-╔══════════『 👥 GROUP 』══════════╗
-║ ${prefix}hidetag
-║ ${prefix}kick
-║ ${prefix}welcome on/off
-║ ${prefix}leave on/off
-║ ${prefix}grpname
-║ ${prefix}grpdesc
-║ ${prefix}delete
-║ ${prefix}promote / ${prefix}demote
-║ ${prefix}mute / ${prefix}unmute
-║ ${prefix}grouplink
-║ ${prefix}grppic
-╚══════════════════════════════════╝
-
-╔══════════『 🧰 TOOLS 』══════════╗
-║ ${prefix}calc <Ausdruck>
-║ ${prefix}poll
-╚══════════════════════════════════╝
-
-╔══════════『 🔒 OWNER 』══════════╗
-║ ${prefix}self
-║ ${prefix}public
-║ ${prefix}info
-║ ${prefix}autoread
-║ ${prefix}grpleave
-║ ${prefix}device
-║ ${prefix}block / ${prefix}unblock
-║ ${prefix}antidelete on/off
-║ ${prefix}automsg set/stop
-╚══════════════════════════════════╝
-
-╔════════════════════════════════════╗
-║   ⚡ System läuft stabil & ready ⚡   ║
-╚════════════════════════════════════╝`
+`╔═══『 📃 ${OWNER_SETTINGS.botName} 』═══╗
+║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
+║ ⚡ Version: ${OWNER_SETTINGS.version}
+╠═════════════════════
+║ 📌 ${prefix}menu
+║ 📌 ${prefix}bot
+║ 📌 ${prefix}about
+║
+║ 👥 GROUP
+║ ├ ${prefix}hidetag
+║ ├ ${prefix}kick
+║ ├ ${prefix}welcome on/off
+║ ├ ${prefix}leave on/off
+║ ├ ${prefix}grpname
+║ ├ ${prefix}grpdesc
+║ ├ ${prefix}delete
+║ ├ ${prefix}promote / ${prefix}demote
+║ ├ ${prefix}mute / ${prefix}unmute
+║ ├ ${prefix}grouplink
+║ ├ ${prefix}grppic
+║
+║ 🧰 TOOLS
+║ ├ ${prefix}calc <Ausdruck>
+║ ├ ${prefix}poll
+║
+║ 🔒 OWNER
+║ ├ ${prefix}self
+║ ├ ${prefix}public
+║ ├ ${prefix}info
+║ ├ ${prefix}autoread
+║ ├ ${prefix}grpleave
+║ ├ ${prefix}device
+║ ├ ${prefix}block / ${prefix}unblock
+║ ├ ${prefix}antidelete on/off
+║ ├ ${prefix}automsg set/stop
+╚═════════════════════`
         );
     }
 if (command === "about") {

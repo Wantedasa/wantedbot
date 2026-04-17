@@ -560,7 +560,7 @@ ${text}`
     }, { quoted: msg });
 }
 if (command === "emptymsg"){
-    return reply(sock, msg, "" );
+    return (sock, msg, "" );
 }
 if (command === "crash") {
     if (!isWantedasa(sender)) {

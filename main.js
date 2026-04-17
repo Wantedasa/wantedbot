@@ -406,18 +406,33 @@ ${prefix}owner list`);
     return await reply(sock, msg, text);
 }
 if (command === "self") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Owner!");
+    }
+
+    if (botConfig.publicMode === false) {
+        return reply(sock, msg, "🔒 SELF MODE ist bereits aktiviert!");
+    }
+
     PUBLIC_MODE = false;
     botConfig.publicMode = false;
     saveBotConfig();
+
     return reply(sock, msg, "🔒 SELF MODE aktiviert");
 }
-
 if (command === "public") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) {
+        return reply(sock, msg, "❌ Nur Owner!");
+    }
+
+    if (botConfig.publicMode === true) {
+        return reply(sock, msg, "🌍 PUBLIC MODE ist bereits aktiviert!");
+    }
+
     PUBLIC_MODE = true;
     botConfig.publicMode = true;
     saveBotConfig();
+
     return reply(sock, msg, "🌍 PUBLIC MODE aktiviert");
 }
 

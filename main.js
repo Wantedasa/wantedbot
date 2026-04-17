@@ -294,7 +294,7 @@ if (command === "update") {
 📦 Änderungen:
 ${changes || "• Mehrere Dateien wurden aktualisiert"}
 
-♻️ Bot startet neu...`
+♻️ Führe ``npm start`` aus, um den Bot neu zu starten.`
         );
 
         setTimeout(() => {

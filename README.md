@@ -26,21 +26,16 @@ npm install
 
 🚀 Kurzbefehle
 
-Aktion
+Aktion: Bot starten
 
-Befehl
+Befehl: node index.js
 
-Bot starten
-
-node index.js
-
-Auth reset
-
-rm -r ./auth
+Auth reset: rm -r ./auth
 
 Prefix reset
 
 node resetprefix.js
+
 
 ⚠️ Hinweis
 

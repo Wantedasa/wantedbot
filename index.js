@@ -114,6 +114,7 @@ async function connectBot() {
             setTimeout(connectBot, 5000);
         } else if (connection === "open") {
             console.log(chalk.green("✅ ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Verbunden mit WhatsApp!"));
+            console.log(chalk.yellowBright("⚡Prefix: " + botConfig.prefix));
 
             loadAutoMessages(sock);
         }
@@ -176,7 +177,6 @@ sock.ev.on('messages.upsert', async ({ messages, type }) => {
         const sender = msg.key.participant || from;
         const id = msg.key.id;
 
-        // Cache für Gruppen
         if (isGroup(from)) {
             if (!messageCache[from]) messageCache[from] = {};
             messageCache[from][id] = {
@@ -224,7 +224,6 @@ if (isGroupChat && botConfig.autoReadGroups) {
         }
     }
 
-        // Nachrichtentext für Logging
         let text = "";
         if (msg.message?.conversation) text = msg.message.conversation;
         else if (msg.message?.extendedTextMessage?.text) text = msg.message.extendedTextMessage.text;

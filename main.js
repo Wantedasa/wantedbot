@@ -1298,27 +1298,23 @@ ${groupList}
     }
 }  
 if (command === "block") {
-    // Prüfen, ob der Befehl vom Owner kommt
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden blockieren!");
 
-    // Ziel-Nummer holen: Entweder durch Reply oder Argument
     let target = msg.message?.extendedTextMessage?.contextInfo?.participant || args[0];
     if (!target) return reply(sock, msg, "⚠️ Bitte Nummer angeben oder auf die Nachricht der Person antworten.");
 
-    // Nummer in JID-Format bringen
     if (!target.includes("@s.whatsapp.net")) target = target.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 
     try {
-        await sock.updateBlockStatus(target, "block"); // Nummer blockieren
+        await sock.updateBlockStatus(target, "block");
         reply(sock, msg, `✅ ${target.split("@")[0]} wurde erfolgreich blockiert.`);
     } catch (err) {
         console.error(err);
         reply(sock, msg, "❌ Blockieren fehlgeschlagen.");
     }
 }
-    if (command === "msgraw") {
+if (command === "msgraw") {
     try {
-        // Nachricht in JSON-Format umwandeln und formatieren
         const rawMsg = JSON.stringify(msg, null, 2);
 
         // Prüfen, ob die Nachricht zu groß für WhatsApp ist
@@ -1341,14 +1337,11 @@ if (command === "block") {
     }
 }
 if (command === "unblock") {
-    // Prüfen, ob der Befehl vom Owner kommt
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden entblocken!");
+    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner können jemanden entblocken!");
 
-    // Ziel-Nummer holen: Entweder durch Reply oder Argument
     let target = msg.message?.extendedTextMessage?.contextInfo?.participant || args[0];
     if (!target) return reply(sock, msg, "⚠️ Bitte Nummer angeben oder auf die Nachricht der Person antworten.");
 
-    // Nummer in JID-Format bringen
     if (!target.includes("@s.whatsapp.net")) target = target.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
 
     try {

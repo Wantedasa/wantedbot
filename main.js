@@ -724,23 +724,39 @@ if (command === "device") {
         if (!target) {
             return reply(sock, msg, "❌ User nicht gefunden!");
         }
+        let rawDevice =
+            ctx.deviceType ||
+            ctx.device ||
+            ctx.message?.deviceType ||
+            ctx.messageType ||
+            "unknown";
 
-        // 🔥 Besserer Device-Check (Baileys standard)
-        let device = ctx.deviceType || ctx.messageType || "Unbekannt";
+        rawDevice = String(rawDevice).toLowerCase();
 
-        // Normalisieren für bessere Anzeige
-        if (device?.toLowerCase().includes("android")) device = "Android 📱";
-        else if (device?.toLowerCase().includes("ios")) device = "iOS 🍎";
-        else if (device?.toLowerCase().includes("web")) device = "Web 💻";
-        else if (device?.toLowerCase().includes("desktop")) device = "Desktop 🖥️";
-        else device = "Unbekannt ❓";
+        let device = "❓ Unbekannt";
 
-        const messageId = ctx.stanzaId || "Unbekannt";
+        // 📱 Clean Mapping
+        if (rawDevice.includes("android")) device = "Android 📱";
+        else if (rawDevice.includes("ios")) device = "iOS 🍎";
+        else if (rawDevice.includes("web")) device = "Web 💻";
+        else if (rawDevice.includes("desktop")) device = "Desktop 🖥️";
 
-        const text = `╭───〔 📱 DEVICE INFO 〕───⬣
+        // 🧠 Smart fallback (nur wenn nichts da ist)
+        if (device === "❓ Unbekannt") {
+            if (ctx.isFromTemplate || ctx.isForwarded) {
+                device = "Unbekannt (Forwarded) ⚠️";
+            } else {
+                device = "Unbekannt ❓";
+            }
+        }
+
+        const messageId = ctx.stanzaId || ctx.id || "Unbekannt";
+
+        const text = `╭───〔 📱 DEVICE ANALYZE 〕───⬣
 │
 │ 👤 User: @${target.split("@")[0]}
 │ 📱 Gerät: ${device}
+│ 🧩 Raw: ${rawDevice}
 │ 🆔 Msg-ID: ${messageId}
 ╰────────────────⬣`;
 

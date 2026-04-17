@@ -279,8 +279,6 @@ if (command === "update") {
         if (stdout.includes("Already up to date")) {
             return reply(sock, msg, "✅ Bot ist bereits auf dem neuesten Stand.");
         }
-
-        // ✨ Git Output schön formatieren
         let changes = stdout
             .split("\n")
             .filter(line => 
@@ -299,8 +297,6 @@ ${changes || "• Mehrere Dateien wurden aktualisiert"}
 
 ♻️ Bot wird neu gestartet...`
         );
-
-        // Restart
         setTimeout(() => {
             process.exit(0);
         }, 2000);

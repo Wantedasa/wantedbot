@@ -318,12 +318,10 @@ ${prefix}owner del @user / (auf User antworten)
 ${prefix}owner list`);
     }
 
-    // Target (Mention oder Reply)
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
     const quoted = msg.message?.extendedTextMessage?.contextInfo?.participant;
     const target = mentioned?.[0] || quoted;
 
-    // ➕ ADD
     if (sub === "add") {
         if (!target) {
             return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
@@ -343,7 +341,6 @@ ${prefix}owner list`);
         return reply(sock, msg, `✅ @${target.split("@")[0]} ist jetzt Owner!`, [target]);
     }
 
-    // ❌ DEL
     if (sub === "del") {
         if (!target) {
             return reply(sock, msg, "❌ Markiere oder antworte auf einen User!");
@@ -353,7 +350,6 @@ ${prefix}owner list`);
             return reply(sock, msg, "❌ Bitte nur eine Person markieren!");
         }
 
-        // Haupt-Owner schützen
         if (target === OWNER_SETTINGS.ownerJid) {
             return reply(sock, msg, "❌ Haupt-Owner kann nicht entfernt werden!");
         }
@@ -370,7 +366,6 @@ ${prefix}owner list`);
         return reply(sock, msg, `✅ @${target.split("@")[0]} wurde entfernt!`, [target]);
     }
 
-    // 📋 LIST
     if (sub === "list") {
         if (!botConfig.owners.length) {
             return reply(sock, msg, "❌ Keine zusätzlichen Owner gesetzt!");
@@ -425,42 +420,53 @@ if (command === "public") {
 
     if (command === "menu") {
         return reply(sock, msg,
-`╔═══『 📃 ${OWNER_SETTINGS.botName} 』═══╗
-║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
-║ ⚡ Version: ${OWNER_SETTINGS.version}
-╠═════════════════════
-║ 📌 ${prefix}menu
-║ 📌 ${prefix}bot
-║ 📌 ${prefix}about
-║
-║ 👥 GROUP
-║ ├ ${prefix}hidetag
-║ ├ ${prefix}kick
-║ ├ ${prefix}welcome on/off
-║ ├ ${prefix}leave on/off
-║ ├ ${prefix}grpname
-║ ├ ${prefix}grpdesc
-║ ├ ${prefix}delete
-║ ├ ${prefix}promote/demote
-║ ├ ${prefix}mute/unmute
-║ ├ ${prefix}grouplink
-║ ├ ${prefix}grppic
-║
-║ 📂 TOOLS
-║ ├ ${prefix}calc <Ausdruck>
-║ ├ ${prefix}poll
-║
-║ 🔒 OWNER
-║ ├ ${prefix}self
-║ ├ ${prefix}public
-║ ├ ${prefix}info
-║ ├ ${prefix}autoread
-║ ├ ${prefix}grpleave
-║ ├ ${prefix}device
-║ ├ ${prefix}block/unblock
-║ ├ ${prefix}antidelete on/off
-║ ├ ${prefix}automsg set/stop
-╚═════════════════════`
+`╔════════════════════════════════════╗
+║        🤖  ${OWNER_SETTINGS.botName}  🤖        ║
+╠════════════════════════════════════╣
+║ 👑 Owner   ➜ ${OWNER_SETTINGS.ownerName}
+║ ⚡ Version  ➜ ${OWNER_SETTINGS.version}
+╚════════════════════════════════════╝
+
+╔══════════『 📌 MAIN 』══════════╗
+║ ${prefix}menu
+║ ${prefix}bot
+║ ${prefix}about
+╚══════════════════════════════════╝
+
+╔══════════『 👥 GROUP 』══════════╗
+║ ${prefix}hidetag
+║ ${prefix}kick
+║ ${prefix}welcome on/off
+║ ${prefix}leave on/off
+║ ${prefix}grpname
+║ ${prefix}grpdesc
+║ ${prefix}delete
+║ ${prefix}promote / ${prefix}demote
+║ ${prefix}mute / ${prefix}unmute
+║ ${prefix}grouplink
+║ ${prefix}grppic
+╚══════════════════════════════════╝
+
+╔══════════『 🧰 TOOLS 』══════════╗
+║ ${prefix}calc <Ausdruck>
+║ ${prefix}poll
+╚══════════════════════════════════╝
+
+╔══════════『 🔒 OWNER 』══════════╗
+║ ${prefix}self
+║ ${prefix}public
+║ ${prefix}info
+║ ${prefix}autoread
+║ ${prefix}grpleave
+║ ${prefix}device
+║ ${prefix}block / ${prefix}unblock
+║ ${prefix}antidelete on/off
+║ ${prefix}automsg set/stop
+╚══════════════════════════════════╝
+
+╔════════════════════════════════════╗
+║   ⚡ System läuft stabil & ready ⚡   ║
+╚════════════════════════════════════╝`
         );
     }
 if (command === "about") {
@@ -478,9 +484,6 @@ if (command === "about") {
 
     await sock.sendMessage(from, { text: combinedMessage });
 }
-    //=========================//
-    // PING
-    //=========================//
     if (command === "ping" || command === "p") {
         const start = Date.now();
         await reply(sock, msg, "🏓 Pinging...");

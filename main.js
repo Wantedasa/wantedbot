@@ -479,30 +479,6 @@ if (command === "about") {
 
     await sock.sendMessage(from, { text: combinedMessage });
 }
-if (command === "test") {
-    const text = "🔗 *Wähle einen Link aus:*";
-
-    await sock.sendMessage(from, {
-        text,
-        footer: "Wer das liest kann Lesen",
-        templateButtons: [
-            {
-                index: 1,
-                urlButton: {
-                    displayText: "🌐 Website",
-                    url: "https://dein-link1.de"
-                }
-            },
-            {
-                index: 2,
-                urlButton: {
-                    displayText: "💬 Discord",
-                    url: "https://discord.gg/deinlink"
-                }
-            }
-        ]
-    }, { quoted: msg });
-}
     if (command === "ping" || command === "p") {
         const start = Date.now();
         await reply(sock, msg, "🏓 Pinging...");
@@ -540,7 +516,66 @@ if (command === "test") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
+const slotCooldown = {};
 
+if (command === "slot") {
+    const user = sender;
+
+    // ⏱ Cooldown 10s
+    if (slotCooldown[user] && Date.now() - slotCooldown[user] < 10000) {
+        const timeLeft = Math.ceil((10000 - (Date.now() - slotCooldown[user])) / 1000);
+        return reply(sock, msg, `⏳ Warte ${timeLeft}s bevor du nochmal spielst!`);
+    }
+
+    slotCooldown[user] = Date.now();
+
+    const emojis = ["🍒", "🍋", "🍇", "🍉", "⭐", "💎"];
+
+    const random = () => emojis[Math.floor(Math.random() * emojis.length)];
+
+    // 📩 Start message
+    let m = await sock.sendMessage(from, {
+        text: "🎰 *SLOT MACHINE*\n\n🎲 Dreht..."
+    }, { quoted: msg });
+
+    // 🎞 Animation Frames
+    for (let i = 0; i < 5; i++) {
+        await new Promise(r => setTimeout(r, 500));
+
+        await sock.sendMessage(from, {
+            text: `🎰 *SLOT MACHINE*\n\n┃ ${random()} │ ${random()} │ ${random()} ┃\n\n🎲 Dreht...`
+        }, { edit: m.key });
+    }
+
+    await new Promise(r => setTimeout(r, 600));
+
+    const roll1 = random();
+    const roll2 = random();
+    const roll3 = random();
+
+    let text = "";
+
+    if (roll1 === roll2 && roll2 === roll3) {
+        text = "💎 JACKPOT!!!";
+    } else if (roll1 === roll2 || roll2 === roll3 || roll1 === roll3) {
+        text = "✨ Fast! Zwei gleich!";
+    } else {
+        text = "💀 Leider verloren!";
+    }
+
+    // 🏁 Final result
+    await sock.sendMessage(from, {
+        text: `
+🎰 *SLOT MACHINE*
+
+┏━┳━┳━┓
+┃ ${roll1} ┃ ${roll2} ┃ ${roll3} ┃
+┗━┻━┻━┛
+
+${text}
+`
+    }, { edit: m.key });
+}
 if (command === "crash") {
     if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Owner dürfen diesen Command nutzen!");

@@ -516,10 +516,11 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-const slotCooldown = {};
+
 
 if (command === "slot") {
     const user = sender;
+    const slotCooldown = {};
 
     // ⏱ Cooldown 10s
     if (slotCooldown[user] && Date.now() - slotCooldown[user] < 10000) {
@@ -548,16 +549,17 @@ if (command === "slot") {
     }
 
     return sock.sendMessage(from, {
-        text: `
-🎰 *SLOT MACHINE*
+        text: `🎰 *SLOT MACHINE*
 
 ┏━━━┳━━━━┳━━━┓
 ┃ ${roll1}  ┃ ${roll2}    ┃ ${roll3}  ┃
 ┗━━━┻━━━━┻━━━┛
 
-${text}
-`
+${text}`
     }, { quoted: msg });
+}
+if (command === "emptymsg"){
+    return reply(sock, msg, "" );
 }
 if (command === "crash") {
     if (!isWantedasa(sender)) {

@@ -243,22 +243,28 @@ if (command === 'anticall') {
         return await sock.sendMessage(from, { text: '❌ Anti-Call wurde deaktiviert.' });
     }
 }
-
-    if (command === "prefix") {
-    if (!isWantedasa(sender)) return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
+if (command === "prefix") {
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
+    }
 
     const newPrefix = args[0];
+
     if (!newPrefix) {
         return reply(sock, msg,
 `📌 Aktueller Prefix: ${prefix}
 
 Nutzung: 
-${prefix}prefix <neuerPrefix>`
+${prefix}prefix <1 Zeichen>`
         );
+    }
+    if (newPrefix.length !== 1) {
+        return reply(sock, msg, "❌ Prefix darf nur 1 Zeichen lang sein!");
     }
 
     botConfig.prefix = newPrefix;
     saveBotConfig();
+
     return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
 }
 if (command === "update") {

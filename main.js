@@ -297,7 +297,6 @@ ${changes || "• Mehrere Dateien wurden aktualisiert"}
 ♻️ Bot startet neu...`
         );
 
-        // 🔥 sauberer Restart (Termux kompatibel)
         setTimeout(() => {
             exec("node index.js &");
             process.exit(0);

@@ -431,7 +431,10 @@ ${prefix}owner list`);
     const autoBlock = botConfig?.autoBlock ? "✅ AN" : "❌ AUS";
     const antiCall = botConfig?.antiCall ? "✅ AN" : "❌ AUS";
 
-    const settings = botConfig.groupSettings[from];
+    const settings = botConfig?.groupSettings?.[from] || {
+        antidelete: false,
+        antilink: false
+    };
 
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
@@ -448,7 +451,6 @@ ${prefix}owner list`);
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
 ⬣──────────────────⬣`;
-
 
     return await reply(sock, msg, text);
 }
@@ -987,7 +989,7 @@ if (command === "hidetag") {
             text;
     }
 
-    if (!text) return reply(sock, msg, "❌ Benutzung: .hidetag <Nachricht> oder auf eine Nachricht antworten");
+    if (!text) return reply(sock, msg, `❌ Benutzung: ${prefix}hidetag <Nachricht> oder auf eine Nachricht antworten`);
 
     try {
         const groupMetadata = await sock.groupMetadata(from);

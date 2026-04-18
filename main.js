@@ -54,8 +54,6 @@ const autoFailCount = {};
 let autoMessageInterval = null;
 
 
-
-
 // ========================= GROUP SETTINGS =========================
 export const groupSettings = {};
 
@@ -549,7 +547,10 @@ if (command === "about") {
         const start = Date.now();
         await reply(sock, msg, "🏓 Pinging...");
         const latency = Date.now() - start;
-        return reply(sock, msg, `🏓 Pong!\n⏱️ Latenz: ${latency}ms`);
+        return reply(sock, msg, `█▀█ █▀█ █▄   █ █▀▀ █
+█▀▀ █▄█ █   ▀█ █▄█ ▄
+ᴅᴇʀ ʙᴏᴛ ɪsᴛ ᴏɴʟɪɴᴇ.
+ㅤ\n⏱️ Latenz: ${latency}ms`);
     }
     if (command === "kick") {
     if (!isGroup(from)) return;

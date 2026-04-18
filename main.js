@@ -328,7 +328,7 @@ ${upToDate ? "• Keine neuen Änderungen" : (changes || "• Dateien aktualisie
 🧾 *Letzte Commits:*
 ${logOut || "Keine Daten"}
 
-♻️ Bot startet jetzt neu...`;
+♻️ Bot startet jetzt neu...\nDas kann bis zu 10 Sekunden dauern. Bitte habe etwas Geduld!`;
 
             reply(sock, msg, text);
 

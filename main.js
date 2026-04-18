@@ -294,7 +294,7 @@ ${prefix}prefix <1 Zeichen>`
     return reply(sock, msg, `✅ Prefix wurde zu "${newPrefix}" geändert!`);
 }
 if (command === "update") {
-    if (!isOwner(sender)) {
+    if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Owner können den Bot updaten!");
     }
 

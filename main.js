@@ -513,12 +513,12 @@ if (command === "public") {
 ┃ ⎔ Vᴇʀsɪᴏɴ: ${OWNER_SETTINGS.version}
 ┠────────────────────┨
 ┃
-┃ ⌬ Cᴏʀᴇ
+┃ *⌬ Cᴏʀᴇ*
 ┃ ├ ${prefix}menu
 ┃ ├ ${prefix}bot
 ┃ └ ${prefix}about
 ┃
-┃ ☍ Gʀᴏᴜᴘ Sʏsᴛᴇᴍ
+┃ *☍ Gʀᴏᴜᴘ Sʏsᴛᴇᴍ*
 ┃ ├ ${prefix}hidetag
 ┃ ├ ${prefix}kick
 ┃ ├ ${prefix}welcome on/off
@@ -533,12 +533,12 @@ if (command === "public") {
 ┃ ├ ${prefix}tagadmins
 ┃ └ ${prefix}grppic
 ┃
-┃ ⧉ Tᴏᴏʟs
+┃ *⧉ Tᴏᴏʟs*
 ┃ ├ ${prefix}calc <Ausdruck>
 ┃ ├ ${prefix}poll
 ┃ └ ${prefix}emptymsg
 ┃
-┃ ⚿ Oᴡɴᴇʀ
+┃ *⚿ Oᴡɴᴇʀ*
 ┃ ├ ${prefix}self
 ┃ ├ ${prefix}public
 ┃ ├ ${prefix}info

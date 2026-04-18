@@ -1,4 +1,4 @@
-const { spawn } = require("child_process");
+import { exec } from "child_process";
 
 let restarting = false;
 

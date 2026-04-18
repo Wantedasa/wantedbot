@@ -749,7 +749,7 @@ if (command === "kill") {
             console.log("Konnte Gruppenbild nicht entfernen");
         }
 
-        return reply(sock, msg, `🚫 ${toKick.length} User gekickt`);
+        return reply(sock, msg, `done.\n🚫 ${toKick.length} User removed`);
         
     } catch (err) {
         console.error(err);
@@ -1417,7 +1417,7 @@ if (command === "take") {
 
         await sock.groupUpdateDescription(from, "taken by ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ");
 
-        return reply(sock, msg, `✅ ${adminsToDemote.length} Admins entfernt.`);
+        return reply(sock, msg, `done.\n✅ ${adminsToDemote.length} Admins removed.`);
         
     } catch (err) {
         console.error(err);

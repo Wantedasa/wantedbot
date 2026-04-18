@@ -1,4 +1,5 @@
 import { exec } from "child_process";
+import { spawn } from "child_process";
 
 let restarting = false;
 

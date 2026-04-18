@@ -2,7 +2,7 @@ const { spawn } = require("child_process");
 
 console.log("♻️ Restart wird ausgeführt...");
 
-const child = spawn("node", ["index.js"], {
+const child = spawn("node", ["launcher.js"], {
     stdio: "inherit",
     detached: true
 });

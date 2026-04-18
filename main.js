@@ -485,47 +485,48 @@ if (command === "public") {
 
     if (command === "menu") {
         return reply(sock, msg,
-`╔═══『 📃 ${OWNER_SETTINGS.botName} 』═══╗
-║ 👑 Owner: ${OWNER_SETTINGS.ownerName}
-║ ⚡ Version: ${OWNER_SETTINGS.version}
-╠═════════════════════
-║
-║══════『 📌 CORE 』════╗
-║ ${prefix}menu
-║ ${prefix}bot
-║ ${prefix}about
-║════════════════════╝
-║
-║『 👥 GROUP SYSTEM 』
-║ ├ ${prefix}hidetag
-║ ├ ${prefix}kick
-║ ├ ${prefix}welcome on/off
-║ ├ ${prefix}leave on/off
-║ ├ ${prefix}antilink on/off
-║ ├ ${prefix}grpname
-║ ├ ${prefix}grpdesc
-║ ├ ${prefix}delete
-║ ├ ${prefix}promote / ${prefix}demote
-║ ├ ${prefix}mute / ${prefix}unmute
-║ ├ ${prefix}grouplink
-║ ├ ${prefix}grppic
-║
-║『 🧰 TOOLS 』
-║ ├ ${prefix}calc <Ausdruck>
-║ ├ ${prefix}poll
-║ ├ ${prefix}emptymsg
-║
-║『 🔒 OWNER 』
-║ ├ ${prefix}self
-║ ├ ${prefix}public
-║ ├ ${prefix}info
-║ ├ ${prefix}autoread
-║ ├ ${prefix}grpleave
-║ ├ ${prefix}device
-║ ├ ${prefix}block / ${prefix}unblock
-║ ├ ${prefix}antidelete on/off
-║ ├ ${prefix}automsg set/stop
-╚═════════════════════`
+`┏━━━━━━━━━━━━━━━━━━━━┓
+┃   i  ${OWNER_SETTINGS.botName}
+┠────────────────────┨
+┃ ♛ Oᴡɴᴇʀ: ${OWNER_SETTINGS.ownerName}
+┃ ⎔ Vᴇʀsɪᴏɴ: ${OWNER_SETTINGS.version}
+┠────────────────────┨
+┃
+┃ ⌬ Cᴏʀᴇ
+┃ ├ ${prefix}menu
+┃ ├ ${prefix}bot
+┃ └ ${prefix}about
+┃
+┃ ☍ Gʀᴏᴜᴘ Sʏsᴛᴇᴍ
+┃ ├ ${prefix}hidetag
+┃ ├ ${prefix}kick
+┃ ├ ${prefix}welcome on/off
+┃ ├ ${prefix}leave on/off
+┃ ├ ${prefix}antilink on/off
+┃ ├ ${prefix}grpname
+┃ ├ ${prefix}grpdesc
+┃ ├ ${prefix}delete
+┃ ├ ${prefix}promote / ${prefix}demote
+┃ ├ ${prefix}mute / ${prefix}unmute
+┃ ├ ${prefix}grouplink
+┃ └ ${prefix}grppic
+┃
+┃ ⧉ Tᴏᴏʟs
+┃ ├ ${prefix}calc <Ausdruck>
+┃ ├ ${prefix}poll
+┃ └ ${prefix}emptymsg
+┃
+┃ ⚿ Oᴡɴᴇʀ
+┃ ├ ${prefix}self
+┃ ├ ${prefix}public
+┃ ├ ${prefix}info
+┃ ├ ${prefix}autoread
+┃ ├ ${prefix}grpleave
+┃ ├ ${prefix}device
+┃ ├ ${prefix}block / ${prefix}unblock
+┃ ├ ${prefix}antidelete on/off
+┃ └ ${prefix}automsg set/stop
+┗━━━━━━━━━━━━━━━━━━━━┛`
         );
     }
 if (command === "about") {

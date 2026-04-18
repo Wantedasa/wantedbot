@@ -486,7 +486,7 @@ if (command === "public") {
     if (command === "menu") {
         return reply(sock, msg,
 `┏━━━━━━━━━━━━━━━━━━━━┓
-┃      *${OWNER_SETTINGS.botName}*
+┃ *${OWNER_SETTINGS.botName}*
 ┠────────────────────┨
 ┃ ♛ Oᴡɴᴇʀ: ${OWNER_SETTINGS.ownerName}
 ┃ ⎔ Vᴇʀsɪᴏɴ: ${OWNER_SETTINGS.version}

@@ -44,41 +44,43 @@ const renderDashboard = () => {
 const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     const senderDisplay = jidToPhone(senderJid);
     const time = new Date().toLocaleTimeString("de-DE", { hour12: false });
-    const groupName = isGroup(groupJid) ? await jidToGroupName(sock, groupJid) : "Privatchat";
-
-    const typeIcons = {
-        msg: "🔹",
-        sticker: "🎴",
-        media: "🖼️",
-        afk: "⛔",
-        command: "⚡"
-    };
-
-    const typeColors = {
-        msg: chalk.white,
-        sticker: chalk.magenta,
-        media: chalk.cyan,
-        afk: chalk.red,
-        command: chalk.yellowBright
-    };
+    const groupName = isGroup(groupJid)
+        ? await jidToGroupName(sock, groupJid)
+        : "Privatchat";
 
     const typeLabels = {
-        msg: "",
-        sticker: "[Sticker]",
-        media: "[Media]",
-        afk: "[AFK]",
-        command: "[Befehl]"
+        msg: "MSG",
+        sticker: "STICKER",
+        media: "MEDIA",
+        afk: "AFK",
+        command: "CMD"
     };
 
-    const icon = isGroup(groupJid) ? "👥" : typeIcons[type];
+    const icon = isGroup(groupJid) ? "👥" : "👤";
 
-    const line = typeColors[type](`${icon} [${time}] ${senderDisplay} @ ${groupName} ${typeLabels[type]} » ${text}`);
-    
-    messageLog.push(line);
+    const block =
+        chalk.green(`│  [${time}] :: ${icon} USER:${senderDisplay}\n`) +
+        chalk.green(`│              ↳ CHAT: ${groupName}\n`) +
+        chalk.green(`│              ↳ TYPE: ${typeLabels[type]}\n`) +
+        chalk.green(`│              ↳ DATA: ${text}\n`) +
+        chalk.green(`│`);
+
+    messageLog.push(block);
 
     if (messageLog.length > MAX_LOG) messageLog.shift();
 
-    renderDashboard();
+    renderLogs();
+};
+
+const renderLogs = () => {
+    console.clear();
+
+    console.log(chalk.green("┌─[ WANTED BOT // LIVE LOG ]"));
+    console.log(chalk.green("│"));
+
+    messageLog.forEach(line => console.log(line));
+
+    console.log(chalk.green("└────────────────────────────────────────────"));
 };
 
 //=========================//

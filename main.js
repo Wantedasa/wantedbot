@@ -305,9 +305,8 @@ if (command === "update") {
             return reply(sock, msg, `❌ Update fehlgeschlagen:\n${error.message}`);
         }
 
-        if (stdout.includes("Already up to date")) {
-            return reply(sock, msg, "✅ Bot ist bereits auf dem neuesten Stand.");
-        }
+        const upToDate = stdout.includes("Already up to date");
+
         exec("git log -5 --pretty=format:'%h - %s (%an)'", (err2, logOut) => {
 
             let changes = stdout
@@ -321,25 +320,22 @@ if (command === "update") {
                 .join("\n");
 
             const text =
-`✅ *Update erfolgreich abgeschlossen!*
+`✅ *Update abgeschlossen!*
 
 📦 *Änderungen:*
-${changes || "• Dateien wurden aktualisiert"}
+${upToDate ? "• Keine neuen Änderungen" : (changes || "• Dateien aktualisiert")}
 
 🧾 *Letzte Commits:*
-${logOut || "Keine Commit-Daten verfügbar"}
+${logOut || "Keine Daten"}
 
-♻️ Neustart:
-\`\`\`npm start\`\`\`
-
-🚀 Bot wird jetzt neu gestartet...`;
+♻️ Bot startet jetzt neu...`;
 
             reply(sock, msg, text);
 
             setTimeout(() => {
-                exec("node index.js &");
+                exec("node restart.js");
                 process.exit(0);
-            }, 2500);
+            }, 2000);
         });
     });
 }

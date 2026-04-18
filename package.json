@@ -1,12 +1,12 @@
 {
-  "name": "Samuel",
+  "name": "wantedasa-samuelv1",
   "version": "1.0.0",
-  "description": "WhatsApp Bot SamuelV1 – hidetag, Admin, Kick, Menü",
+  "description": "WhatsApp Bot wantedasaV1",
   "main": "index.js",
-  "author": "Baumi",
+  "author": "wantedasa",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node launcher.js"
   },
   "dependencies": {
     "@angstvorfrauen/baileys": "^4.0.0",

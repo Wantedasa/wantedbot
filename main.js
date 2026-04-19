@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
 import { BS_TOKEN } from "./token.js";
+import axios from "axios";
+
 
 
 // ========================= OWNER SYSTEM =========================
@@ -41,6 +43,7 @@ if (fs.existsSync(CONFIG_FILE)) {
 botConfig.autoMessages = botConfig.autoMessages || {};
 botConfig.owners = botConfig.owners || [];
 
+
 // Speichern Funktion
 export const saveBotConfig = () => {
     try {
@@ -61,6 +64,7 @@ botConfig.bs = botConfig.bs || {
     clans: {}
 };
 
+const BS_API = "https://api.brawlstars.com/v1";
 export async function bsRequest(endpoint) {
     try {
         const res = await axios.get(`${BS_API}${endpoint}`, {

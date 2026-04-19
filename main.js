@@ -434,8 +434,7 @@ if (command === "tagadmins") {
         return reply(sock, msg, "⚠️ Keine Admins in dieser Gruppe gefunden.");
     }
 
-    let text = `
-╭━━━〔 📢 *GRUPPEN-ADMINS* 〕━━━╮
+    let text = `╭━━━〔 📢 *GRUPPEN-ADMINS* 〕━━━╮
 
 👑 *Admins in dieser Gruppe:*
 
@@ -443,8 +442,7 @@ ${admins.map((id, i) =>
 `┃ ${i + 1}. @${id.split("@")[0]}`
 ).join("\n")}
 
-╰━━━━━━━━━━━━━━━━━━━━━━━╯
-`.trim();
+╰━━━━━━━━━━━━━━━━━━━━━━━╯`.trim();
 
     await sock.sendMessage(from, {
         text,

@@ -10,8 +10,7 @@ const {
     handleGroupParticipants,
     botConfig,
     loadAutoMessages,
-    isOwner,
-    startBSTracker
+    isOwner
 } = mainModule;
 
 let isGroup = (jid) => jid?.endsWith("@g.us");
@@ -125,7 +124,6 @@ async function connectBot() {
             console.log(chalk.yellowBright("⚡᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot-Prefix: " + botConfig.prefix));
 
             loadAutoMessages(sock);
-            startBSTracker(sock);
         }
 
         if (connection === "close") {

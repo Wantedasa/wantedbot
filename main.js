@@ -61,6 +61,20 @@ botConfig.bs = botConfig.bs || {
     clans: {}
 };
 
+export async function bsRequest(endpoint) {
+    try {
+        const res = await axios.get(`${BS_API}${endpoint}`, {
+            headers: {
+                Authorization: `Bearer ${BS_TOKEN}`
+            }
+        });
+        return res.data;
+    } catch (e) {
+        console.error("BS API Error:", e.response?.data || e.message);
+        return null;
+    }
+}
+
 // ========================= GROUP SETTINGS =========================
 export const groupSettings = {};
 

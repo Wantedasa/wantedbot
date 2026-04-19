@@ -65,6 +65,7 @@ botConfig.bs = botConfig.bs || {
 };
 
 const BS_API = "https://api.brawlstars.com/v1";
+
 export async function bsRequest(endpoint) {
     try {
         const res = await axios.get(`${BS_API}${endpoint}`, {
@@ -72,6 +73,7 @@ export async function bsRequest(endpoint) {
                 Authorization: `Bearer ${BS_TOKEN}`
             }
         });
+
         return res.data;
     } catch (e) {
         console.error("BS API Error:", e.response?.data || e.message);

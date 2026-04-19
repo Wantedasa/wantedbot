@@ -1,6 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
+import "dotenv/config";
+
+const BS_TOKEN = process.env.BS_TOKEN;
 
 
 // ========================= OWNER SYSTEM =========================
@@ -1575,6 +1578,126 @@ if (command === "pn") {
         reply(sock, msg, "❌ Fehler beim Senden der PN!");
     }
 }
+if (command === "brawlstars" || command === "bs") {
+    const sub = args[0];
+    let input = args[1];
+
+    if (!sub) {
+        return reply(sock, msg,
+`🎮 *Brawl Stars System*
+
+${prefix}bs track <tag>
+${prefix}bs clan <tag>
+${prefix}bs stop
+${prefix}bs stats
+
+👉 Tags werden gespeichert`
+        );
+    }
+
+    // ================= PLAYER TRACK =================
+    if (sub === "track") {
+        if (!input && botConfig.bs.players[sender]) {
+            input = botConfig.bs.players[sender].tag;
+        }
+
+        if (!input) return reply(sock, msg, "❌ Tag fehlt!");
+
+        const tag = input.replace("#", "").toUpperCase();
+        const data = await bsRequest(`/players/%23${tag}`);
+        if (!data) return reply(sock, msg, "❌ Spieler nicht gefunden!");
+
+        botConfig.bs.players[sender] = {
+            tag,
+            name: data.name,
+            trophies: data.trophies,
+            today: 0,
+            lastDate: getToday()
+        };
+
+        saveBotConfig();
+
+        return reply(sock, msg,
+`✅ Tracking aktiv
+
+👤 ${data.name}
+🏆 ${data.trophies}`
+        );
+    }
+
+    // ================= CLAN TRACK =================
+    if (sub === "clan") {
+        if (!input) return reply(sock, msg, "❌ Clan-Tag fehlt!");
+
+        const tag = input.replace("#", "").toUpperCase();
+        const data = await bsRequest(`/clubs/%23${tag}`);
+        if (!data) return reply(sock, msg, "❌ Clan nicht gefunden!");
+
+        const members = {};
+
+        data.members.forEach(m => {
+            members[m.tag.replace("#", "")] = {
+                name: m.name,
+                trophies: m.trophies,
+                today: 0
+            };
+        });
+
+        botConfig.bs.clans[sender] = {
+            tag,
+            name: data.name,
+            members,
+            lastDate: getToday()
+        };
+
+        saveBotConfig();
+
+        return reply(sock, msg,
+`👥 Clan Tracking aktiv
+
+🏟️ ${data.name}
+👥 ${data.members.length} Mitglieder`
+        );
+    }
+
+    // ================= STOP =================
+    if (sub === "stop") {
+        delete botConfig.bs.players[sender];
+        delete botConfig.bs.clans[sender];
+
+        saveBotConfig();
+
+        return reply(sock, msg, "✅ Tracking gestoppt!");
+    }
+
+    // ================= STATS =================
+    if (sub === "stats") {
+        const p = botConfig.bs.players[sender];
+        const c = botConfig.bs.clans[sender];
+
+        let text = "📊 *DEINE STATS*\n\n";
+
+        if (p) {
+            text += `👤 ${p.name}\n🏆 ${p.trophies}\n📈 Heute: +${p.today}\n\n`;
+        }
+
+        if (c) {
+            const total = Object.values(c.members)
+                .reduce((sum, m) => sum + m.today, 0);
+
+            text += `👥 ${c.name}\n📈 Clan heute: +${total}\n`;
+        }
+
+        if (!p && !c) {
+            text += "❌ Kein Tracking aktiv!";
+        }
+
+        return reply(sock, msg, text);
+    }
+
+    return reply(sock, msg, "❌ Ungültiger Subcommand!");
+}
+
 
 }
 
@@ -1663,6 +1786,77 @@ export const loadAutoMessages = async (sock) => {
     console.log("🚀 Auto-Message System gestartet (Check alle 15 Minuten)");
 };
 
+
+export function startBSTracker(sock) {
+    try {
+    setInterval(async () => {
+        const today = new Date().toISOString().split("T")[0];
+
+        // ===== PLAYER =====
+        for (const jid in botConfig.bs.players) {
+            const user = botConfig.bs.players[jid];
+            const data = await bsRequest(`/players/%23${user.tag}`);
+            if (!data) continue;
+
+            if (user.lastDate !== today) {
+                user.today = 0;
+                user.lastDate = today;
+            }
+
+            const diff = data.trophies - user.trophies;
+
+            if (diff !== 0) {
+                user.today += diff;
+                user.trophies = data.trophies;
+
+                await sock.sendMessage(jid, {
+                    text: `📊 ${data.name}\n${diff > 0 ? "📈" : "📉"} ${diff} | 🏆 ${data.trophies}`
+                });
+            }
+        }
+
+        // ===== CLAN =====
+        for (const jid in botConfig.bs.clans) {
+            const clan = botConfig.bs.clans[jid];
+            const data = await bsRequest(`/clubs/%23${clan.tag}`);
+            if (!data) continue;
+
+            if (clan.lastDate !== today) {
+                clan.lastDate = today;
+                Object.values(clan.members).forEach(m => m.today = 0);
+            }
+
+            let updates = [];
+
+            for (const m of data.members) {
+                const tag = m.tag.replace("#", "");
+                const old = clan.members[tag];
+                if (!old) continue;
+
+                const diff = m.trophies - old.trophies;
+
+                if (diff !== 0) {
+                    old.today += diff;
+                    old.trophies = m.trophies;
+
+                    updates.push(`${diff > 0 ? "📈" : "📉"} ${m.name} ${diff}`);
+                }
+            }
+
+            if (updates.length > 0) {
+                await sock.sendMessage(jid, {
+                    text: `👥 ${clan.name}\n\n${updates.join("\n")}`
+                });
+            }
+        }
+
+        saveBotConfig();
+
+    }, 5 * 60 * 1000);
+    } catch (e) {
+   console.error("BSTracker Fehler:", e);
+}
+}
 //=========================//
 // GROUP EVENTS
 //=========================//

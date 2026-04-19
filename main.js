@@ -27,6 +27,9 @@ let botConfig = {
     owners: []
 };
 
+
+
+
 if (fs.existsSync(CONFIG_FILE)) {
     try {
         const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
@@ -53,7 +56,10 @@ const autoIntervals = {};
 const chats = {};
 const autoFailCount = {};
 let autoMessageInterval = null;
-
+botConfig.bs = botConfig.bs || {
+    players: {},
+    clans: {}
+};
 
 // ========================= GROUP SETTINGS =========================
 export const groupSettings = {};

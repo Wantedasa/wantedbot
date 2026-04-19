@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
-import BS_TOKEN from "./token.js";
+import { BS_TOKEN } from "./token.js";
 
 
 // ========================= OWNER SYSTEM =========================

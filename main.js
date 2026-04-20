@@ -68,7 +68,7 @@ export const setOnlineMessage = (groupId, text) => {
     saveBotConfig();
 };
 
-const defaultOnlineText = "╭───〔 🤖 BOT ONLINE 〕───⬣\n│\n│ ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ ist wieder online!\n│ ⚡ Systeme stabil\n│ 📡 Status: Aktiv\n│\n╰────────────────⬣";
+const defaultOnlineText = `╭───〔 🤖 BOT ONLINE 〕───⬣\n│\n│ ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ ist wieder online!\n│ ⚡ Systeme stabil\n│ 📡 Status: Aktiv\n│\n╰────────────────⬣`;
 
 export const toggleOnlineMessage = (groupId, state) => {
     if (!botConfig.onlineMessages[groupId]) {
@@ -355,7 +355,7 @@ if (command === "online") {
         data.text = `${defaultOnlineText}`;
         saveBotConfig();
 
-        return reply(sock, msg, "♻️ Online-Message auf Standard zurückgesetzt.");
+        return reply(sock, msg, `♻️ Online-Message auf ${defaultOnlineText} zurückgesetzt.`);
     }
 
     return reply(sock, msg, 

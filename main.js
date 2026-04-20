@@ -70,7 +70,7 @@ export const setOnlineMessage = (groupId, text) => {
 
 export const toggleOnlineMessage = (groupId, state) => {
     if (!botConfig.onlineMessages[groupId]) {
-        botConfig.onlineMessages[groupId] = { enabled: state, text: "🤖 Bot ist online!" };
+        botConfig.onlineMessages[groupId] = { enabled: state, text: "🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot online!" };
     } else {
         botConfig.onlineMessages[groupId].enabled = state;
     }
@@ -536,9 +536,9 @@ if (command === "bot") {
 
 ⬣───〔 ⚙️ GROUP STATUS 〕───⬣
 
+🤖 Bot Online: ${onlineData.enabled ? "✅ ON" : "❌ OFF"}
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
-🤖 Bot Online: ${onlineData.enabled ? "✅ ON" : "❌ OFF"}
 
 ⬣──────────────────⬣`;
 

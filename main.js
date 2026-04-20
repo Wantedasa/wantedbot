@@ -962,15 +962,19 @@ if (!isAdmin(sock, from, sender) && !isOwner(sender))
     }
 }
 if (command === "restart") {
-    if (!isWantedasa(sender)) {
-        return reply(sock, msg, "❌ Nur Owner!");
-    }
+    if (!isOwner(sender)) return;
 
-    reply(sock, msg, "♻️ Bot wird neu gestartet...");
+    await reply(sock, msg, "♻️ Bot wird neu gestartet...");
 
-    exec("node restart.js");
+    setTimeout(() => {
+        const child = spawn("node", ["restart.js"], {
+            detached: true,
+            stdio: "ignore"
+        });
 
-    process.exit(0);
+        child.unref();
+        process.exit(0);
+    }, 2000);
 }
 if (command === "grpleave" || command === "leavegrp") {
     if (!isGroup(from)) {

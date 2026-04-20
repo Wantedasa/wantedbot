@@ -71,7 +71,7 @@ export const setOnlineMessage = (groupId, text) => {
 const defaultOnlineText = "🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot online!";
 export const toggleOnlineMessage = (groupId, state) => {
     if (!botConfig.onlineMessages[groupId]) {
-        botConfig.onlineMessages[groupId] = { enabled: state, text: "${defaultOnlineText}" };
+        botConfig.onlineMessages[groupId] = { enabled: state, text: `${defaultOnlineText}` };
     } else {
         botConfig.onlineMessages[groupId].enabled = state;
     }

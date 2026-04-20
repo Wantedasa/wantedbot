@@ -505,7 +505,7 @@ ${admins.map((id, i) =>
         mentions: admins
     }, { quoted: msg });
 }
-   if (command === "bot") {
+if (command === "bot") {
     const mode = PUBLIC_MODE ? "🌍 PUBLIC MODE" : "🔒 SELF MODE";
 
     const autoReadGroups = botConfig?.autoReadGroups ? "✅ AN" : "❌ AUS";
@@ -518,11 +518,17 @@ ${admins.map((id, i) =>
         antilink: false
     };
 
+    const onlineData = botConfig?.onlineMessages?.[from] || {
+        enabled: false,
+        text: "Nicht gesetzt"
+    };
+
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
 ⚡ Version: ${OWNER_SETTINGS.version}
 🟢 Mode: ${mode}
 📰 Prefix: ${prefix} 
+
 📖 Auto-Read Gruppen: ${autoReadGroups}
 📖 Auto-Read Private: ${autoReadPrivate}
 ⛔ Auto-Block: ${autoBlock}
@@ -532,7 +538,8 @@ ${admins.map((id, i) =>
 
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
-🤖 Bot Online: ${data?.enabled ? "✅ ON" : "❌ OFF"}
+🤖 Bot Online: ${onlineData.enabled ? "✅ ON" : "❌ OFF"}
+
 ⬣──────────────────⬣`;
 
     return await reply(sock, msg, text);

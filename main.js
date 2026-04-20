@@ -24,10 +24,9 @@ let botConfig = {
     publicMode: true, 
     autoRead: false,
     autoMessages: {},
-    owners: []
+    owners: [],
+    onlineMessages: {}
 };
-
-
 
 
 if (fs.existsSync(CONFIG_FILE)) {
@@ -40,6 +39,7 @@ if (fs.existsSync(CONFIG_FILE)) {
 }
 botConfig.autoMessages = botConfig.autoMessages || {};
 botConfig.owners = botConfig.owners || [];
+botConfig.onlineMessages = botConfig.onlineMessages || {};
 
 
 // Speichern Funktion
@@ -57,6 +57,40 @@ const autoIntervals = {};
 const chats = {};
 const autoFailCount = {};
 let autoMessageInterval = null;
+
+
+export const setOnlineMessage = (groupId, text) => {
+    if (!botConfig.onlineMessages[groupId]) {
+        botConfig.onlineMessages[groupId] = { enabled: true, text };
+    } else {
+        botConfig.onlineMessages[groupId].text = text;
+    }
+    saveBotConfig();
+};
+
+export const toggleOnlineMessage = (groupId, state) => {
+    if (!botConfig.onlineMessages[groupId]) {
+        botConfig.onlineMessages[groupId] = { enabled: state, text: "🤖 Bot ist online!" };
+    } else {
+        botConfig.onlineMessages[groupId].enabled = state;
+    }
+    saveBotConfig();
+};
+
+export async function sendOnlineMessages(sock) {
+    for (const groupId in botConfig.onlineMessages) {
+        const data = botConfig.onlineMessages[groupId];
+
+        if (!data.enabled) continue;
+
+        try {
+            await sock.sendMessage(groupId, { text: data.text });
+            console.log(`📢 Online-Message gesendet an ${groupId}`);
+        } catch (e) {
+            console.log(`❌ Fehler bei ${groupId}:`, e.message);
+        }
+    }
+}
 
 
 // ========================= GROUP SETTINGS =========================
@@ -274,6 +308,23 @@ if (command === 'anticall') {
         return await sock.sendMessage(from, { text: '❌ Anti-Call wurde deaktiviert.' });
     }
 }
+if (command === "online") {
+    if (!isOwner) return reply(sock, msg, "❌ Nur Owner!");
+
+    const state = args[0];
+
+    if (state === "on") {
+        toggleOnlineMessage(from, true);
+        return reply(sock, msg, "✅ Online-Message aktiviert.");
+    }
+
+    if (state === "off") {
+        toggleOnlineMessage(from, false);
+        return reply(sock, msg, "❌ Online-Message deaktiviert.");
+    }
+
+    return reply(sock, msg,  `⚙️ Nutzung: ${prefix}online on/off`);
+}
 if (command === "prefix") {
     if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Owner können den Prefix ändern!");
@@ -481,6 +532,7 @@ ${admins.map((id, i) =>
 
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
+🤖 Bot Online: ${data?.enabled ? "✅ ON" : "❌ OFF"}
 ⬣──────────────────⬣`;
 
     return await reply(sock, msg, text);

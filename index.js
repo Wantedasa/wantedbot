@@ -10,7 +10,8 @@ const {
     handleGroupParticipants,
     botConfig,
     loadAutoMessages,
-    isOwner
+    isOwner,
+    sendOnlineMessages
 } = mainModule;
 
 let isGroup = (jid) => jid?.endsWith("@g.us");
@@ -124,6 +125,8 @@ async function connectBot() {
             console.log(chalk.yellowBright("⚡᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot-Prefix: " + botConfig.prefix));
 
             loadAutoMessages(sock);
+            sendOnlineMessages(sock);
+
         }
 
         if (connection === "close") {

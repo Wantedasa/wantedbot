@@ -68,9 +68,10 @@ export const setOnlineMessage = (groupId, text) => {
     saveBotConfig();
 };
 
+const defaultOnlineText = "🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot online!";
 export const toggleOnlineMessage = (groupId, state) => {
     if (!botConfig.onlineMessages[groupId]) {
-        botConfig.onlineMessages[groupId] = { enabled: state, text: "🤖 ᭙ꪖ᭢ᡶꫀᦔꪖకꪖ Bot online!" };
+        botConfig.onlineMessages[groupId] = { enabled: state, text: "${defaultOnlineText}" };
     } else {
         botConfig.onlineMessages[groupId].enabled = state;
     }
@@ -311,19 +312,63 @@ if (command === 'anticall') {
 if (command === "online") {
     if (!isOwner) return reply(sock, msg, "❌ Nur Owner!");
 
-    const state = args[0];
+    const sub = args[0];
+    const text = args.slice(1).join(" ");
 
-    if (state === "on") {
-        toggleOnlineMessage(from, true);
+    // Daten holen / default setzen
+    if (!botConfig.onlineMessages[from]) {
+        botConfig.onlineMessages[from] = {
+            enabled: false,
+            text: "🤖 Bot ist jetzt online!"
+        };
+    }
+
+    const data = botConfig.onlineMessages[from];
+
+    // 🔛 ON
+    if (sub === "on") {
+        data.enabled = true;
+        saveBotConfig();
         return reply(sock, msg, "✅ Online-Message aktiviert.");
     }
 
-    if (state === "off") {
-        toggleOnlineMessage(from, false);
+    // 🔴 OFF
+    if (sub === "off") {
+        data.enabled = false;
+        saveBotConfig();
         return reply(sock, msg, "❌ Online-Message deaktiviert.");
     }
 
-    return reply(sock, msg,  `⚙️ Nutzung: ${prefix}online on/off`);
+    // ✏️ CUSTOM SETZEN
+    if (sub === "set") {
+        if (!text) {
+            return reply(sock, msg, `❌ Nutzung: ${prefix}online set <text>`);
+        }
+
+        data.text = text;
+        saveBotConfig();
+
+        return reply(sock, msg, "✅ Online-Message gesetzt.");
+    }
+
+    if (sub === "setdefault") {
+        data.text = `{defaultOnlineText}`;
+        saveBotConfig();
+
+        return reply(sock, msg, "♻️ Online-Message auf Standard zurückgesetzt.");
+    }
+
+    return reply(sock, msg, 
+`📡 *Online-Message*
+
+Status: ${data.enabled ? "✅ AN" : "❌ AUS"}
+Text: ${data.text}
+
+⚙️ Nutzung:
+${prefix}online on/off
+${prefix}online set <text>
+${prefix}online setdefault`
+    );
 }
 if (command === "prefix") {
     if (!isWantedasa(sender)) {

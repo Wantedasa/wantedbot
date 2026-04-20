@@ -961,6 +961,17 @@ if (!isAdmin(sock, from, sender) && !isOwner(sender))
         return reply(sock, msg, "❌ Kein Gruppenbild gefunden!");
     }
 }
+if (command === "restart") {
+    if (!isWantedasa(sender)) {
+        return reply(sock, msg, "❌ Nur Owner!");
+    }
+
+    reply(sock, msg, "♻️ Bot wird neu gestartet...");
+
+    exec("node restart.js");
+
+    process.exit(0);
+}
 if (command === "grpleave" || command === "leavegrp") {
     if (!isGroup(from)) {
         return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");

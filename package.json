@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@angstvorfrauen/baileys": "^3.0.3",
+    "wa-sticker-formatter": "^4.4.4",
     "pino": "^8.14.0",
     "better-sqlite3": "^8.2.0",
     "cfonts": "^3.0.0",

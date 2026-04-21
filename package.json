@@ -21,6 +21,6 @@
     "node-cache": "^5.1.2",
     "open": "^9.0.0",
     "node-fetch": "^3.3.2",
-    "libsignal-xeuka": "^0.1.8"
+    "libsignal-xeuka": "^1.0.0"
   }
 }

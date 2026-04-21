@@ -1,5 +1,5 @@
 import { Sticker, StickerTypes } from 'wa-sticker-formatter';
-import { downloadContentFromMessage } from '@angstvorfrauen/baileys';
+//import { downloadContentFromMessage } from '@angstvorfrauen/baileys';
 
 export default async function ({ message, sock, event, config }) {
     const quoted = event.message?.extendedTextMessage?.contextInfo?.quotedMessage;

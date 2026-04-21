@@ -720,6 +720,27 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
+const stickerHandler = require('./sticker');
+
+if (command === "sticker" || command === "s") {
+    try {
+        await stickerHandler({
+            message: {
+                ...msg,
+                reply: (text) => reply(sock, msg, text),
+                threadID: from
+            },
+            sock,
+            event: msg,
+            config: {
+                botName: "Wantedasa Bot" // oder dein config
+            }
+        });
+    } catch (e) {
+        console.error(e);
+        reply(sock, msg, "❌ Fehler beim Sticker Command!");
+    }
+}
 if (command === "slot") {
     const user = sender;
     const slotCooldown = {};

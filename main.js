@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { exec, spawn } from "child_process";
-
+import stickerHandler from './sticker.js';
 
 
 // ========================= OWNER SYSTEM =========================
@@ -650,6 +650,7 @@ if (command === "public") {
 ┃ *⧉ Tᴏᴏʟs*
 ┃ ├ ${prefix}calc <Ausdruck>
 ┃ ├ ${prefix}poll
+┃ ├ ${prefix}sticker
 ┃ └ ${prefix}emptymsg
 ┃
 ┃ *⚿ Oᴡɴᴇʀ*
@@ -720,8 +721,6 @@ if (command === "about") {
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
 }
-const stickerHandler = require('./sticker');
-
 if (command === "sticker" || command === "s") {
     try {
         await stickerHandler({

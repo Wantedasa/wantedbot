@@ -9,7 +9,7 @@ export const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
     ownerLid: "218507098771705@lid",
     owner2Lid: "45681943306435@lid",
-    owner3Lid: "30503562416321@lid",
+    owner3Lid: "30503562416321@lid", // Patrick
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "wantedasa",
@@ -41,8 +41,6 @@ botConfig.autoMessages = botConfig.autoMessages || {};
 botConfig.owners = botConfig.owners || [];
 botConfig.onlineMessages = botConfig.onlineMessages || {};
 
-
-// Speichern Funktion
 export const saveBotConfig = () => {
     try {
         fs.writeFileSync(CONFIG_FILE, JSON.stringify(botConfig, null, 2), "utf-8");

@@ -136,10 +136,6 @@ async function connectBot() {
     });
 
     sock.ev.on("creds.update", saveCreds);
-
-    // =========================
-    // Anti Call
-    // =========================
     const callCounts = new Map();
 
     setInterval(() => callCounts.clear(), 60 * 60 * 1000);

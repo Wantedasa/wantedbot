@@ -9,7 +9,7 @@ export const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
     ownerLid: "218507098771705@lid",
     owner2Lid: "45681943306435@lid",
-    owner3Lid: "148936715174046@lid",
+    owner3Lid: "",
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "wantedasa",

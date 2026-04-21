@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { exec, spawn } from "child_process";
-import stickerHandler from './sticker.js';
+
 
 
 // ========================= OWNER SYSTEM =========================
@@ -650,7 +650,6 @@ if (command === "public") {
 ┃ *⧉ Tᴏᴏʟs*
 ┃ ├ ${prefix}calc <Ausdruck>
 ┃ ├ ${prefix}poll
-┃ ├ ${prefix}sticker
 ┃ └ ${prefix}emptymsg
 ┃
 ┃ *⚿ Oᴡɴᴇʀ*
@@ -719,25 +718,6 @@ if (command === "about") {
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
-    }
-}
-if (command === "sticker" || command === "s") {
-    try {
-        await stickerHandler({
-            message: {
-                ...msg,
-                reply: (text) => reply(sock, msg, text),
-                threadID: from
-            },
-            sock,
-            event: msg,
-            config: {
-                botName: "Wantedasa Bot" // oder dein config
-            }
-        });
-    } catch (e) {
-        console.error(e);
-        reply(sock, msg, "❌ Fehler beim Sticker Command!");
     }
 }
 if (command === "slot") {
@@ -1298,6 +1278,7 @@ if (command === 'poll') {
             selectableCount: 1
         }
     });
+
     await sock.sendMessage(from, { delete: msg.key });
 }
 if (command === "add") {

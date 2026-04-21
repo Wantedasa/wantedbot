@@ -1,7 +1,7 @@
-const { Sticker, StickerTypes } = require('wa-sticker-formatter');
-const { downloadContentFromMessage } = require('@angstvorfrauen/baileys');
+import { Sticker, StickerTypes } from 'wa-sticker-formatter';
+import { downloadContentFromMessage } from '@angstvorfrauen/baileys';
 
-module.exports = async function ({ message, sock, event, config }) {
+export default async function ({ message, sock, event, config }) {
     const quoted = event.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
     const msg = event.message?.imageMessage || 
@@ -44,4 +44,4 @@ module.exports = async function ({ message, sock, event, config }) {
         console.error(e);
         message.reply("✕ Fehler beim Erstellen des Stickers. Vielleicht ist das Video zu lang?");
     }
-};
+}

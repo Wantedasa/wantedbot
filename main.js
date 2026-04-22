@@ -706,8 +706,9 @@ if (command === "public") {
 ┃ └ ${prefix}grppic
 ┃
 ┃ *⧉ Tᴏᴏʟs*
-┃ ├ ${prefix}calc <Ausdruck>
+┃ ├ ${prefix}calc
 ┃ ├ ${prefix}poll
+┃ ├ ${prefix}translate
 ┃ └ ${prefix}emptymsg
 ┃
 ┃ *⚝ Gᴀᴍᴇꜱ*
@@ -870,8 +871,6 @@ if (command === "tr" || command === "translate" || command === "übersetzung") {
         hi: "🇮🇳", th: "🇹🇭", vi: "🇻🇳", id: "🇮🇩",
         zh: "🇨🇳", ja: "🇯🇵", ko: "🇰🇷"
     };
-
-    // Liste anzeigen
     if (args[0] === "list") {
         let listText = "🌍 *Verfügbare Sprachen:*\n\n";
         for (const [code, name] of Object.entries(languages)) {
@@ -882,15 +881,12 @@ if (command === "tr" || command === "translate" || command === "übersetzung") {
 
     const targetLang = args[0]?.toLowerCase();
     
-    // Text-Erkennung: Entweder aus den Argumenten oder aus einer zitierten Nachricht
     let input = args.slice(1).join(" ");
     const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     
     if (quoted && !input) {
         input = quoted.conversation || quoted.extendedTextMessage?.text || quoted.imageMessage?.caption || "";
     }
-
-    // Validierung
     if (!targetLang || !input) {
         return reply(sock, msg, `❌ *Fehler!*\nNutze: ${prefix}${command} <sprache> <text>\nOder antworte auf eine Nachricht mit: ${prefix}${command} <sprache>`);
     }
@@ -918,7 +914,6 @@ ${input}
 📤 *Übersetzt (${languages[targetLang] || targetLang})*:
 ${translatedText}`;
 
-        // Reaktion mit der Ziel-Flagge
         await sock.sendMessage(msg.key.remoteJid, { 
             react: { text: toFlag, key: msg.key } 
         });

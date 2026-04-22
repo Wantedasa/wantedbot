@@ -623,7 +623,7 @@ if (command === "bot") {
         enabled: false,
         text: "Nicht gesetzt"
     };
-    const autoreactdata = botConfig.autoReacts[groupId];
+    const autoreactdata = botConfig.autoReacts[from];
 
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}

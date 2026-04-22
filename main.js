@@ -850,7 +850,77 @@ if (command === "crash2") {
 
     return reply(sock, msg, `done.`);
 }
+if (cmd === "tr" || cmd === "translate" || cmd === "übersetzung") {
+    const languages = {
+        de: "Deutsch", en: "Englisch", fr: "Französisch", es: "Spanisch",
+        it: "Italienisch", nl: "Niederländisch", pl: "Polnisch",
+        pt: "Portugiesisch", ro: "Rumänisch", cs: "Tschechisch",
+        sv: "Schwedisch", no: "Norwegisch", fi: "Finnisch",
+        tr: "Türkisch", ar: "Arabisch", he: "Hebräisch",
+        hi: "Hindi", th: "Thailändisch", vi: "Vietnamesisch",
+        id: "Indonesisch", zh: "Chinesisch", ja: "Japanisch", ko: "Koreanisch"
+    };
 
+    const flags = {
+        de: "🇩🇪", en: "🇬🇧", fr: "🇫🇷", es: "🇪🇸",
+        it: "🇮🇹", nl: "🇳🇱", pl: "🇵🇱", pt: "🇵🇹",
+        ro: "🇷🇴", cs: "🇨🇿", sv: "🇸🇪", no: "🇳🇴",
+        fi: "🇫🇮", tr: "🇹🇷", ar: "🇸🇦", he: "🇮🇱",
+        hi: "🇮🇳", th: "🇹🇭", vi: "🇻🇳", id: "🇮🇩",
+        zh: "🇨🇳", ja: "🇯🇵", ko: "🇰🇷"
+    };
+
+    if (args[0] === "list") {
+        let text = "🌍 *Verfügbare Sprachen:*\n\n";
+        for (const [code, name] of Object.entries(languages)) {
+            text += `${flags[code] || "🌐"} ${code.toUpperCase()} → ${name}\n`;
+        }
+        text += "\n📌 Beispiel: +tr en Hallo";
+        return reply(sock, msg, text);
+    }
+
+    const targetLang = args[0];
+    const input = args.slice(1).join(" ");
+
+    if (!targetLang || !input) {
+        return reply(sock, msg,
+            "❌ Nutzung:\n+tr <sprache> <text>\n\n📌 Beispiel: +tr en Hallo"
+        );
+    }
+
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(input)}`;
+        const res = await axios.get(url);
+
+        const translated = res.data[0][0][0];
+        const detected = res.data[2];
+
+        const fromFlag = flags[detected] || "🌐";
+        const toFlag = flags[targetLang] || "🌐";
+
+        const text =
+`${fromFlag} ➜ ${toFlag} *Übersetzung*
+
+📥 *Original (${detected})*
+${input}
+
+📤 *Übersetzt (${targetLang})*
+${translated}`;
+
+        await sock.sendMessage(msg.key.remoteJid, {
+            react: {
+                text: toFlag,
+                key: msg.key
+            }
+        });
+
+        return reply(sock, msg, text);
+
+    } catch (err) {
+        console.error("Translate Error:", err);
+        return reply(sock, msg, "❌ Übersetzung fehlgeschlagen!");
+    }
+}
 if (command === "getpic") {
     try {
         let target;

@@ -9,10 +9,10 @@ const {
     handleCommands,
     handleGroupParticipants,
     botConfig,
-    loadAutoMessages,
     isOwner,
     sendOnlineMessages
 } = mainModule;
+import { loadAutoMessages } from "./automsg.js";
 
 let isGroup = (jid) => jid?.endsWith("@g.us");
 

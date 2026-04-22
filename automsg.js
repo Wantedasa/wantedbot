@@ -1,5 +1,8 @@
 // ================= IMPORTS =================
-import { botConfig, saveBotConfig } from "./config.js";
+import * as mainModule from "./main.js";
+const {
+    botConfig,
+}
 
 // ================= CONFIG =================
 const CHECK_INTERVAL = 60 * 1000;

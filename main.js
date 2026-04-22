@@ -49,7 +49,7 @@ export const saveBotConfig = () => {
     }
 };
 
-export {botConfig};
+export { botConfig };
 
 const autoIntervals = {};
 const chats = {};

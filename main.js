@@ -43,6 +43,7 @@ if (fs.existsSync(CONFIG_FILE)) {
 botConfig.autoMessages = botConfig.autoMessages || {};
 botConfig.owners = botConfig.owners || [];
 botConfig.onlineMessages = botConfig.onlineMessages || {};
+botConfig.autoReacts = botConfig.autoReacts || {};
 
 export const saveBotConfig = () => {
     try {
@@ -369,50 +370,62 @@ ${prefix}online setdefault`
     );
 }
 if (command === "autoreact") {
-    if (!msg.key.remoteJid.endsWith("@g.us")) {
+    if (!from.endsWith("@g.us")) {
         return reply(sock, msg, "❌ Nur in Gruppen nutzbar.");
     }
 
-    if (!isOwner) {
+    if (!isAdmin && !isOwner) {
         return reply(sock, msg, "❌ Nur Admins dürfen das einstellen.");
     }
 
     const sub = args[0];
     const groupId = from;
 
-    if (!db.groups[groupId]) db.groups[groupId] = {};
-
-    if (sub === "on") {
-        if (!db.groups[groupId].autoReactEmoji) {
-            return reply(sock, msg, "❌ Setze zuerst ein Emoji mit: autoreact set 😊");
-        }
-
-        db.groups[groupId].autoReact = true;
-        return reply(sock, msg, `✅ Auto-Reaction aktiviert (${db.groups[groupId].autoReactEmoji})`);
+    if (!botConfig.autoReacts[groupId]) {
+        botConfig.autoReacts[groupId] = {
+            enabled: false,
+            emoji: "🌚"
+        };
     }
 
-    if (sub === "off") {
-        db.groups[groupId].autoReact = false;
-        return reply(sock, msg, "❌ Auto-Reaction deaktiviert.");
-    }
-
+    // SET EMOJI
     if (sub === "set") {
         const emoji = args[1];
 
         if (!emoji) {
-            return reply(sock, msg, "❌ Gib ein Emoji an: autoreact set 😂");
+            return reply(sock, msg, "❌ Beispiel: autoreact set 😂");
         }
 
-        db.groups[groupId].autoReactEmoji = emoji;
+        botConfig.autoReacts[groupId].emoji = emoji;
+        saveBotConfig();
+
         return reply(sock, msg, `✅ Emoji gesetzt auf ${emoji}`);
     }
+
+    // ON
+    if (sub === "on") {
+        botConfig.autoReacts[groupId].enabled = true;
+        saveBotConfig();
+
+        return reply(sock, msg, `✅ Auto-Reaction aktiviert (${botConfig.autoReacts[groupId].emoji})`);
+    }
+    if (sub === "off") {
+        botConfig.autoReacts[groupId].enabled = false;
+        saveBotConfig();
+
+        return reply(sock, msg, "❌ Auto-Reaction deaktiviert.");
+    }
+    const data = botConfig.autoReacts[groupId];
 
     return reply(sock, msg,
 `╭───〔 🤖 AUTO REACT 〕───⬣
 │
-│ autoreact set 😊
-│ autoreact on
-│ autoreact off
+│ Status: ${data?.enabled ? "✅ AN" : "❌ AUS"}
+│ Emoji: ${data?.emoji || "❌ keines"}
+│
+│ ${prefix}autoreact set 😊
+│ ${prefix}autoreact on
+│ ${prefix}autoreact off
 │
 ╰────────────────⬣`);
 }

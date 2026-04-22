@@ -214,21 +214,21 @@ async function connectBot() {
             const groupId = msg.key.remoteJid;
 
             if (groupId.endsWith("@g.us")) {
-            const groupData = db.groups[groupId];
+            const data = botConfig.autoReacts?.[groupId];
 
-            if (groupData?.autoReact && groupData?.autoReactEmoji) {
+            if (data?.enabled && data?.emoji) {
                 try {
-                    await sock.sendMessage(groupId, {
-                        react: {
-                        text: groupData.autoReactEmoji,
-                        key: msg.key
+                await sock.sendMessage(groupId, {
+                react: {
+                    text: data.emoji,
+                    key: msg.key
                     }
                 });
-                    } catch (e) {
+            } catch (e) {
             console.log("AutoReact Error:", e.message);
+            }
         }
     }
-}
 
             let text =
                 msg.message?.conversation ||

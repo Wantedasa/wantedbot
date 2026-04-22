@@ -6,7 +6,7 @@ export async function translateCommand(sock, msg, args) {
 
     if (!targetLang || !text) {
         return sock.sendMessage(msg.key.remoteJid, {
-            text: "❌ Nutzung: +tr <sprache> <text>\nBeispiel: +tr en Hallo Welt"
+            text: `❌ Nutzung: ${prefix}translate <sprache> <text>\nBeispiel: ${prefix}translate en Hallo Welt`
         });
     }
 

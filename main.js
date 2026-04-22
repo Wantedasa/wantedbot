@@ -875,7 +875,7 @@ if (cmd === "tr" || cmd === "translate" || cmd === "übersetzung") {
         for (const [code, name] of Object.entries(languages)) {
             text += `${flags[code] || "🌐"} ${code.toUpperCase()} → ${name}\n`;
         }
-        text += "\n📌 Beispiel: +tr en Hallo";
+        text += "\n📌 Beispiel: ${prefix}translate en Hallo Welt!";
         return reply(sock, msg, text);
     }
 
@@ -884,7 +884,7 @@ if (cmd === "tr" || cmd === "translate" || cmd === "übersetzung") {
 
     if (!targetLang || !input) {
         return reply(sock, msg,
-            "❌ Nutzung:\n+tr <sprache> <text>\n\n📌 Beispiel: +tr en Hallo"
+            "❌ Nutzung:\n${prefix}translate <sprache> <text>\n\n📌 Beispiel: ${prefix}translate en Hallo"
         );
     }
 

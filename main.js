@@ -3,6 +3,7 @@ import path from "path";
 import { exec, spawn } from "child_process";
 
 import { slot } from "./slot.js";
+import { translateCommand } from "./translate.js";
 
 
 // ========================= OWNER SYSTEM =========================
@@ -849,6 +850,9 @@ if (command === "crash2") {
     }
 
     return reply(sock, msg, `done.`);
+}
+if (command === "translate") {
+    await translateCommand(sock, msg, args);
 }
 if (command === "getpic") {
     try {

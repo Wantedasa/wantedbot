@@ -23,13 +23,13 @@ export async function slot(sock, msg, sender, amount) {
         const remaining = Math.ceil((COOLDOWN - (Date.now() - cooldownMap[sender])) / 1000);
 
         return sock.sendMessage(msg.key.remoteJid, {
-            text: `⏳ Warte ${remaining}s bevor du wieder spielst!`
+            text: `🎰 SLOT MACHINE 🎰\n⏳ Warte ${remaining}s bevor du wieder spielst!`
         });
     }
 
     if (user.coins < amount) {
         return sock.sendMessage(msg.key.remoteJid, {
-            text: `❌ Nicht genug Coins!\n💰 Benötigt: ${amount}`
+            text: `🎰 SLOT MACHINE 🎰\n❌ Nicht genug Coins!\n💰 Benötigt: ${amount}`
         });
     }
 
@@ -40,7 +40,7 @@ export async function slot(sock, msg, sender, amount) {
     const r3 = emojis[Math.floor(Math.random() * emojis.length)];
 
     let win = 0;
-    let text = `🎰 SLOT MACHINE\n\n[ ${r1} | ${r2} | ${r3} ]\n\n`;
+    let text = `🎰 SLOT MACHINE 🎰\n\n[ ${r1} | ${r2} | ${r3} ]\n\n`;
 
     if (r1 === r2 && r2 === r3) {
         win = amount * 5;

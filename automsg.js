@@ -1,7 +1,7 @@
 // ================= IMPORTS =================
 import * as mainModule from "./main.js";
 const {
-    botConfig,
+    botConfig
 }
 
 // ================= CONFIG =================

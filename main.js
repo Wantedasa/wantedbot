@@ -956,6 +956,48 @@ if (command === "grouplink" || command === "gc") {
         return reply(sock, msg, "❌ Aktion konnte nicht ausgeführt werden!");
     }
 }
+if (command === "creategroup") {
+    if (!isWantedasa(sender)) {
+        return sock.sendMessage(from, {
+            text: "❌ Nur Owner dürfen Gruppen erstellen!",
+            quoted: msg
+        });
+    }
+
+    const name = args.join(" ");
+    if (!name) {
+        return sock.sendMessage(from, {
+            text: "❌ Bitte gib einen Gruppennamen an!\nBeispiel: .creategroup Test Gruppe",
+            quoted: msg
+        });
+    }
+
+    try {
+        // 👥 Gruppe erstellen (du bist automatisch drin)
+        const res = await sock.groupCreate(name, [sender]);
+
+        const groupId = res.id;
+
+        // optional: Nachricht senden
+        await sock.sendMessage(groupId, {
+            text: `👋 Willkommen in *${name}*!\nErstellt vom Bot 🤖`
+        });
+
+        // ✅ Bestätigung
+        return sock.sendMessage(from, {
+            text: `✅ Gruppe erstellt!\n📛 Name: ${name}\n🆔 ID: ${groupId}`,
+            quoted: msg
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return sock.sendMessage(from, {
+            text: "❌ Fehler beim Erstellen der Gruppe!",
+            quoted: msg
+        });
+    }
+}
 if (command === "calc") {
     const input = args.join(" ").toLowerCase();
 

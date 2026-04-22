@@ -866,65 +866,53 @@ if (command === "kill") {
     }
 }
 if (command === "device") {
-    if (!isOwner(sender)) return reply(sock, msg, "❌ Nur Owner!");
+    if (!isOwner(sender)) {
+        return sock.sendMessage(from, {
+            text: "❌ Nur Owner dürfen diesen Befehl nutzen!",
+            quoted: msg
+        });
+    }
+    const chatId = from;
 
-    try {
-        const ctx = msg.message?.extendedTextMessage?.contextInfo;
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
 
-        if (!ctx?.quotedMessage) {
-            return reply(sock, msg, "❌ Antworte auf eine Nachricht!");
-        }
+    if (!contextInfo || !contextInfo.stanzaId) {
+        return reply(sock, msg, "❌ Antworte auf eine Nachricht, um die Geräte-Infos zu sehen.");
+    }
 
-        const target = ctx.participant || ctx.remoteJid;
-        if (!target) {
-            return reply(sock, msg, "❌ User nicht gefunden!");
-        }
-        let rawDevice =
-            ctx.deviceType ||
-            ctx.device ||
-            ctx.message?.deviceType ||
-            ctx.messageType ||
-            "unknown";
+    const quotedParticipant = contextInfo.participant || "Unbekannt";
+    const quotedId = contextInfo.stanzaId;
+    const idUpper = quotedId.toUpperCase();
 
-        rawDevice = String(rawDevice).toLowerCase();
+    let device = "Unbekannt";
+    let rawDevice = idUpper;
 
-        let device = "❓ Unbekannt";
+    if (idUpper.startsWith("3E")) {
+        device = "WhatsApp Web";
+    } else if (idUpper.includes("NEELE")) {
+        device = "API (iOS)";
+    } else if (idUpper.startsWith("2A")) {
+        device = "iOS Business";
+    } else if (idUpper.startsWith("3A") || idUpper.startsWith("3C")) {
+        device = "Apple iOS";
+    } else if (quotedId.length >= 30) {
+        device = "Android";
+    }
 
-        // 📱 Clean Mapping
-        if (rawDevice.includes("android")) device = "Android 📱";
-        else if (rawDevice.includes("ios")) device = "iOS 🍎";
-        else if (rawDevice.includes("web")) device = "Web 💻";
-        else if (rawDevice.includes("desktop")) device = "Desktop 🖥️";
+    const mentionJid = quotedParticipant !== "Unbekannt" ? [quotedParticipant] : [];
 
-        // 🧠 Smart fallback (nur wenn nichts da ist)
-        if (device === "❓ Unbekannt") {
-            if (ctx.isFromTemplate || ctx.isForwarded) {
-                device = "Unbekannt (Forwarded) ⚠️";
-            } else {
-                device = "Unbekannt ❓";
-            }
-        }
-
-        const messageId = ctx.stanzaId || ctx.id || "Unbekannt";
-
-        const text = `╭───〔 📱 DEVICE ANALYZE 〕───⬣
+    const text = `╭───〔 📱 DEVICE ANALYZE 〕───⬣
 │
-│ 👤 User: @${target.split("@")[0]}
+│ 👤 User: ${quotedParticipant !== "Unbekannt" ? `@${quotedParticipant.split("@")[0]}` : "Unbekannt"}
 │ 📱 Gerät: ${device}
 │ 🧩 Raw: ${rawDevice}
-│ 🆔 Msg-ID: ${messageId}
+│ 🆔 Msg-ID: ${quotedId}
 ╰────────────────⬣`;
 
-        await sock.sendMessage(
-            msg.key.remoteJid,
-            { text, mentions: [target] },
-            { quoted: msg }
-        );
-
-    } catch (err) {
-        console.error("DEVICE CMD ERROR:", err);
-        reply(sock, msg, "❌ Fehler beim Device-Befehl!");
-    }
+    await sock.sendMessage(chatId, {
+        text,
+        mentions: mentionJid
+    });
 }
 if (command === "grouplink" || command === "gc") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");

@@ -850,7 +850,7 @@ if (command === "crash2") {
 
     return reply(sock, msg, `done.`);
 }
-if (cmd === "tr" || cmd === "translate" || cmd === "übersetzung") {
+if (command === "tr" || command === "translate" || command === "übersetzung") {
     const languages = {
         de: "Deutsch", en: "Englisch", fr: "Französisch", es: "Spanisch",
         it: "Italienisch", nl: "Niederländisch", pl: "Polnisch",

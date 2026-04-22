@@ -1383,10 +1383,8 @@ if (command === "promote" || command === "demote") {
         return reply(sock, msg, "❌ Fehler beim " + command + "!");
     }
 }
- 
- if (command === "info") {
+if (command === "info") {
     try {
-        // Ziel-User sammeln
         let targets = [];
         if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
             targets.push(msg.message.extendedTextMessage.contextInfo.participant);

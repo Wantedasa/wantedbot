@@ -374,8 +374,8 @@ if (command === "autoreact") {
         return reply(sock, msg, "❌ Nur in Gruppen nutzbar.");
     }
 
-    if (!isAdmin && !isOwner) {
-        return reply(sock, msg, "❌ Nur Admins dürfen das einstellen.");
+    if (!isOwner) {
+        return reply(sock, msg, "❌ Nur Owner dürfen das einstellen.");
     }
 
     const sub = args[0];
@@ -388,12 +388,11 @@ if (command === "autoreact") {
         };
     }
 
-    // SET EMOJI
     if (sub === "set") {
         const emoji = args[1];
 
         if (!emoji) {
-            return reply(sock, msg, "❌ Beispiel: autoreact set 😂");
+            return reply(sock, msg, "❌ Beispiel: autoreact set 🌚");
         }
 
         botConfig.autoReacts[groupId].emoji = emoji;
@@ -401,8 +400,6 @@ if (command === "autoreact") {
 
         return reply(sock, msg, `✅ Emoji gesetzt auf ${emoji}`);
     }
-
-    // ON
     if (sub === "on") {
         botConfig.autoReacts[groupId].enabled = true;
         saveBotConfig();
@@ -423,7 +420,7 @@ if (command === "autoreact") {
 │ Status: ${data?.enabled ? "✅ AN" : "❌ AUS"}
 │ Emoji: ${data?.emoji || "❌ keines"}
 │
-│ ${prefix}autoreact set 😊
+│ ${prefix}autoreact set 🌚
 │ ${prefix}autoreact on
 │ ${prefix}autoreact off
 │
@@ -626,6 +623,7 @@ if (command === "bot") {
         enabled: false,
         text: "Nicht gesetzt"
     };
+    const autoreactdata = botConfig.autoReacts[groupId];
 
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
@@ -643,6 +641,7 @@ if (command === "bot") {
 🤖 Bot Online: ${onlineData.enabled ? "✅ ON" : "❌ OFF"}
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
+🌚 AutoReact: ${autoreactdata.antilink ? "✅ ON" : "❌ OFF"}
 
 ⬣──────────────────⬣`;
 

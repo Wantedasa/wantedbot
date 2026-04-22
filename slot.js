@@ -53,7 +53,7 @@ export async function slot(sock, msg, sender, amount = 100) {
 
         text += `🎉 JACKPOT!\n💰 +${win} Coins\nNeuer Kontostand ${user.coins}`;
     } else {
-        text += `❌ Kein Gewinn\n💸 -${amount} Coins`;
+        text += `❌ Kein Gewinn\n💸 -${amount} Coins\nNeuer Kontostand ${user.coins}`;
     }
 
     cooldownMap[sender] = Date.now();

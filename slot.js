@@ -3,17 +3,7 @@ import { getUser, addCoins, removeCoins } from "./db.js";
 
 // ================= CONFIG =================
 const COOLDOWN = 5000;
-
 const emojis = ["🍒", "🍋", "🍉", "🍇", "⭐", "7️⃣"];
-
-const rewards = {
-    "🍒🍒🍒": 3,
-    "🍋🍋🍋": 4,
-    "🍉🍉🍉": 5,
-    "🍇🍇🍇": 6,
-    "⭐⭐⭐": 10,
-    "7️⃣7️⃣7️⃣": 25
-};
 
 const cooldownMap = {};
 
@@ -40,25 +30,31 @@ export async function slot(sock, msg, sender, amount = 100) {
     const r2 = emojis[Math.floor(Math.random() * emojis.length)];
     const r3 = emojis[Math.floor(Math.random() * emojis.length)];
 
-    const result = `${r1}${r2}${r3}`;
-
     let win = 0;
     let text = `🎰 SLOT MACHINE\n\n[ ${r1} | ${r2} | ${r3} ]\n\n`;
 
-    if (a === b && b === c) {
+    if (r1 === r2 && r2 === r3) {
         win = amount * 5;
-        text += `🎉 JACKPOT!\n💰 +${win}\n💰 Neuer Kontostand ${user.coins}`;
         addCoins(sender, win);
+
+        const newBalance = getUser(sender).coins;
+
+        text += `🎉 JACKPOT!\n💰 +${win}\n💳 Balance: ${newBalance}`;
     }
 
-    else if (a === b || b === c || a === c) {
+    else if (r1 === r2 || r2 === r3 || r1 === r3) {
         win = Math.floor(amount * 1.5);
-        text += `✨ 2ER HIT!\n💰 +${win}\n💰 Neuer Kontostand ${user.coins}`;
         addCoins(sender, win);
+
+        const newBalance = getUser(sender).coins;
+
+        text += `✨ 2ER HIT!\n💰 +${win}\n💳 Balance: ${newBalance}`;
     }
 
     else {
-        text += `❌ Kein Gewinn\n💸 -${amount}\n💰 Neuer Kontostand ${user.coins}`;
+        const newBalance = getUser(sender).coins;
+
+        text += `❌ Kein Gewinn\n💸 -${amount}\n💳 Balance: ${newBalance}`;
     }
 
     cooldownMap[sender] = Date.now();

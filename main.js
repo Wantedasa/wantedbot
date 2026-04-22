@@ -953,7 +953,7 @@ if (command === "grouplink" || command === "gc") {
             await reply(sock, msg, text);
     } catch (err) {
         console.error(err);
-        return reply(sock, msg, "❌ Gruppenlink konnte nicht abgerufen werden!");
+        return reply(sock, msg, "❌ Aktion konnte nicht ausgeführt werden!");
     }
 }
 if (command === "calc") {

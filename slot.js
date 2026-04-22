@@ -3,16 +3,25 @@ import { getUser, addCoins, removeCoins } from "./db.js";
 
 // ================= CONFIG =================
 const COOLDOWN = 5000;
+const DEFAULT_AMOUNT = 100;
+
 const emojis = ["🍒", "🍋", "🍉", "🍇", "⭐", "7️⃣"];
 
 const cooldownMap = {};
 
 // ================= SLOT FUNCTION =================
-export async function slot(sock, msg, sender, amount = 100) {
+export async function slot(sock, msg, sender, amount) {
     const user = getUser(sender);
+
+    if (!amount || isNaN(amount)) {
+        amount = DEFAULT_AMOUNT;
+    }
+
+    amount = parseInt(amount);
 
     if (cooldownMap[sender] && Date.now() - cooldownMap[sender] < COOLDOWN) {
         const remaining = Math.ceil((COOLDOWN - (Date.now() - cooldownMap[sender])) / 1000);
+
         return sock.sendMessage(msg.key.remoteJid, {
             text: `⏳ Warte ${remaining}s bevor du wieder spielst!`
         });
@@ -20,7 +29,7 @@ export async function slot(sock, msg, sender, amount = 100) {
 
     if (user.coins < amount) {
         return sock.sendMessage(msg.key.remoteJid, {
-            text: `❌ Du hast nicht genug Coins!\n💰 Benötigt: ${amount}`
+            text: `❌ Nicht genug Coins!\n💰 Benötigt: ${amount}`
         });
     }
 
@@ -37,24 +46,22 @@ export async function slot(sock, msg, sender, amount = 100) {
         win = amount * 5;
         addCoins(sender, win);
 
-        const newBalance = getUser(sender).coins;
+        const balance = getUser(sender).coins;
 
-        text += `🎉 JACKPOT!\n💰 +${win}\n💳 Balance: ${newBalance}`;
+        text += `🎉 JACKPOT!\n💰 +${win}\n💳 Balance: ${balance}`;
     }
-
     else if (r1 === r2 || r2 === r3 || r1 === r3) {
         win = Math.floor(amount * 1.5);
         addCoins(sender, win);
 
-        const newBalance = getUser(sender).coins;
+        const balance = getUser(sender).coins;
 
-        text += `✨ 2ER HIT!\n💰 +${win}\n💳 Balance: ${newBalance}`;
+        text += `✨ 2ER HIT!\n💰 +${win}\n💳 Balance: ${balance}`;
     }
-
     else {
-        const newBalance = getUser(sender).coins;
+        const balance = getUser(sender).coins;
 
-        text += `❌ Kein Gewinn\n💸 -${amount}\n💳 Balance: ${newBalance}`;
+        text += `❌ Kein Gewinn\n💸 -${amount}\n💳 Balance: ${balance}`;
     }
 
     cooldownMap[sender] = Date.now();

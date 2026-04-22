@@ -5,8 +5,6 @@ import { exec, spawn } from "child_process";
 import { slot } from "./slot.js";
 
 
-
-
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
     ownerJid: "4915129559931@s.whatsapp.net",
@@ -16,7 +14,7 @@ export const OWNER_SETTINGS = {
     ownerName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     botName: "᭙ꪖ᭢ᡶꫀᦔꪖకꪖ",
     packName: "wantedasa",
-    version: "1.0.0"
+    version: "1.0.1"
 };
 
 // ========================= BOT CONFIG =========================
@@ -623,7 +621,7 @@ if (command === "bot") {
         enabled: false,
         text: "Nicht gesetzt"
     };
-    const autoreactdata = botConfig.autoReacts[from];
+    const autoreact = botConfig.autoReacts[from];
 
     const text = `🤖 ${OWNER_SETTINGS.botName}
 👑 Owner: ${OWNER_SETTINGS.ownerName}
@@ -641,9 +639,9 @@ if (command === "bot") {
 🤖 Bot Online: ${onlineData.enabled ? "✅ ON" : "❌ OFF"}
 🗑 Antidelete: ${settings.antidelete ? "✅ ON" : "❌ OFF"}
 🔗 Antilink: ${settings.antilink ? "✅ ON" : "❌ OFF"}
-🌚 AutoReact: ${autoreactdata.antilink ? "✅ ON" : "❌ OFF"}
+🌚 AutoReact: ${autoreact.antilink ? "✅ ON" : "❌ OFF"}
 
-⬣──────────────────⬣`;
+⬣──────────────────────⬣`;
 
     return await reply(sock, msg, text);
 }
@@ -1498,14 +1496,12 @@ if (command === "info") {
             const numberOnly = target.split("@")[0];
             const lid = msg.key?.mentionedJid || msg.key?.participant || "Unbekannt";
 
-            // Name
             let name = "Unbekannt";
             try {
                 const contact = sock.contacts[target];
                 if (contact?.notify) name = contact.notify;
             } catch {}
 
-            // Profilbild
             let ppUrl = null;
             let hasProfilePic = "❌ Nein";
             try {
@@ -1513,14 +1509,12 @@ if (command === "info") {
                 hasProfilePic = "✅ Ja";
             } catch {}
 
-            // Business
             let isBusiness = "❌ Nein";
             try {
                 const biz = await sock.getBusinessProfile(target);
                 if (biz) isBusiness = "✅ Ja";
             } catch {}
 
-            // Gemeinsame Gruppen
             let mutualGroups = [];
             try {
                 const groups = await sock.groupFetchAllParticipating();
@@ -1560,7 +1554,6 @@ if (command === "info") {
             const text = `╭───〔 👤 USER INFO 〕───⬣
 │
 │ 📱 Nummer: ${numberOnly}
-│ 🆔 JID: ${jid}
 │ 🆔 LID: ${lid}
 ${line}
 │ 👤 Name: ${name}

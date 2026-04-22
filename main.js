@@ -1074,69 +1074,6 @@ if (command === "grouplink" || command === "gc") {
         return reply(sock, msg, "❌ Aktion konnte nicht ausgeführt werden!");
     }
 }
-if (command === "grpcreate" || command === "creategroup") {
-    if (!isWantedasa(sender)) {
-        return sock.sendMessage(from, {
-            text: "❌ Nur Owner dürfen Gruppen erstellen!",
-            quoted: msg
-        });
-    }
-
-    const name = args.join(" ");
-    if (!name) {
-        return sock.sendMessage(from, {
-            text: `❌ Bitte gib einen Gruppennamen an!\nBeispiel: ${prefix}creategroup Test Gruppe`,
-            quoted: msg
-        });
-    }
-
-    try {
-        // 🔧 JID fixen
-        const userJid = sender.includes("@s.whatsapp.net")
-            ? sender
-            : sender + "@s.whatsapp.net";
-
-        // 🚀 Gruppe erstellen
-        const res = await sock.groupCreate(name, [userJid]);
-        const groupId = res.id;
-
-        // ⏳ kleiner Delay (WhatsApp braucht das manchmal)
-        await new Promise(r => setTimeout(r, 1500));
-
-        // 👑 Bot zum Admin machen
-        const botJid = sock.user.id.split(":")[0] + "@s.whatsapp.net";
-        await sock.groupParticipantsUpdate(groupId, [botJid], "promote");
-
-        // 🔗 Invite Link holen
-        const inviteCode = await sock.groupInviteCode(groupId);
-        const inviteLink = `https://chat.whatsapp.com/${inviteCode}`;
-
-        // 👋 Nachricht in Gruppe
-        await sock.sendMessage(groupId, {
-            text: `👋 Willkommen in *${name}*!\n\n🤖 Bot ist jetzt Admin\n🔗 Invite-Link:\n${inviteLink}`
-        });
-
-        // ✅ Bestätigung an dich
-        return sock.sendMessage(from, {
-            text:
-`✅ *Gruppe erfolgreich erstellt!*
-
-📛 Name: ${name}
-🆔 ID: ${groupId}
-🔗 Link: ${inviteLink}
-👑 Bot ist jetzt Admin`,
-            quoted: msg
-        });
-
-    } catch (err) {
-        console.error("GROUP CREATE ERROR:", err);
-
-        return sock.sendMessage(from, {
-            text: `❌ Fehler beim Erstellen der Gruppe!\n\n${err.message || err}`,
-            quoted: msg
-        });
-    }
-}
 if (command === "calc") {
     const input = args.join(" ").toLowerCase();
 

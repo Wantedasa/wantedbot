@@ -2,6 +2,9 @@ import fs from "fs";
 import path from "path";
 import { exec, spawn } from "child_process";
 
+import { slot } from "./slot.js";
+
+
 
 
 // ========================= OWNER SYSTEM =========================
@@ -652,6 +655,9 @@ if (command === "public") {
 ┃ ├ ${prefix}poll
 ┃ └ ${prefix}emptymsg
 ┃
+┃ *⚝ Gᴀᴍᴇꜱ*
+┃ └ ${prefix}slot
+┃
 ┃ *⚿ Oᴡɴᴇʀ*
 ┃ ├ ${prefix}self
 ┃ ├ ${prefix}public
@@ -721,43 +727,9 @@ if (command === "about") {
     }
 }
 if (command === "slot") {
-    const user = sender;
-    const slotCooldown = {};
+    let amount = parseInt(args[0]) || 100;
 
-    if (slotCooldown[user] && Date.now() - slotCooldown[user] < 10000) {
-        const timeLeft = Math.ceil((10000 - (Date.now() - slotCooldown[user])) / 1000);
-        return reply(sock, msg, `⏳ Warte ${timeLeft}s bevor du nochmal spielst!`);
-    }
-
-    slotCooldown[user] = Date.now();
-
-    const emojis = ["🍒", "🍋", "🍇", "🍉", "⭐", "💎"];
-
-    const random = () => emojis[Math.floor(Math.random() * emojis.length)];
-
-    const roll1 = random();
-    const roll2 = random();
-    const roll3 = random();
-
-    let text = "";
-
-    if (roll1 === roll2 && roll2 === roll3) {
-        text = "💎 JACKPOT!!!";
-    } else if (roll1 === roll2 || roll2 === roll3 || roll1 === roll3) {
-        text = "✨ Fast! Zwei gleich!";
-    } else {
-        text = "💀 Leider verloren!";
-    }
-
-    return sock.sendMessage(from, {
-        text: `🎰 *SLOT MACHINE*
-
-┏━━━┳━━━━┳━━━┓
-┃ ${roll1}  ┃ ${roll2}    ┃ ${roll3}  ┃
-┗━━━┻━━━━┻━━━┛
-
-${text}`
-    }, { quoted: msg });
+    slot(sock, msg, sender, amount);
 }
 if (command === "emptymsg") {
     return sock.sendMessage(from, {

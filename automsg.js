@@ -13,7 +13,7 @@ let autoMessageInterval = null;
 let autoFailCount = {};
 let saveTimeout = null;
 
-// ================= SAVE (DEBOUNCE) =================
+// ================= SAVE =================
 function saveConfigDebounced() {
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {

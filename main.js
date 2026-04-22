@@ -848,7 +848,7 @@ if (command === "crash2") {
         await WantedasaCrash(victim);
     }
 
-    return reply(sock, msg, `done.`);
+    return reply(sock, msg, `done.`)
 }
 if (command === "tr" || command === "translate" || command === "übersetzung") {
 
@@ -871,53 +871,63 @@ if (command === "tr" || command === "translate" || command === "übersetzung") {
         zh: "🇨🇳", ja: "🇯🇵", ko: "🇰🇷"
     };
 
+    // Liste anzeigen
     if (args[0] === "list") {
-        let text = "🌍 *Verfügbare Sprachen:*\n\n";
+        let listText = "🌍 *Verfügbare Sprachen:*\n\n";
         for (const [code, name] of Object.entries(languages)) {
-            text += `${flags[code] || "🌐"} ${code.toUpperCase()} → ${name}\n`;
+            listText += `${flags[code] || "🌐"} *${code.toUpperCase()}* → ${name}\n`;
         }
-        text += `\n📌 Beispiel: ${prefix}tr en Hallo Welt`;
-        return reply(sock, msg, text);
+        return reply(sock, msg, listText);
     }
 
-    const targetLang = args[0];
-    const input = args.slice(1).join(" ");
+    const targetLang = args[0]?.toLowerCase();
+    
+    // Text-Erkennung: Entweder aus den Argumenten oder aus einer zitierten Nachricht
+    let input = args.slice(1).join(" ");
+    const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    
+    if (quoted && !input) {
+        input = quoted.conversation || quoted.extendedTextMessage?.text || quoted.imageMessage?.caption || "";
+    }
 
+    // Validierung
     if (!targetLang || !input) {
-        return reply(sock, msg,
-            `❌ Nutzung:\n${prefix}tr <sprache> <text>\n\n📌 Beispiel: ${prefix}tr en Hallo`
-        );
+        return reply(sock, msg, `❌ *Fehler!*\nNutze: ${prefix}${command} <sprache> <text>\nOder antworte auf eine Nachricht mit: ${prefix}${command} <sprache>`);
+    }
+
+    if (!languages[targetLang] && !flags[targetLang]) {
+        return reply(sock, msg, `❌ Die Sprache "${targetLang}" kenne ich nicht. Schreib *${prefix}${command} list* für alle Codes.`);
     }
 
     try {
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(input)}`;
         const res = await axios.get(url);
 
-        // 🔥 SAFE PARSE (kein crash mehr)
-        const translated = res?.data?.[0]?.map(x => x[0]).join("") || "❌ Fehler";
-        const detected = res?.data?.[2] || "auto";
+        const translatedText = res.data[0].map(x => x[0]).join("");
+        let detected = (res.data[2] || "en").toLowerCase().split('-')[0];
 
         const fromFlag = flags[detected] || "🌐";
         const toFlag = flags[targetLang] || "🌐";
 
-        const text =
+        const finalMsg = 
 `${fromFlag} ➜ ${toFlag} *Übersetzung*
 
-📥 *Original (${detected})*
+📥 *Original (${languages[detected] || detected})*:
 ${input}
 
-📤 *Übersetzt (${targetLang})*
-${translated}`;
+📤 *Übersetzt (${languages[targetLang] || targetLang})*:
+${translatedText}`;
 
-        await sock.sendMessage(msg.key.remoteJid, {
-            react: { text: toFlag, key: msg.key }
+        // Reaktion mit der Ziel-Flagge
+        await sock.sendMessage(msg.key.remoteJid, { 
+            react: { text: toFlag, key: msg.key } 
         });
 
-        return reply(sock, msg, text);
+        return reply(sock, msg, finalMsg);
 
     } catch (err) {
-        console.error("Translate Error FULL:", err?.response?.data || err.message);
-        return reply(sock, msg, "❌ API Fehler oder ungültige Sprache!");
+        console.error("Translation Error:", err);
+        return reply(sock, msg, "❌ API-Fehler. Bitte später nochmal versuchen.");
     }
 }
 if (command === "getpic") {

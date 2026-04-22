@@ -45,15 +45,20 @@ export async function slot(sock, msg, sender, amount = 100) {
     let win = 0;
     let text = `🎰 SLOT MACHINE\n\n[ ${r1} | ${r2} | ${r3} ]\n\n`;
 
-    if (r1 === r2 && r2 === r3) {
-        const multiplier = rewards[result] || 2;
-        win = amount * multiplier;
-
+    if (a === b && b === c) {
+        win = amount * 5;
+        text += `🎉 JACKPOT!\n💰 +${win}\n💰 Neuer Kontostand ${user.coins}`;
         addCoins(sender, win);
+    }
 
-        text += `🎉 JACKPOT!\n💰 +${win} Coins\nNeuer Kontostand ${user.coins}`;
-    } else {
-        text += `❌ Kein Gewinn\n💸 -${amount} Coins\nNeuer Kontostand ${user.coins}`;
+    else if (a === b || b === c || a === c) {
+        win = Math.floor(amount * 1.5);
+        text += `✨ 2ER HIT!\n💰 +${win}\n💰 Neuer Kontostand ${user.coins}`;
+        addCoins(sender, win);
+    }
+
+    else {
+        text += `❌ Kein Gewinn\n💸 -${amount}\n💰 Neuer Kontostand ${user.coins}`;
     }
 
     cooldownMap[sender] = Date.now();

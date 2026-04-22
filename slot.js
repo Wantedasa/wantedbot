@@ -2,7 +2,7 @@
 import { getUser, addCoins, removeCoins } from "./db.js";
 
 // ================= CONFIG =================
-const COOLDOWN = 5000*60;
+const COOLDOWN = 10000;
 const DEFAULT_AMOUNT = 100;
 
 const emojis = ["🍒", "🍋", "🍉", "🍇", "⭐", "7️⃣"];
@@ -23,13 +23,15 @@ export async function slot(sock, msg, sender, amount) {
         const remaining = Math.ceil((COOLDOWN - (Date.now() - cooldownMap[sender])) / 1000);
 
         return sock.sendMessage(msg.key.remoteJid, {
-            text: `🎰 SLOT MACHINE 🎰\n⏳ Warte ${remaining}s bevor du wieder spielst!`
+            text: `🎰 SLOT MACHINE 🎰\n⏳ Warte ${remaining}s bevor du wieder spielst!`,
+            quoted: msg
         });
     }
 
     if (user.coins < amount) {
         return sock.sendMessage(msg.key.remoteJid, {
-            text: `🎰 SLOT MACHINE 🎰\n❌ Nicht genug Coins!\n💰 Benötigt: ${amount}`
+            text: `🎰 SLOT MACHINE 🎰\n❌ Nicht genug Coins!\n💰 Benötigt: ${amount}`,
+            quoted: msg
         });
     }
 
@@ -50,6 +52,7 @@ export async function slot(sock, msg, sender, amount) {
 
         text += `🎉 JACKPOT!\n💰 +${win}\n💳 Balance: ${balance}`;
     }
+
     else if (r1 === r2 || r2 === r3 || r1 === r3) {
         win = Math.floor(amount * 1.5);
         addCoins(sender, win);
@@ -58,6 +61,7 @@ export async function slot(sock, msg, sender, amount) {
 
         text += `✨ 2ER HIT!\n💰 +${win}\n💳 Balance: ${balance}`;
     }
+
     else {
         const balance = getUser(sender).coins;
 
@@ -66,5 +70,8 @@ export async function slot(sock, msg, sender, amount) {
 
     cooldownMap[sender] = Date.now();
 
-    return sock.sendMessage(msg.key.remoteJid, { text });
+    return sock.sendMessage(msg.key.remoteJid, {
+        text,
+        quoted: msg
+    });
 }

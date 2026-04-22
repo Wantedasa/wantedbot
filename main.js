@@ -851,6 +851,7 @@ if (command === "crash2") {
     return reply(sock, msg, `done.`);
 }
 if (command === "tr" || command === "translate" || command === "übersetzung") {
+
     const languages = {
         de: "Deutsch", en: "Englisch", fr: "Französisch", es: "Spanisch",
         it: "Italienisch", nl: "Niederländisch", pl: "Polnisch",
@@ -875,7 +876,7 @@ if (command === "tr" || command === "translate" || command === "übersetzung") {
         for (const [code, name] of Object.entries(languages)) {
             text += `${flags[code] || "🌐"} ${code.toUpperCase()} → ${name}\n`;
         }
-        text += "\n📌 Beispiel: ${prefix}translate en Hallo Welt!";
+        text += `\n📌 Beispiel: ${prefix}tr en Hallo Welt`;
         return reply(sock, msg, text);
     }
 
@@ -884,7 +885,7 @@ if (command === "tr" || command === "translate" || command === "übersetzung") {
 
     if (!targetLang || !input) {
         return reply(sock, msg,
-            "❌ Nutzung:\n${prefix}translate <sprache> <text>\n\n📌 Beispiel: ${prefix}translate en Hallo"
+            `❌ Nutzung:\n${prefix}tr <sprache> <text>\n\n📌 Beispiel: ${prefix}tr en Hallo`
         );
     }
 
@@ -892,8 +893,9 @@ if (command === "tr" || command === "translate" || command === "übersetzung") {
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(input)}`;
         const res = await axios.get(url);
 
-        const translated = res.data[0][0][0];
-        const detected = res.data[2];
+        // 🔥 SAFE PARSE (kein crash mehr)
+        const translated = res?.data?.[0]?.map(x => x[0]).join("") || "❌ Fehler";
+        const detected = res?.data?.[2] || "auto";
 
         const fromFlag = flags[detected] || "🌐";
         const toFlag = flags[targetLang] || "🌐";
@@ -908,17 +910,14 @@ ${input}
 ${translated}`;
 
         await sock.sendMessage(msg.key.remoteJid, {
-            react: {
-                text: toFlag,
-                key: msg.key
-            }
+            react: { text: toFlag, key: msg.key }
         });
 
         return reply(sock, msg, text);
 
     } catch (err) {
-        console.error("Translate Error:", err);
-        return reply(sock, msg, "❌ Übersetzung fehlgeschlagen!");
+        console.error("Translate Error FULL:", err?.response?.data || err.message);
+        return reply(sock, msg, "❌ API Fehler oder ungültige Sprache!");
     }
 }
 if (command === "getpic") {

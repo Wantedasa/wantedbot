@@ -199,7 +199,6 @@ async function connectBot() {
 
             await handleCommands(sock, msg);
 
-            // Auto Read
             if (isGroup(from) && botConfig.autoReadGroups) {
                 await sock.readMessages([msg.key]);
             }
@@ -208,13 +207,29 @@ async function connectBot() {
                 await sock.readMessages([msg.key]);
             }
 
-            // Auto Block Private
             if (!isGroup(from) && botConfig.autoBlock) {
                 if (isOwner(sender)) return;
                 await sock.updateBlockStatus(sender, "block");
             }
+            const groupId = msg.key.remoteJid;
 
-            // Text extract
+            if (groupId.endsWith("@g.us")) {
+            const groupData = db.groups[groupId];
+
+            if (groupData?.autoReact && groupData?.autoReactEmoji) {
+                try {
+                    await sock.sendMessage(groupId, {
+                        react: {
+                        text: groupData.autoReactEmoji,
+                        key: msg.key
+                    }
+                });
+                    } catch (e) {
+            console.log("AutoReact Error:", e.message);
+        }
+    }
+}
+
             let text =
                 msg.message?.conversation ||
                 msg.message?.extendedTextMessage?.text ||

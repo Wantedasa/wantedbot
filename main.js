@@ -326,21 +326,18 @@ if (command === "online") {
 
     const data = botConfig.onlineMessages[from];
 
-    // 🔛 ON
     if (sub === "on") {
         data.enabled = true;
         saveBotConfig();
         return reply(sock, msg, "✅ Online-Message aktiviert.");
     }
 
-    // 🔴 OFF
     if (sub === "off") {
         data.enabled = false;
         saveBotConfig();
         return reply(sock, msg, "❌ Online-Message deaktiviert.");
     }
 
-    // ✏️ CUSTOM SETZEN
     if (sub === "set") {
         if (!text) {
             return reply(sock, msg, `❌ Nutzung: ${prefix}online set <text>`);
@@ -370,6 +367,54 @@ ${prefix}online on/off
 ${prefix}online set <text>
 ${prefix}online setdefault`
     );
+}
+if (command === "autoreact") {
+    if (!msg.key.remoteJid.endsWith("@g.us")) {
+        return reply(sock, msg, "❌ Nur in Gruppen nutzbar.");
+    }
+
+    if (!isOwner) {
+        return reply(sock, msg, "❌ Nur Admins dürfen das einstellen.");
+    }
+
+    const sub = args[0];
+    const groupId = from;
+
+    if (!db.groups[groupId]) db.groups[groupId] = {};
+
+    if (sub === "on") {
+        if (!db.groups[groupId].autoReactEmoji) {
+            return reply(sock, msg, "❌ Setze zuerst ein Emoji mit: autoreact set 😊");
+        }
+
+        db.groups[groupId].autoReact = true;
+        return reply(sock, msg, `✅ Auto-Reaction aktiviert (${db.groups[groupId].autoReactEmoji})`);
+    }
+
+    if (sub === "off") {
+        db.groups[groupId].autoReact = false;
+        return reply(sock, msg, "❌ Auto-Reaction deaktiviert.");
+    }
+
+    if (sub === "set") {
+        const emoji = args[1];
+
+        if (!emoji) {
+            return reply(sock, msg, "❌ Gib ein Emoji an: autoreact set 😂");
+        }
+
+        db.groups[groupId].autoReactEmoji = emoji;
+        return reply(sock, msg, `✅ Emoji gesetzt auf ${emoji}`);
+    }
+
+    return reply(sock, msg,
+`╭───〔 🤖 AUTO REACT 〕───⬣
+│
+│ autoreact set 😊
+│ autoreact on
+│ autoreact off
+│
+╰────────────────⬣`);
 }
 if (command === "prefix") {
     if (!isWantedasa(sender)) {

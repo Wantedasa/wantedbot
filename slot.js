@@ -51,7 +51,7 @@ export async function slot(sock, msg, sender, amount = 100) {
 
         addCoins(sender, win);
 
-        text += `🎉 JACKPOT!\n💰 +${win} Coins`;
+        text += `🎉 JACKPOT!\n💰 +${win} Coins\nNeuer Kontostand ${user.coins}`;
     } else {
         text += `❌ Kein Gewinn\n💸 -${amount} Coins`;
     }

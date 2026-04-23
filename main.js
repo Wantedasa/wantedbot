@@ -1120,7 +1120,21 @@ if (command === "calc") {
 }
 if (command === "autofarm") {
     try {
-        await handleAutoFarm(sock, msg, command, args, prefix, sender, from, isWantedasa, reply);
+        await handleAutoFarm(
+            sock,
+            msg,
+            command,
+            args,
+            prefix,
+            sender,
+            from,
+            isWantedasa,
+            reply,
+            botConfig,
+            saveBotConfig,
+            startAutoFish,
+            stopAutoFish
+        );
     } catch (err) {
         console.error("AutoFarm Fehler:", err);
         return reply(sock, msg, "❌ Fehler beim AutoFarm!");

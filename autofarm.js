@@ -95,11 +95,21 @@ export function stopAutoFish(sender) {
     autoFishMap.delete(sender);
 }
 
-const autoFishGroups = new Map();
-
-export async function handleAutoFarm(sock, msg, command, args, prefix, sender, from, isWantedasa, reply) {
-    if (command !== "autofarm") return;
-
+export async function handleAutoFarm(
+    sock,
+    msg,
+    command,
+    args,
+    prefix,
+    sender,
+    from,
+    isWantedasa,
+    reply,
+    botConfig,
+    saveBotConfig,
+    startAutoFish,
+    stopAutoFish
+) {
     const sub = args[0];
 
     if (!isWantedasa(sender)) {
@@ -107,7 +117,7 @@ export async function handleAutoFarm(sock, msg, command, args, prefix, sender, f
     }
 
     // ================= SET =================
-     if (sub === "set") {
+    if (sub === "set") {
         let groupId = args[1];
 
         if (!groupId) {
@@ -121,14 +131,16 @@ export async function handleAutoFarm(sock, msg, command, args, prefix, sender, f
             return reply("❌ Ungültige Gruppen-ID.");
         }
 
-        autoFishGroups.set(sender, groupId);
+        botConfig.autoFishGroups = botConfig.autoFishGroups || {};
+        botConfig.autoFishGroups[sender] = groupId;
+        saveBotConfig();
 
         return reply(`✅ AutoFarm Gruppe gesetzt:\n${groupId}`);
     }
 
     // ================= START =================
     if (sub === "start") {
-        const groupId = autoFishGroups.get(sender);
+        const groupId = botConfig.autoFishGroups?.[sender];
 
         if (!groupId) {
             return reply(`❌ Erst ${prefix}autofarm set verwenden.`);
@@ -147,7 +159,11 @@ export async function handleAutoFarm(sock, msg, command, args, prefix, sender, f
 
     // ================= DELETE =================
     if (sub === "del") {
-        autoFishGroups.delete(sender);
+        if (botConfig.autoFishGroups) {
+            delete botConfig.autoFishGroups[sender];
+            saveBotConfig();
+        }
+
         return reply("🗑️ AutoFarm Gruppe entfernt.");
     }
 
@@ -155,9 +171,9 @@ export async function handleAutoFarm(sock, msg, command, args, prefix, sender, f
     return reply(
 `📌 *AutoFarm Menü*
 
-${prefix}autofarm set   → Gruppe setzen
-${prefix}autofarm start → starten
-${prefix}autofarm stop  → stoppen
-${prefix}autofarm del   → löschen`
+${prefix}autofarm set [groupId]
+${prefix}autofarm start
+${prefix}autofarm stop
+${prefix}autofarm del`
     );
 }

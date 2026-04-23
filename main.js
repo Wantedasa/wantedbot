@@ -27,7 +27,9 @@ let botConfig = {
     autoRead: false,
     autoMessages: {},
     owners: [],
-    onlineMessages: {}
+    onlineMessages: {},
+    autoFishGroups: {},
+    autoreacts: {}
 };
 
 
@@ -43,6 +45,7 @@ botConfig.autoMessages = botConfig.autoMessages || {};
 botConfig.owners = botConfig.owners || [];
 botConfig.onlineMessages = botConfig.onlineMessages || {};
 botConfig.autoReacts = botConfig.autoReacts || {};
+botConfig.autoFishGroups = botConfig.autoFishGroups || {};
 
 export const saveBotConfig = () => {
     try {
@@ -1116,16 +1119,11 @@ if (command === "calc") {
     }
 }
 if (command === "autofarm") {
-if (await handleAutoFarm(sock, msg, {
-    command,
-    args,
-    prefix,
-    sender,
-    from,
-    isOwner,
-    reply: (text) => sock.sendMessage(from, { text }, { quoted: msg })
-})) {
-    return;
+    try {
+        await handleAutoFarm(sock, msg, command, args, prefix, sender, from, isWantedasa, reply);
+    } catch (err) {
+        console.error("AutoFarm Fehler:", err);
+        return reply(sock, msg, "❌ Fehler beim AutoFarm!");
     }
 }
 if (command === "grppic") {

@@ -59,6 +59,7 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     const groupName = isGroup(groupJid)
         ? await jidToGroupName(sock, groupJid)
         : "Privatchat";
+    const groupID = groupJid || senderJid;
 
     const typeLabels = {
         msg: "MSG",
@@ -73,6 +74,7 @@ const logMessage = async (sock, groupJid, senderJid, text, type = "msg") => {
     const block =
         chalk.green(`│ [${time}] ${icon} USER: ${senderDisplay}\n`) +
         chalk.green(`│ ↳ CHAT: ${groupName}\n`) +
+        chalk.green(`│ ↳ CHAT: ${groupID}\n`) +
         chalk.green(`│ ↳ TYPE: ${typeLabels[type]}\n`) +
         chalk.green(`│ ↳ DATA: ${text}\n`) +
         chalk.green(`│`);

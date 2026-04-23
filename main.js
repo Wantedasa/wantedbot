@@ -3,6 +3,7 @@ import path from "path";
 import { exec, spawn } from "child_process";
 
 import { slot } from "./slot.js";
+import { handleAutoFarm } from "./autofarm.js";
 
 
 // ========================= OWNER SYSTEM =========================
@@ -1112,6 +1113,19 @@ if (command === "calc") {
     } catch (err) {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Berechnen! Überprüfe deinen Ausdruck.");
+    }
+}
+if (command === "autofarm") {
+if (await handleAutoFarm(sock, msg, {
+    command,
+    args,
+    prefix,
+    sender,
+    from,
+    isOwner,
+    reply: (text) => sock.sendMessage(from, { text }, { quoted: msg })
+})) {
+    return;
     }
 }
 if (command === "grppic") {

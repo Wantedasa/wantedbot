@@ -1137,7 +1137,7 @@ if (command === "autofarm") {
         );
     } catch (err) {
         console.error("AutoFarm Fehler:", err);
-        return reply(sock, msg, "❌ Fehler beim AutoFarm!");
+        return reply("❌ Fehler beim AutoFarm!");
     }
 }
 if (command === "grppic") {

@@ -3,8 +3,6 @@ import path from "path";
 import { exec, spawn } from "child_process";
 
 import { slot } from "./slot.js";
-import { handleAutoFarm } from "./autofarm.js";
-
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -1118,27 +1116,45 @@ if (command === "calc") {
         return reply(sock, msg, "❌ Fehler beim Berechnen! Überprüfe deinen Ausdruck.");
     }
 }
-if (command === "autofarm") {
-    try {
-        await handleAutoFarm(
-            sock,
-            msg,
-            command,
-            args,
-            prefix,
-            sender,
-            from,
-            isWantedasa,
-            reply,
-            botConfig,
-            saveBotConfig,
-            startAutoFish,
-            stopAutoFish
-        );
-    } catch (err) {
-        console.error("AutoFarm Fehler:", err);
-        return reply("❌ Fehler beim AutoFarm!");
+const spamMap = new Map();
+
+if (command === "spam") {
+    if (!isOwner) {
+        return reply(sock, msg, "❌ Nur Owner dürfen diesen Befehl nutzen!");
     }
+
+    const sub = args[0];
+    if (sub === "stop") {
+        if (!spamMap.has(from)) {
+            return reply(sock, msg, "❌ Kein aktiver Spam hier!");
+        }
+
+        spamMap.delete(from);
+        return reply(sock, msg, "🛑 Spam gestoppt!");
+    }
+    const text = args.join(" ");
+    if (!text) {
+        return reply(sock, msg, "❌ Bitte gib eine Nachricht an!\nBeispiel: +spam Hallo\nStoppen: +spam stop");
+    }
+
+    if (spamMap.has(from)) {
+        return reply(sock, msg, "❌ Spam läuft bereits in diesem Chat!");
+    }
+
+    reply(sock, msg, "✅ Spam gestartet! Stoppen mit +spam stop");
+
+    spamMap.set(from, true);
+
+    async function sendSpam() {
+        while (spamMap.has(from)) {
+            await sock.sendMessage(from, { text });
+
+            // ⏱️ Delay gegen Bann
+            await new Promise(res => setTimeout(res, 1000));
+        }
+    }
+
+    sendSpam();
 }
 if (command === "grppic") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");

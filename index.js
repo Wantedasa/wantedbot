@@ -14,7 +14,6 @@ const {
 } = mainModule;
 
 import { loadAutoMessages } from "./automsg.js";
-import { updateUserActivity } from "./autofarm.js";
 
 let isGroup = (jid) => jid?.endsWith("@g.us");
 
@@ -202,8 +201,6 @@ async function connectBot() {
             }
 
             await handleCommands(sock, msg);
-            updateUserActivity(sender);
-
             if (isGroup(from) && botConfig.autoReadGroups) {
                 await sock.readMessages([msg.key]);
             }

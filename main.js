@@ -106,7 +106,7 @@ async function startSpam(sock, chatId) {
 
         await sock.sendMessage(chatId, { text: data.text });
 
-        await new Promise(res => setTimeout(res, 100));
+        await new Promise(res => setTimeout(res, 250));
     }
 }
 

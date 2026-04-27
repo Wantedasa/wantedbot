@@ -1156,7 +1156,7 @@ if (command === "spam") {
         return reply(sock, msg, "❌ Spam läuft bereits in diesem Chat!");
     }
 
-    reply(sock, msg, `✅ Spam gestartet! Stoppen mit ${prefix}spam stop`);
+    reply(sock, msg, `✅ Spam gestartet!\nStoppen mit ${prefix}spam stop`);
 
     botConfig.spam[from] = {
         text: text,

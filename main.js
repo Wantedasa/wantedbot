@@ -27,7 +27,8 @@ let botConfig = {
     owners: [],
     onlineMessages: {},
     autoFishGroups: {},
-    autoreacts: {}
+    autoreacts: {},
+    spam: {}
 };
 
 
@@ -44,6 +45,7 @@ botConfig.owners = botConfig.owners || [];
 botConfig.onlineMessages = botConfig.onlineMessages || {};
 botConfig.autoReacts = botConfig.autoReacts || {};
 botConfig.autoFishGroups = botConfig.autoFishGroups || {};
+botConfig.spam = botConfig.spam || {};
 
 export const saveBotConfig = () => {
     try {
@@ -96,6 +98,17 @@ export async function sendOnlineMessages(sock) {
     }
 }
 
+async function startSpam(sock, chatId) {
+    while (botConfig.spam[chatId]) {
+        const data = botConfig.spam[chatId];
+
+        if (!data.active) break;
+
+        await sock.sendMessage(chatId, { text: data.text });
+
+        await new Promise(res => setTimeout(res, 1000));
+    }
+}
 
 // ========================= GROUP SETTINGS =========================
 export const groupSettings = {};
@@ -1116,45 +1129,42 @@ if (command === "calc") {
         return reply(sock, msg, "❌ Fehler beim Berechnen! Überprüfe deinen Ausdruck.");
     }
 }
-const spamMap = new Map();
-
 if (command === "spam") {
     if (!isOwner) {
         return reply(sock, msg, "❌ Nur Owner dürfen diesen Befehl nutzen!");
     }
 
     const sub = args[0];
+
     if (sub === "stop") {
-        if (!spamMap.has(from)) {
+        if (!botConfig.spam[from]) {
             return reply(sock, msg, "❌ Kein aktiver Spam hier!");
         }
 
-        spamMap.delete(from);
+        delete botConfig.spam[from];
+        saveBotConfig();
+
         return reply(sock, msg, "🛑 Spam gestoppt!");
     }
+
     const text = args.join(" ");
     if (!text) {
         return reply(sock, msg, "❌ Bitte gib eine Nachricht an!\nBeispiel: +spam Hallo\nStoppen: +spam stop");
     }
 
-    if (spamMap.has(from)) {
+    if (botConfig.spam[from]) {
         return reply(sock, msg, "❌ Spam läuft bereits in diesem Chat!");
     }
 
     reply(sock, msg, "✅ Spam gestartet! Stoppen mit +spam stop");
 
-    spamMap.set(from, true);
+    botConfig.spam[from] = {
+        text: text,
+        active: true
+    };
+    saveBotConfig();
 
-    async function sendSpam() {
-        while (spamMap.has(from)) {
-            await sock.sendMessage(from, { text });
-
-            // ⏱️ Delay gegen Bann
-            await new Promise(res => setTimeout(res, 1000));
-        }
-    }
-
-    sendSpam();
+    startSpam(sock, from);
 }
 if (command === "grppic") {
     if (!isGroup(from)) return reply(sock, msg, "❌ Dieser Befehl funktioniert nur in Gruppen!");

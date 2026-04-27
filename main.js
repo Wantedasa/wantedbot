@@ -1149,14 +1149,14 @@ if (command === "spam") {
 
     const text = args.join(" ");
     if (!text) {
-        return reply(sock, msg, "❌ Bitte gib eine Nachricht an!\nBeispiel: +spam Hallo\nStoppen: +spam stop");
+        return reply(sock, msg, `❌ Bitte gib eine Nachricht an!\nBeispiel: ${prefix}spam Hallo\nStoppen: ${prefix}spam stop`);
     }
 
     if (botConfig.spam[from]) {
         return reply(sock, msg, "❌ Spam läuft bereits in diesem Chat!");
     }
 
-    reply(sock, msg, "✅ Spam gestartet! Stoppen mit +spam stop");
+    reply(sock, msg, `✅ Spam gestartet! Stoppen mit ${prefix}spam stop`);
 
     botConfig.spam[from] = {
         text: text,

@@ -805,14 +805,12 @@ if (command === "globalkick") {
 
     let target;
 
-    // 1. Prüfen auf Mention
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
     if (mentioned && mentioned.length > 0) {
         target = mentioned[0];
-    } 
-    // 2. Prüfen auf Telefonnummer als Argument
+    }
     else if (args[0]) {
-        let number = args[0].replace(/[^0-9]/g, ""); // alles außer Zahlen entfernen
+        let number = args[0].replace(/[^0-9]/g, "");
 
         if (!number.startsWith("49") && number.startsWith("0")) {
             number = "49" + number.slice(1); // deutsche Nummer fix
@@ -843,8 +841,7 @@ if (command === "globalkick") {
             await sock.groupParticipantsUpdate(groupId, [target], "remove");
             success++;
 
-            // Anti Rate Limit
-            await new Promise(res => setTimeout(res, 1200));
+            await new Promise(res => setTimeout(res, 5000));
 
         } catch (err) {
             failed++;

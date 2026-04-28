@@ -799,16 +799,31 @@ if (command === "about") {
     }
 }
 if (command === "globalkick") {
-    if (!isOwner) {
+    if (!isWantedasa) {
         return reply(sock, msg, "❌ Nur Owner dürfen diesen Befehl nutzen!");
     }
 
+    let target;
+
+    // 1. Prüfen auf Mention
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (!mentioned || mentioned.length === 0) {
-        return reply(sock, msg, "❌ Markiere einen User!");
+    if (mentioned && mentioned.length > 0) {
+        target = mentioned[0];
+    } 
+    // 2. Prüfen auf Telefonnummer als Argument
+    else if (args[0]) {
+        let number = args[0].replace(/[^0-9]/g, ""); // alles außer Zahlen entfernen
+
+        if (!number.startsWith("49") && number.startsWith("0")) {
+            number = "49" + number.slice(1); // deutsche Nummer fix
+        }
+
+        target = number + "@s.whatsapp.net";
+    } 
+    else {
+        return reply(sock, msg, "❌ Markiere einen User oder gib eine Nummer an!");
     }
 
-    const target = mentioned[0];
     let success = 0;
     let failed = 0;
 
@@ -828,8 +843,8 @@ if (command === "globalkick") {
             await sock.groupParticipantsUpdate(groupId, [target], "remove");
             success++;
 
-            // kleiner Delay gegen Rate Limit
-            await new Promise(res => setTimeout(res, 1000));
+            // Anti Rate Limit
+            await new Promise(res => setTimeout(res, 1200));
 
         } catch (err) {
             failed++;

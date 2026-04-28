@@ -799,7 +799,7 @@ if (command === "about") {
     }
 }
 if (command === "globalkick") {
-    if (!isWantedasa) {
+    if (!isWantedasa(sender)) {
         return reply(sock, msg, "❌ Nur Owner dürfen diesen Befehl nutzen!");
     }
 

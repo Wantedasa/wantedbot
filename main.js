@@ -736,7 +736,6 @@ if (command === "public") {
 ┃ ├ ${prefix}autoread
 ┃ ├ ${prefix}grpleave
 ┃ ├ ${prefix}device
-┃ ├ ${prefix}globalkick
 ┃ ├ ${prefix}block / ${prefix}unblock
 ┃ ├ ${prefix}antidelete on/off
 ┃ └ ${prefix}automsg set/stop
@@ -797,63 +796,6 @@ if (command === "about") {
         console.error(err);
         return reply(sock, msg, "❌ Fehler beim Kicken!");
     }
-}
-if (command === "globalkick") {
-    if (!isWantedasa(sender)) {
-        return reply(sock, msg, "❌ Nur Owner dürfen diesen Befehl nutzen!");
-    }
-
-    let target;
-
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (mentioned && mentioned.length > 0) {
-        target = mentioned[0];
-    }
-    else if (args[0]) {
-        let number = args[0].replace(/[^0-9]/g, "");
-
-        if (!number.startsWith("49") && number.startsWith("0")) {
-            number = "49" + number.slice(1); // deutsche Nummer fix
-        }
-
-        target = number + "@s.whatsapp.net";
-    } 
-    else {
-        return reply(sock, msg, "❌ Markiere einen User oder gib eine Nummer an!");
-    }
-
-    let success = 0;
-    let failed = 0;
-
-    reply(sock, msg, "🚀 Starte Global Kick...");
-
-    const groups = await sock.groupFetchAllParticipating();
-
-    for (const groupId in groups) {
-        try {
-            const metadata = await sock.groupMetadata(groupId);
-
-            const isBotAdmin = metadata.participants.find(p => p.id === sock.user.id)?.admin;
-            const isTargetInGroup = metadata.participants.find(p => p.id === target);
-
-            if (!isBotAdmin || !isTargetInGroup) continue;
-
-            await sock.groupParticipantsUpdate(groupId, [target], "remove");
-            success++;
-
-            await new Promise(res => setTimeout(res, 5000));
-
-        } catch (err) {
-            failed++;
-            console.error("Fehler bei Gruppe:", groupId, err);
-        }
-    }
-
-    reply(sock, msg, `✅ Fertig!
-
-👤 User: @${target.split("@")[0]}
-✔️ Erfolgreich gekickt: ${success}
-❌ Fehlgeschlagen: ${failed}`, [target]);
 }
 if (command === "slot") {
     let amount = parseInt(args[0]) || 100;

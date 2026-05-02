@@ -5,6 +5,7 @@ import { exec, spawn } from "child_process";
 import { slot } from "./slot.js";
 import { pay } from "./pay.js";
 import { balance } from "./coins.js";
+import { top } from "./top.js";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -731,6 +732,7 @@ if (command === "public") {
 ┃ *⚝ Gᴀᴍᴇꜱ*
 ┃ ├ ${prefix}coins
 ┃ ├ ${prefix}pay
+┃ ├ ${prefix}top
 ┃ └ ${prefix}slot
 ┃
 ┃ *⚿ Oᴡɴᴇʀ*
@@ -811,6 +813,9 @@ if (command === "pay") {
 }
 if (command === "coins" || command === "balance") {
     return await balance(sock, msg, sender, args);
+}
+if (command === "top" || command === "richlist") {
+    return await top(sock, msg);
 }
 if (command === "emptymsg") {
     return sock.sendMessage(from, {

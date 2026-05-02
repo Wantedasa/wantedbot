@@ -2,7 +2,7 @@
 import { getUser, addCoins, removeCoins } from "./db.js";
 
 // ================= CONFIG =================
-const COOLDOWN = 10000;
+const COOLDOWN = 25000;
 const DEFAULT_AMOUNT = 100;
 
 const emojis = ["🍒", "🍋", "🍉", "🍇", "⭐", "7️⃣"];

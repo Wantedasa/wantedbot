@@ -3,6 +3,8 @@ import path from "path";
 import { exec, spawn } from "child_process";
 
 import { slot } from "./slot.js";
+import { pay } from "./pay.js";
+import { balance } from "./balance.js";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {
@@ -803,83 +805,10 @@ if (command === "slot") {
     slot(sock, msg, sender, amount);
 }
 if (command === "pay") {
-    if (!db.users) db.users = {};
-
-    let target;
-
-    // 📌 Mention check
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (mentioned && mentioned.length > 0) {
-        target = mentioned[0];
-    } 
-    // 📌 Nummer support (z.B +pay 49123456789 1000)
-    else if (args[0]) {
-        const num = args[0].replace(/[^0-9]/g, "");
-        target = num + "@s.whatsapp.net";
-    }
-
-    const amount = parseInt(args[1]);
-
-    // ❌ Fehlerchecks
-    if (!target) {
-        return reply(sock, msg, "❌ Bitte erwähne einen User oder gib eine Nummer an!");
-    }
-
-    if (!amount || isNaN(amount) || amount <= 0) {
-        return reply(sock, msg, "❌ Gib einen gültigen Betrag an!");
-    }
-
-    if (target === sender) {
-        return reply(sock, msg, "❌ Du kannst dir nicht selbst Coins senden!");
-    }
-    if (!db.users[sender]) db.users[sender] = { coins: 0 };
-    if (!db.users[target]) db.users[target] = { coins: 0 };
-
-    // ❌ Zu wenig Coins
-    if (db.users[sender].coins < amount) {
-        return reply(sock, msg, "❌ Du hast nicht genug Coins!");
-    }
-
-    db.users[sender].coins -= amount;
-    db.users[target].coins += amount;
-
-    fs.writeFileSync("./data/botdatabase.json", JSON.stringify(db, null, 2));
-
-    return reply(sock, msg,
-        `💸 *Coins gesendet!*\n\n` +
-        `👤 Von: @${sender.split("@")[0]}\n` +
-        `👤 An: @${target.split("@")[0]}\n` +
-        `💰 Betrag: ${amount} Coins`,
-        { mentions: [sender, target] }
-    );
+    return await pay(sock, msg, sender, args);
 }
 if (command === "coins" || command === "balance") {
-    if (!db.users) db.users = {};
-
-    let target = sender;
-
-    // 📌 Mention check
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid;
-    if (mentioned && mentioned.length > 0) {
-        target = mentioned[0];
-    } 
-    // 📌 Nummer support
-    else if (args[0]) {
-        const num = args[0].replace(/[^0-9]/g, "");
-        target = num + "@s.whatsapp.net";
-    }
-
-    // 📊 User initialisieren
-    if (!db.users[target]) db.users[target] = { coins: 0 };
-
-    const coins = db.users[target].coins || 0;
-
-    return reply(sock, msg,
-        `💰 *Coin Konto*\n\n` +
-        `👤 User: @${target.split("@")[0]}\n` +
-        `💸 Coins: ${coins}`,
-        { mentions: [target] }
-    );
+    return await balance(sock, msg, sender, args);
 }
 if (command === "emptymsg") {
     return sock.sendMessage(from, {

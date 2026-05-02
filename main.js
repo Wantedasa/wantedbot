@@ -4,7 +4,7 @@ import { exec, spawn } from "child_process";
 
 import { slot } from "./slot.js";
 import { pay } from "./pay.js";
-import { balance } from "./balance.js";
+import { balance } from "./coins.js";
 
 // ========================= OWNER SYSTEM =========================
 export const OWNER_SETTINGS = {

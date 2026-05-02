@@ -51,7 +51,7 @@ if (!db.users) db.users = {};
 function createUser(id) {
     return {
         id,
-        coins: 1000,
+        coins: 10000,
         xp: 0,
         level: 1,
         prestige: 0

@@ -729,6 +729,8 @@ if (command === "public") {
 ┃ └ ${prefix}emptymsg
 ┃
 ┃ *⚝ Gᴀᴍᴇꜱ*
+┃ ├ ${prefix}coins
+┃ ├ ${prefix}pay
 ┃ └ ${prefix}slot
 ┃
 ┃ *⚿ Oᴡɴᴇʀ*
